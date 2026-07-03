@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}운영 로그 · WOOK'S CODING{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1 class="page-title">운영 로그</h1>
+  <a href="{% url 'adminpanel:dashboard' %}" class="btn btn-ghost">← 대시보드</a>
+</div>
+
+<section class="panel">
+  <h3 class="sub-title">실행 Job (ExecutionJob)</h3>
+  <table class="table">
+    <thead><tr><th>#</th><th>제출</th><th>유형</th><th>상태</th><th>재시도</th><th>생성</th></tr></thead>
+    <tbody>
+      {% for j in jobs %}
+        <tr><td>{{ j.id }}</td><td>{{ j.submission_id }}</td><td>{{ j.get_job_type_display }}</td>
+            <td><span class="badge badge-status-{{ j.status }}">{{ j.get_status_display }}</span></td>
+            <td>{{ j.retry_count }}/{{ j.max_retry }}</td><td>{{ j.created_at|date:"m-d H:i" }}</td></tr>
+      {% empty %}<tr><td colspan="6" class="empty">Job 내역이 없습니다.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="panel">
+  <h3 class="sub-title">LLM 요청 로그</h3>
+  <table class="table">
+    <thead><tr><th>유형</th><th>request_id</th><th>상태</th><th>생성</th></tr></thead>
+    <tbody>
+      {% for l in llm_logs %}
+        <tr><td>{{ l.get_request_type_display }}</td><td>{{ l.request_id|truncatechars:18 }}</td>
+            <td><span class="badge badge-status-{{ l.status }}">{{ l.get_status_display }}</span></td>
+            <td>{{ l.created_at|date:"m-d H:i" }}</td></tr>
+      {% empty %}<tr><td colspan="4" class="empty">LLM 로그가 없습니다.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="panel">
+  <h3 class="sub-title">에러 로그</h3>
+  <table class="table">
+    <thead><tr><th>발생원</th><th>레벨</th><th>유형</th><th>해결</th><th>생성</th></tr></thead>
+    <tbody>
+      {% for e in error_logs %}
+        <tr><td>{{ e.get_source_display }}</td><td>{{ e.level }}</td><td>{{ e.error_type|truncatechars:24 }}</td>
+            <td>{% if e.is_resolved %}✔{% else %}✖{% endif %}</td><td>{{ e.created_at|date:"m-d H:i" }}</td></tr>
+      {% empty %}<tr><td colspan="5" class="empty">에러 로그가 없습니다.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

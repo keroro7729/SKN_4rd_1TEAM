@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}운영 대시보드 · WOOK'S CODING{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1 class="page-title">운영 대시보드</h1>
+  <a href="{% url 'adminpanel:logs' %}" class="btn btn-ghost">로그 조회</a>
+</div>
+
+<section class="stat-row">
+  <div class="stat-card"><span class="stat-num">{{ stats.users }}</span><span class="stat-label">회원</span></div>
+  <div class="stat-card"><span class="stat-num">{{ stats.problems }}</span><span class="stat-label">문제</span></div>
+  <div class="stat-card"><span class="stat-num">{{ stats.submissions }}</span><span class="stat-label">제출</span></div>
+  <div class="stat-card"><span class="stat-num">{{ stats.wrong_notes }}</span><span class="stat-label">오답노트</span></div>
+  <div class="stat-card"><span class="stat-num">{{ stats.pending_jobs }}</span><span class="stat-label">대기 Job</span></div>
+  <div class="stat-card"><span class="stat-num">{{ stats.unresolved_errors }}</span><span class="stat-label">미해결 에러</span></div>
+</section>
+
+<p class="page-sub">Django 기본 관리자(<a href="/admin/">/admin/</a>)에서 상세 CRUD를 수행할 수 있습니다. 포인트/미션/로그 보완은 STEP-08.</p>
+{% endblock %}

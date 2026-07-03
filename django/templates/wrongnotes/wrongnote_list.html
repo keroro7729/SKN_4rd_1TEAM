@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}오답노트 · WOOK'S CODING{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1 class="page-title">내 오답노트</h1>
+  <a href="{% url 'wrongnotes:ask' %}" class="btn btn-ghost">내 노트에 물어보기</a>
+</div>
+
+<div class="note-list">
+  {% for note in notes %}
+    <article class="card note-card">
+      <div class="note-head">
+        <span class="note-problem">{{ note.problem.title|truncatechars:50 }}</span>
+        <span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span>
+      </div>
+      <div class="note-tags">
+        {% for t in note.tags.all %}<span class="tag">{{ t.name }}</span>{% endfor %}
+      </div>
+      {% if note.comment %}<p class="note-comment">{{ note.comment|truncatechars:160 }}</p>{% endif %}
+      <div class="note-meta">
+        <span>{{ note.created_at|date:"Y-m-d H:i" }}</span>
+        {% if note.is_reviewed %}<span class="reviewed">✔ 복습완료</span>{% endif %}
+      </div>
+    </article>
+  {% empty %}
+    <p class="empty">아직 오답노트가 없습니다. 문제를 풀고 오답을 기록해 보세요.</p>
+  {% endfor %}
+</div>
+
+{% if is_paginated %}
+<nav class="pagination">
+  {% if page_obj.has_previous %}<a class="btn btn-ghost" href="?page={{ page_obj.previous_page_number }}">이전</a>{% endif %}
+  <span class="page-info">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a class="btn btn-ghost" href="?page={{ page_obj.next_page_number }}">다음</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

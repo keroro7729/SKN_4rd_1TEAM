@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}마이페이지 · WOOK'S CODING{% endblock %}
+
+{% block content %}
+<h1 class="page-title">마이페이지</h1>
+
+<section class="stat-row">
+  <div class="stat-card"><span class="stat-num">{{ user.point }}</span><span class="stat-label">보유 포인트</span></div>
+  <div class="stat-card"><span class="stat-num">{{ submissions|length }}</span><span class="stat-label">최근 제출</span></div>
+  <div class="stat-card"><span class="stat-num">{{ wrong_notes|length }}</span><span class="stat-label">최근 오답노트</span></div>
+</section>
+
+<div class="grid-2">
+  <section class="panel">
+    <h3 class="sub-title">최근 제출</h3>
+    <table class="table">
+      <thead><tr><th>문제</th><th>결과</th><th>일시</th></tr></thead>
+      <tbody>
+        {% for s in submissions %}
+          <tr>
+            <td>{{ s.problem.title|truncatechars:28 }}</td>
+            <td><span class="badge badge-status-{{ s.result }}">{{ s.get_result_display }}</span></td>
+            <td>{{ s.created_at|date:"m-d H:i" }}</td>
+          </tr>
+        {% empty %}<tr><td colspan="3" class="empty">제출 내역이 없습니다.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h3 class="sub-title">최근 오답노트</h3>
+    <table class="table">
+      <thead><tr><th>문제</th><th>상태</th><th>복습</th></tr></thead>
+      <tbody>
+        {% for n in wrong_notes %}
+          <tr>
+            <td>{{ n.problem.title|truncatechars:28 }}</td>
+            <td><span class="badge badge-status-{{ n.status }}">{{ n.get_status_display }}</span></td>
+            <td>{% if n.is_reviewed %}✔{% else %}—{% endif %}</td>
+          </tr>
+        {% empty %}<tr><td colspan="3" class="empty">오답노트가 없습니다.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<div class="grid-2">
+  <section class="panel">
+    <h3 class="sub-title">포인트 내역</h3>
+    <table class="table">
+      <thead><tr><th>행동</th><th>포인트</th><th>일시</th></tr></thead>
+      <tbody>
+        {% for pl in point_logs %}
+          <tr><td>{{ pl.get_action_type_display }}</td><td>{{ pl.point }}</td><td>{{ pl.created_at|date:"m-d H:i" }}</td></tr>
+        {% empty %}<tr><td colspan="3" class="empty">포인트 내역이 없습니다.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <h3 class="sub-title">미션 진행</h3>
+    <table class="table">
+      <thead><tr><th>미션</th><th>진행</th><th>상태</th></tr></thead>
+      <tbody>
+        {% for um in user_missions %}
+          <tr>
+            <td>{{ um.mission.title }}</td>
+            <td>{{ um.progress_count }} / {{ um.mission.target_count }}</td>
+            <td><span class="badge badge-status-{{ um.status }}">{{ um.get_status_display }}</span></td>
+          </tr>
+        {% empty %}<tr><td colspan="3" class="empty">진행 중인 미션이 없습니다.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

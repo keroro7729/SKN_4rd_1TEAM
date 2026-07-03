@@ -1,10 +1,10 @@
 # volumes/logs/ — 통합 로그 디렉토리
 
 모든 컴포넌트의 **개발/디버깅/AI연구용** 로그가 이 디렉토리에 모인다.
-docker-compose 에서 `./volumes/logs` 를 각 컨테이너의 `/app/logs` 로 bind mount 하므로
+docker-compose 에서 `./volumes/logs` 를 각 컨테이너의 `/logs` 로 bind mount 하므로
 **컨테이너를 지워도 로그는 호스트에 남는다**(named volume 아님, 직접 열람 가능).
 
-경로는 환경변수 `LOG_DIR` 로 통일(Docker compose 가 `/app/logs` 주입).
+경로는 환경변수 `LOG_DIR` 로 통일(Docker compose 가 `/logs` 주입).
 
 ## 레이아웃
 
@@ -34,6 +34,6 @@ volumes/logs/
 | 변수 | 기본값 | 설명 |
 |---|---|---|
 | `LOG_LEVEL` | `INFO` | 루트 로그 레벨 (DEBUG/INFO/WARNING/ERROR) |
-| `LOG_DIR` | (비움) | 비우면 `<repo루트>/logs`. Docker compose 는 `/app/logs` 주입 |
+| `LOG_DIR` | (비움) | 비우면 `<repo루트>/logs`. Docker compose 는 `/logs` 주입 |
 
 > 자세한 설계는 `llm_wiki/5. WOOKS_CODING_로깅_시스템_v0.1.md` 참고.

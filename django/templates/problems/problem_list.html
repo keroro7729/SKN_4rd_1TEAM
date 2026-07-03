@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}문제 목록 · WOOK'S CODING{% endblock %}
+
+{% block content %}
+<h1 class="page-title">문제 목록</h1>
+
+<form class="filter-form" method="get">
+  <input type="text" name="q" value="{{ q }}" placeholder="제목 검색" class="filter-input">
+  <select name="category" class="filter-input">
+    <option value="">전체 카테고리</option>
+    {% for c in categories %}
+      <option value="{{ c.slug }}" {% if c.slug == cur_category %}selected{% endif %}>{{ c.name }}</option>
+    {% endfor %}
+  </select>
+  <select name="difficulty" class="filter-input">
+    <option value="">전체 난이도</option>
+    {% for value, label in difficulties %}
+      <option value="{{ value }}" {% if value == cur_difficulty %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn">필터</button>
+  <a href="{% url 'problems:list' %}" class="btn btn-ghost">초기화</a>
+</form>
+
+<div class="problem-list">
+  {% for p in problems %}
+    <a class="list-row" href="{% url 'problems:detail' p.pk %}">
+      <span class="list-id">#{{ p.id }}</span>
+      <span class="list-main">
+        <span class="list-title">{{ p.title|truncatechars:70 }}</span>
+        <span class="list-tags">
+          {% for t in p.tags.all %}<span class="tag">{{ t.name }}</span>{% endfor %}
+        </span>
+      </span>
+      <span class="badge badge-{{ p.difficulty }}">{{ p.get_difficulty_display }}</span>
+    </a>
+  {% empty %}
+    <p class="empty">조건에 맞는 문제가 없습니다.</p>
+  {% endfor %}
+</div>
+
+{% if is_paginated %}
+<nav class="pagination">
+  {% if page_obj.has_previous %}
+    <a class="btn btn-ghost" href="?{% if q %}q={{ q }}&{% endif %}{% if cur_category %}category={{ cur_category }}&{% endif %}{% if cur_difficulty %}difficulty={{ cur_difficulty }}&{% endif %}page={{ page_obj.previous_page_number }}">이전</a>
+  {% endif %}
+  <span class="page-info">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}
+    <a class="btn btn-ghost" href="?{% if q %}q={{ q }}&{% endif %}{% if cur_category %}category={{ cur_category }}&{% endif %}{% if cur_difficulty %}difficulty={{ cur_difficulty }}&{% endif %}page={{ page_obj.next_page_number }}">다음</a>
+  {% endif %}
+</nav>
+{% endif %}
+{% endblock %}

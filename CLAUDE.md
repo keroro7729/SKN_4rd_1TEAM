@@ -6,10 +6,10 @@ WOOK'S CODING — AI 기반 코딩 학습 웹앱 (SKN 4차 프로젝트). 문제
 
 1. **STEP 단위 순차 빌드 — 전체를 한 번에 생성하지 말 것.**
    코드생성 지시문 v0.7 규칙상 STEP-01~STEP-10을 순서대로 구현한다.
-   - STEP-01(Django 골격 + `accounts.CustomUser` + 로그인/관리자) **완료**
-   - fastapi_app / worker / nginx 는 **스캐폴딩(동작 스텁)만** 존재
-   - 다음: STEP-02(데이터 모델) → 이후 실제 AI/RAG · 코드 실행 로직
-   - 새 기능은 해당 STEP 범위 안에서만 구현하고, 앞선 STEP을 건너뛰지 않는다.
+   - STEP-01(Django 골격 + `accounts.CustomUser`) · STEP-02(전체 데이터 모델 §7) · STEP-03(화면/URL/View/권한) **완료**
+   - fastapi_app / worker 는 **스캐폴딩(동작 스텁)만** 존재
+   - 다음: STEP-04(코드 실행 Job/Worker) → STEP-05~(FastAPI AI/RAG)
+   - 새 기능은 해당 STEP 범위 안에서만 구현하고, 앞선 STEP을 건너뛰지 않는다. (STEP-03에서 코드실행/Fetch/AI는 화면 DOM만 두고 STEP-04/06/07로 미룸)
 
 2. **로컬 Python은 3.13 (miniconda) → `psycopg2` 금지, `psycopg[binary]`(psycopg3) 사용.**
    psycopg2-binary는 3.13 휠이 없어 소스빌드 실패한다. 바이너리 휠은 psycopg 3.2.2+ 부터 존재.
@@ -65,7 +65,7 @@ WOOK'S CODING — AI 기반 코딩 학습 웹앱 (SKN 4차 프로젝트). 문제
 
 ```
 volumes/
-├─ logs/                              # 로그 (Docker: ./volumes/logs → /app/logs), git 미추적(파일)
+├─ logs/                              # 로그 (Docker: ./volumes/logs → /logs), git 미추적(파일)
 └─ data/<컴포넌트>/<목적>/            # seed 등 입력 데이터, git 추적
    └─ django/seed/problem_dataset.csv # ./volumes/data → /app/data:ro
 ```
@@ -74,14 +74,15 @@ volumes/
 
 ## 로깅
 
-모든 컴포넌트가 `volumes/logs/`에 기록(Docker는 `./volumes/logs:/app/logs` **bind mount** → 컨테이너 지워도 호스트에 보존).
+모든 컴포넌트가 `volumes/logs/`에 기록(Docker는 `./volumes/logs:/logs` **bind mount** → 컨테이너 지워도 호스트에 보존).
 
 ```
 volumes/logs/{django,fastapi,worker}/app.log   # 개발/디버깅 (회전 5MB×5)
 volumes/logs/ai/research.jsonl                  # AI 연구용: LLM/RAG 이벤트 JSON Lines
 ```
 
-- 경로는 env `LOG_DIR`로 통일 — **Docker는 compose가 `/app/logs` 주입**(비우면 코드 기본값 `<repo>/logs`이나 실행은 docker 전용). (`or` 패턴으로 빈 값 gotcha 회피)
+- 경로는 env `LOG_DIR`로 통일 — **Docker는 compose가 `/logs` 주입**(비우면 코드 기본값 `<repo>/logs`이나 실행은 docker 전용). (`or` 패턴으로 빈 값 gotcha 회피)
+- ⚠️ **로그 마운트는 반드시 `/app` 밖(`/logs`)에.** Django `logs` 앱이 `/app/logs`에 있어, 로그 볼륨을 `/app/logs`에 마운트하면 앱 코드가 가려져 `logs.models` ImportError + `logs` 마이그레이션 누락이 발생한다(겪고 수정함). 앱 이름과 마운트 경로 충돌 주의.
 - 레벨은 env `LOG_LEVEL`(기본 INFO).
 - **FastAPI**: `logging_setup.py`의 `setup_logging()`(main.py에서 호출) + `log_ai_event(event, **fields)`로 `research.jsonl` 기록. 라우터에 계측 지점 존재(`hint`/`rag_search`/`analyze`/`note_ask`).
 - **사람이 읽는 로그(app.log)와 기계가 읽는 로그(research.jsonl)를 섞지 말 것.**

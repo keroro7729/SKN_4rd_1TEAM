@@ -12,10 +12,14 @@
     <a class="logo" href="{% url 'home' %}">WOOK'S CODING</a>
     <nav class="nav">
       {% if user.is_authenticated %}
-        <span class="nav-user">{{ user.username }} · {{ user.point }}P</span>
+        <a href="{% url 'problems:list' %}">문제</a>
+        <a href="{% url 'wrongnotes:list' %}">오답노트</a>
+        <a href="{% url 'wrongnotes:ask' %}">내 노트 질문</a>
+        <a href="{% url 'mypage:index' %}">마이페이지</a>
         {% if user.is_service_admin %}
-          <a href="/admin/">관리자</a>
+          <a href="{% url 'adminpanel:dashboard' %}">운영</a>
         {% endif %}
+        <span class="nav-user">{{ user.username }} · {{ user.point }}P</span>
         <form action="{% url 'accounts:logout' %}" method="post" class="logout-form">
           {% csrf_token %}
           <button type="submit" class="btn btn-ghost">로그아웃</button>

@@ -50,8 +50,9 @@ INSTALLED_APPS = [
     "gamification",
     "notices",
     "logs",
-    # 이후 STEP에서 추가 예정 (view 계층):
-    # "mypage", "adminpanel",
+    # STEP-03 화면(view 계층) 앱
+    "mypage",
+    "adminpanel",
 ]
 
 MIDDLEWARE = [

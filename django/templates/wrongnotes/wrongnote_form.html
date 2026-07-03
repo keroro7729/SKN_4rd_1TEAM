@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}오답노트 작성 · WOOK'S CODING{% endblock %}
+
+{% block content %}
+<h1 class="page-title">오답노트 작성</h1>
+
+<section class="panel" data-submission-id="{{ submission.id }}" data-problem-id="{{ problem.id }}">
+  <div class="note-head">
+    <span class="note-problem">{{ problem.title }}</span>
+    <span class="badge badge-{{ problem.difficulty }}">{{ problem.get_difficulty_display }}</span>
+  </div>
+
+  <h3 class="sub-title">제출한 코드</h3>
+  <pre class="code-view">{{ submission.code }}</pre>
+
+  <h3 class="sub-title">코멘트 (무엇을 왜 틀렸는지)</h3>
+  <textarea id="wrongnote-comment" class="code-input" placeholder="예: 인덱스 범위를 잘못 계산했다"></textarea>
+
+  <div class="editor-actions">
+    <!-- STEP-07 Fetch: 저장 + FastAPI /ai/wrong-note/analyze 연결 -->
+    <button id="wrongnote-save-btn" type="button" class="btn" disabled>오답노트 저장</button>
+    <span class="hint-note">저장·AI 분석 연결은 STEP-06/07에서 구현됩니다.</span>
+  </div>
+
+  <!-- STEP-07 Fetch 대상 DOM -->
+  <div id="similar-notes" class="result-area" hidden></div>
+  <div id="ai-analysis" class="result-area" hidden></div>
+</section>
+
+<p class="back-link"><a href="{% url 'wrongnotes:list' %}">← 오답노트 목록</a></p>
+{% endblock %}

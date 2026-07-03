@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ problem.title|truncatechars:30 }} · 문제풀이{% endblock %}
+
+{% block content %}
+<div class="solve-layout">
+  <!-- 좌: 문제 -->
+  <section class="panel problem-pane">
+    <div class="problem-head">
+      <span class="badge badge-{{ problem.difficulty }}">{{ problem.get_difficulty_display }}</span>
+      {% for t in problem.tags.all %}<span class="tag">{{ t.name }}</span>{% endfor %}
+    </div>
+    <h1 class="problem-title">{{ problem.title }}</h1>
+    <div class="problem-desc">{{ problem.description|linebreaksbr }}</div>
+
+    {% if problem.constraints %}
+      <h3 class="sub-title">제약조건</h3>
+      <div class="problem-desc">{{ problem.constraints|linebreaksbr }}</div>
+    {% endif %}
+
+    {% if sample_cases %}
+      <h3 class="sub-title">예제</h3>
+      {% for tc in sample_cases %}
+        <div class="testcase">
+          <div><strong>입력</strong><pre>{{ tc.input_data }}</pre></div>
+          <div><strong>출력</strong><pre>{{ tc.expected_output }}</pre></div>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </section>
+
+  <!-- 우: 코드 에디터 (실행/제출 로직은 STEP-04, Fetch 연결은 STEP-07) -->
+  <section class="panel editor-pane" data-problem-id="{{ problem.id }}">
+    <label class="sub-title" for="code-input">코드 (Python 3.11)</label>
+    <textarea id="code-input" class="code-input" spellcheck="false"
+              placeholder="여기에 코드를 작성하세요"># 여기에 코드를 작성하세요
+</textarea>
+
+    <div class="editor-actions">
+      <button id="run-btn" type="button" class="btn btn-ghost" disabled>실행</button>
+      <button id="submit-btn" type="button" class="btn" disabled>제출</button>
+      <span class="hint-note">실행/제출은 STEP-04, AI 힌트는 STEP-06/07에서 연결됩니다.</span>
+    </div>
+
+    <!-- STEP-07 Fetch 대상 DOM -->
+    <div id="result-area" class="result-area" hidden></div>
+
+    <div class="hint-box">
+      <div class="hint-levels">
+        <button type="button" class="btn btn-ghost hint-btn" data-level="1" disabled>힌트 1</button>
+        <button type="button" class="btn btn-ghost hint-btn" data-level="2" disabled>힌트 2</button>
+        <button type="button" class="btn btn-ghost hint-btn" data-level="3" disabled>힌트 3</button>
+      </div>
+      <div id="hint-area" class="hint-area" hidden></div>
+    </div>
+  </section>
+</div>
+
+<p class="back-link"><a href="{% url 'problems:list' %}">← 목록으로</a></p>
+{% endblock %}

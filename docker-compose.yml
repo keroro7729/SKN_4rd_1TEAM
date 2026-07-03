@@ -31,19 +31,19 @@ services:
     env_file: .env
     environment:
       POSTGRES_HOST: postgres
-      LOG_DIR: /app/logs
+      LOG_DIR: /logs   # /app/logs 는 Django 'logs' 앱과 충돌 → /logs 로 분리
     # migrate 결과는 migrate.log 로, gunicorn 실행 로그는 access/error.log 로 남긴다.
     # (migrate 실패 시 '>' 리다이렉트가 exit code 를 보존 → && 체인이 멈춰 원인 확인 가능)
     # ⚠️ YAML folded(>) 는 더 들여쓴 줄의 개행을 보존한다. 각 셸 구문은 반드시
     #    한 물리적 줄에 두고 '&&' 로 끝낼 것(gunicorn 플래그를 다음 줄로 내리면 명령이 끊긴다).
     command: >
-      sh -c "mkdir -p /app/logs/django &&
-             python manage.py migrate --no-input > /app/logs/django/migrate.log 2>&1 &&
+      sh -c "mkdir -p /logs/django &&
+             python manage.py migrate --no-input > /logs/django/migrate.log 2>&1 &&
              python manage.py collectstatic --noinput &&
-             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --access-logfile /app/logs/django/access.log --error-logfile /app/logs/django/error.log --capture-output"
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --access-logfile /logs/django/access.log --error-logfile /logs/django/error.log --capture-output"
     volumes:
       - staticfiles:/app/staticfiles
-      - ./volumes/logs:/app/logs        # 개발/디버깅/AI연구용 로그 (호스트 보존)
+      - ./volumes/logs:/logs        # 개발/디버깅/AI연구용 로그 (호스트 보존)
       - ./volumes/data:/app/data:ro     # seed 데이터(CSV) 적재용 — 읽기 전용
     depends_on:
       postgres:
@@ -55,9 +55,9 @@ services:
     env_file: .env
     environment:
       CHROMA_HOST: chromadb
-      LOG_DIR: /app/logs
+      LOG_DIR: /logs   # /app/logs 는 Django 'logs' 앱과 충돌 → /logs 로 분리
     volumes:
-      - ./volumes/logs:/app/logs        # app.log + ai/research.jsonl (호스트 보존)
+      - ./volumes/logs:/logs        # app.log + ai/research.jsonl (호스트 보존)
     depends_on:
       - chromadb
     # 내부 네트워크 전용 (Django가 http://fastapi:8001 로 호출)
@@ -67,9 +67,9 @@ services:
     env_file: .env
     environment:
       POSTGRES_HOST: postgres
-      LOG_DIR: /app/logs
+      LOG_DIR: /logs   # /app/logs 는 Django 'logs' 앱과 충돌 → /logs 로 분리
     volumes:
-      - ./volumes/logs:/app/logs        # worker/app.log (호스트 보존)
+      - ./volumes/logs:/logs        # worker/app.log (호스트 보존)
     depends_on:
       postgres:
         condition: service_healthy   # postgres 준비 후 polling 시작(초기 노이즈 감소)
