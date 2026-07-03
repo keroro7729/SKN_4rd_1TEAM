@@ -1,0 +1,68 @@
+# WOOK'S CODING - 전체 컴포넌트 오케스트레이션 (STEP-09 프리뷰)
+# 루트 통합 .env 를 모든 서비스가 공유한다.
+
+services:
+  postgres:
+    image: postgres:16
+    env_file: .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  chromadb:
+    image: chromadb/chroma:0.5.3
+    volumes:
+      - chromadata:/chroma/chroma
+    # 내부 네트워크 전용 (외부 미노출)
+
+  django:
+    build: ./django
+    env_file: .env
+    environment:
+      POSTGRES_HOST: postgres
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - staticfiles:/app/staticfiles
+    depends_on:
+      - postgres
+    # 내부 네트워크 전용 (Nginx를 통해서만 노출)
+
+  fastapi:
+    build: ./fastapi_app
+    env_file: .env
+    environment:
+      CHROMA_HOST: chromadb
+    depends_on:
+      - chromadb
+    # 내부 네트워크 전용 (Django가 http://fastapi:8001 로 호출)
+
+  worker:
+    build: ./worker
+    env_file: .env
+    environment:
+      POSTGRES_HOST: postgres
+    depends_on:
+      - postgres
+
+  nginx:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - staticfiles:/staticfiles:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - django
+
+volumes:
+  pgdata:
+  chromadata:
+  staticfiles:
