@@ -5,8 +5,11 @@ PostgreSQL `jobs` 테이블을 polling 하여 pending Job을 실행한다.
 
 Job 상태 생명주기: pending -> running -> success | failed | timeout
 
-주의: jobs / submissions / test_cases 테이블은 STEP-02(데이터 모델)에서 생성된다.
-아래 SQL은 해당 스키마를 전제로 한 골격이며, 테이블 생성 전에는 동작하지 않는다.
+STEP-02 실제 테이블명(Django 규칙 <app>_<model>):
+  - ExecutionJob -> submissions_executionjob (컬럼: id, submission_id, job_type, status ...)
+  - Submission   -> submissions_submission
+  - TestCase     -> problems_testcase
+아래 SQL은 STEP-02 스키마에 정합돼 있으며, 실제 실행/채점 로직은 STEP-04 에서 채운다.
 """
 import time
 
@@ -30,8 +33,8 @@ def process_one(conn) -> bool:
         cur.execute(
             """
             SELECT id, submission_id
-              FROM jobs
-             WHERE status = 'pending' AND job_type = 'code_execution'
+              FROM submissions_executionjob
+             WHERE status = 'pending' AND job_type = 'code_run'
              ORDER BY id
              FOR UPDATE SKIP LOCKED
              LIMIT 1
@@ -42,7 +45,10 @@ def process_one(conn) -> bool:
             return False
 
         job_id, submission_id = row
-        cur.execute("UPDATE jobs SET status='running' WHERE id=%s", (job_id,))
+        cur.execute(
+            "UPDATE submissions_executionjob SET status='running' WHERE id=%s",
+            (job_id,),
+        )
     conn.commit()
 
     # TODO(STEP-04): submissions.code / test_cases 조회 -> run_code -> compare_output

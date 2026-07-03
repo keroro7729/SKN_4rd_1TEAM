@@ -43,9 +43,15 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # 서비스 앱
     "accounts",
-    # 이후 STEP에서 추가 예정:
-    # "notices", "problems", "submissions", "wrongnotes",
-    # "llm", "gamification", "mypage", "adminpanel", "logs",
+    # STEP-02 데이터 모델 (지시문 §7)
+    "problems",
+    "submissions",
+    "wrongnotes",
+    "gamification",
+    "notices",
+    "logs",
+    # 이후 STEP에서 추가 예정 (view 계층):
+    # "mypage", "adminpanel",
 ]
 
 MIDDLEWARE = [

@@ -13,6 +13,12 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    # 접속 준비 완료를 알려야 django/worker 의 migrate/polling 이 안전하게 시작된다.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
 
   chromadb:
     image: chromadb/chroma:0.5.3
@@ -26,15 +32,21 @@ services:
     environment:
       POSTGRES_HOST: postgres
       LOG_DIR: /app/logs
+    # migrate 결과는 migrate.log 로, gunicorn 실행 로그는 access/error.log 로 남긴다.
+    # (migrate 실패 시 '>' 리다이렉트가 exit code 를 보존 → && 체인이 멈춰 원인 확인 가능)
+    # ⚠️ YAML folded(>) 는 더 들여쓴 줄의 개행을 보존한다. 각 셸 구문은 반드시
+    #    한 물리적 줄에 두고 '&&' 로 끝낼 것(gunicorn 플래그를 다음 줄로 내리면 명령이 끊긴다).
     command: >
-      sh -c "python manage.py migrate &&
+      sh -c "mkdir -p /app/logs/django &&
+             python manage.py migrate --no-input > /app/logs/django/migrate.log 2>&1 &&
              python manage.py collectstatic --noinput &&
-             gunicorn config.wsgi:application --bind 0.0.0.0:8000"
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --access-logfile /app/logs/django/access.log --error-logfile /app/logs/django/error.log --capture-output"
     volumes:
       - staticfiles:/app/staticfiles
       - ./logs:/app/logs        # 개발/디버깅/AI연구용 로그 (호스트 보존)
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy   # migrate 를 postgres 준비 후에만 실행
     # 내부 네트워크 전용 (Nginx를 통해서만 노출)
 
   fastapi:
@@ -58,7 +70,8 @@ services:
     volumes:
       - ./logs:/app/logs        # worker/app.log (호스트 보존)
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy   # postgres 준비 후 polling 시작(초기 노이즈 감소)
 
   nginx:
     image: nginx:1.27-alpine
