@@ -43,7 +43,8 @@ services:
              gunicorn config.wsgi:application --bind 0.0.0.0:8000 --access-logfile /app/logs/django/access.log --error-logfile /app/logs/django/error.log --capture-output"
     volumes:
       - staticfiles:/app/staticfiles
-      - ./logs:/app/logs        # 개발/디버깅/AI연구용 로그 (호스트 보존)
+      - ./volumes/logs:/app/logs        # 개발/디버깅/AI연구용 로그 (호스트 보존)
+      - ./volumes/data:/app/data:ro     # seed 데이터(CSV) 적재용 — 읽기 전용
     depends_on:
       postgres:
         condition: service_healthy   # migrate 를 postgres 준비 후에만 실행
@@ -56,7 +57,7 @@ services:
       CHROMA_HOST: chromadb
       LOG_DIR: /app/logs
     volumes:
-      - ./logs:/app/logs        # app.log + ai/research.jsonl (호스트 보존)
+      - ./volumes/logs:/app/logs        # app.log + ai/research.jsonl (호스트 보존)
     depends_on:
       - chromadb
     # 내부 네트워크 전용 (Django가 http://fastapi:8001 로 호출)
@@ -68,7 +69,7 @@ services:
       POSTGRES_HOST: postgres
       LOG_DIR: /app/logs
     volumes:
-      - ./logs:/app/logs        # worker/app.log (호스트 보존)
+      - ./volumes/logs:/app/logs        # worker/app.log (호스트 보존)
     depends_on:
       postgres:
         condition: service_healthy   # postgres 준비 후 polling 시작(초기 노이즈 감소)

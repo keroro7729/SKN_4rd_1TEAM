@@ -59,16 +59,29 @@ WOOK'S CODING — AI 기반 코딩 학습 웹앱 (SKN 4차 프로젝트). 문제
 - ⚠️ `postgres`가 host에 `5432` 노출 중 → **EC2 배포 시 닫을 것**.
 - 상세: `llm_wiki/4. WOOKS_CODING_데이터_소유권_및_의존구조_v0.1.md`
 
+## 볼륨(호스트 바인드 마운트) 디렉토리 — `volumes/`
+
+호스트에 보존되는 바인드 마운트는 모두 `volumes/` 아래로 모은다(named volume 인 pgdata/chromadata/staticfiles 와 별개).
+
+```
+volumes/
+├─ logs/                              # 로그 (Docker: ./volumes/logs → /app/logs), git 미추적(파일)
+└─ data/<컴포넌트>/<목적>/            # seed 등 입력 데이터, git 추적
+   └─ django/seed/problem_dataset.csv # ./volumes/data → /app/data:ro
+```
+
+- seed 적재: `docker compose run --build --rm django python manage.py load_problems` (상세는 `problems` 앱의 `load_problems` 명령).
+
 ## 로깅
 
-모든 컴포넌트가 리포 루트 `logs/`에 기록(Docker는 `./logs:/app/logs` **bind mount** → 컨테이너 지워도 호스트에 보존).
+모든 컴포넌트가 `volumes/logs/`에 기록(Docker는 `./volumes/logs:/app/logs` **bind mount** → 컨테이너 지워도 호스트에 보존).
 
 ```
-logs/{django,fastapi,worker}/app.log   # 개발/디버깅 (회전 5MB×5)
-logs/ai/research.jsonl                  # AI 연구용: LLM/RAG 이벤트 JSON Lines
+volumes/logs/{django,fastapi,worker}/app.log   # 개발/디버깅 (회전 5MB×5)
+volumes/logs/ai/research.jsonl                  # AI 연구용: LLM/RAG 이벤트 JSON Lines
 ```
 
-- 경로는 env `LOG_DIR`로 통일 — **비우면 `<repo>/logs`, Docker는 compose가 `/app/logs` 주입**. (`or` 패턴으로 빈 값 gotcha 회피)
+- 경로는 env `LOG_DIR`로 통일 — **Docker는 compose가 `/app/logs` 주입**(비우면 코드 기본값 `<repo>/logs`이나 실행은 docker 전용). (`or` 패턴으로 빈 값 gotcha 회피)
 - 레벨은 env `LOG_LEVEL`(기본 INFO).
 - **FastAPI**: `logging_setup.py`의 `setup_logging()`(main.py에서 호출) + `log_ai_event(event, **fields)`로 `research.jsonl` 기록. 라우터에 계측 지점 존재(`hint`/`rag_search`/`analyze`/`note_ask`).
 - **사람이 읽는 로그(app.log)와 기계가 읽는 로그(research.jsonl)를 섞지 말 것.**
