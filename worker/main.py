@@ -13,7 +13,10 @@ import time
 import psycopg
 
 from config import DB_CONFIG, POLL_INTERVAL_SEC
+from logging_setup import setup_logging
 from runner import compare_output, run_code
+
+log = setup_logging()
 
 
 def connect():
@@ -50,7 +53,7 @@ def process_one(conn) -> bool:
 
 
 def main() -> None:
-    print("[worker] started. polling jobs ...")
+    log.info("started. polling jobs ...")
     while True:
         try:
             with connect() as conn:
@@ -58,7 +61,7 @@ def main() -> None:
             if not worked:
                 time.sleep(POLL_INTERVAL_SEC)
         except Exception as exc:  # noqa: BLE001 - 골격: 루프 유지
-            print(f"[worker] error: {exc}")
+            log.error("error: %s", exc)
             time.sleep(POLL_INTERVAL_SEC)
 
 

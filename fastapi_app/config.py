@@ -24,3 +24,8 @@ CHROMA_COLLECTION = os.environ.get("CHROMA_COLLECTION", "wrong_note_embeddings")
 # --- RAG 기본값 (지시문 §3 확정 기준) ---
 RAG_SCORE_THRESHOLD = float(os.environ.get("RAG_SCORE_THRESHOLD", "0.35"))
 RAG_TOP_K = int(os.environ.get("TOP_K", "5"))
+
+# --- 로깅 (개발/디버깅/AI연구용) ---
+# LOG_DIR 이 비면 <repo루트>/logs. Docker 는 compose 가 /app/logs 주입.
+LOG_DIR = Path(os.environ.get("LOG_DIR") or (ROOT / "logs"))
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()

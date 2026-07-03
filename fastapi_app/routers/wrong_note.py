@@ -1,6 +1,7 @@
 """오답노트 RAG API (/ai/wrong-note/*)."""
 from fastapi import APIRouter, Depends
 
+import config
 from schemas.common import LLMStatus
 from schemas.wrong_note import (
     NoteAskRequest,
@@ -12,6 +13,7 @@ from schemas.wrong_note import (
     WrongNoteSearchRequest,
     WrongNoteSearchResponse,
 )
+from logging_setup import log_ai_event
 from services import chroma, llm
 from services.security import verify_internal
 
@@ -24,6 +26,9 @@ async def search(req: WrongNoteSearchRequest, _=Depends(verify_internal)):
     query = f"{req.problem_title or ''} {req.user_comment} {' '.join(req.tags)}"
     results = chroma.search_user_notes(req.user_id, query)
     status = LLMStatus.success if results else LLMStatus.empty
+    log_ai_event(
+        "rag_search", user_id=req.user_id, top_k=config.RAG_TOP_K, hits=len(results)
+    )
     return WrongNoteSearchResponse(status=status, results=results)
 
 
@@ -31,6 +36,7 @@ async def search(req: WrongNoteSearchRequest, _=Depends(verify_internal)):
 async def analyze(req: WrongNoteAnalyzeRequest, _=Depends(verify_internal)):
     """오답 원인 분석."""
     result = await llm.analyze_wrong_note(req.code, req.comment, evidence=[])
+    log_ai_event("analyze", model=config.OPENAI_MODEL)
     return WrongNoteAnalyzeResponse(status=LLMStatus.success, **result)
 
 
@@ -46,6 +52,7 @@ async def ask(req: NoteAskRequest, _=Depends(verify_internal)):
     """내 노트에 물어보기 (본인 노트만, 근거 note_id 포함)."""
     evidence = chroma.search_user_notes(req.user_id, req.question)
     answer = await llm.answer_from_notes(req.question, evidence)
+    log_ai_event("note_ask", user_id=req.user_id, hits=len(evidence))
     return NoteAskResponse(
         status=LLMStatus.success if evidence else LLMStatus.empty,
         answer=answer,
