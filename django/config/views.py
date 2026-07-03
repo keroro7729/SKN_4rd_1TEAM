@@ -1,4 +1,6 @@
-"""최상위 화면 뷰 (Home)."""
+"""최상위 화면 뷰."""
+from django.http import JsonResponse
+from django.views import View
 from django.views.generic import TemplateView
 
 from gamification.models import Mission
@@ -15,3 +17,10 @@ class HomeView(TemplateView):
         ctx["notices"] = Notice.objects.filter(is_published=True)[:5]
         ctx["missions"] = Mission.objects.filter(is_active=True)[:5]
         return ctx
+
+
+class HealthCheckView(View):
+    """컨테이너 준비 상태 확인용 경량 엔드포인트."""
+
+    def get(self, request, *args, **kwargs):
+        return JsonResponse({"status": "ok"})

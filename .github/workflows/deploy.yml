@@ -2,7 +2,7 @@ name: Deploy to EC2
 
 on:
   push:
-    branches: ["main"]  # 브랜치명
+    branches: ["main"]
 
 jobs:
   deploy:
@@ -22,5 +22,17 @@ jobs:
             git reset --hard origin/main
             test -f .env
             docker compose up --build -d
+            for i in $(seq 1 30); do
+              if docker compose exec -T django python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/', timeout=5).read()"; then
+                break
+              fi
+              if [ "$i" -eq 30 ]; then
+                docker compose logs --tail=100 django
+                exit 1
+              fi
+              sleep 2
+            done
+            docker compose restart nginx
             docker compose ps
             docker compose exec -T django python manage.py check
+            curl -fsSI http://localhost/health/ >/dev/null
