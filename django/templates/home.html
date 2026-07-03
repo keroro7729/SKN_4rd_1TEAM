@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}WOOK'S CODING · 홈{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1 class="hero-title">WOOK'S CODING</h1>
+  <p class="hero-sub">문제를 풀고, 실행하고, 오답노트 RAG로 나의 반복 실수를 추적하는 AI 코딩 학습</p>
+
+  {% if user.is_authenticated %}
+    <p class="hero-welcome">{{ user.username }}님, 환영합니다 👋</p>
+    <div class="hero-actions">
+      <a class="btn btn-lg" href="#">학습 시작</a>
+    </div>
+  {% else %}
+    <div class="hero-actions">
+      <a class="btn btn-lg" href="{% url 'accounts:login' %}">로그인</a>
+      <a class="btn btn-lg btn-ghost" href="{% url 'accounts:signup' %}">회원가입</a>
+    </div>
+  {% endif %}
+</section>
+
+<section class="feature-grid">
+  <div class="feature-card"><h3>문제풀이 · 코드 실행</h3><p>Docker Worker 격리 실행</p></div>
+  <div class="feature-card"><h3>AI 단계별 힌트</h3><p>1~3단계 사고 유도</p></div>
+  <div class="feature-card"><h3>오답노트 RAG</h3><p>note_id / source / score 근거 표시</p></div>
+</section>
+{% endblock %}

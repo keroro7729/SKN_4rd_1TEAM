@@ -1,0 +1,128 @@
+/* WOOK'S CODING - 다크 레트로 RPG / 도트 게임풍 기본 톤 (STEP-01) */
+:root {
+  --bg: #14131f;
+  --panel: #1e1c2e;
+  --panel-2: #272442;
+  --line: #3a3663;
+  --text: #e8e6f5;
+  --muted: #9a95c2;
+  --accent: #7c5cff;
+  --accent-2: #35d0a5;
+  --danger: #ff6b81;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Malgun Gothic", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- 헤더 --- */
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 24px;
+  background: var(--panel);
+  border-bottom: 2px solid var(--line);
+}
+.logo {
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 1.15rem;
+}
+.nav { display: flex; align-items: center; gap: 14px; }
+.nav a { color: var(--muted); text-decoration: none; }
+.nav a:hover { color: var(--text); }
+.nav-user { color: var(--accent-2); font-size: 0.9rem; }
+.logout-form { margin: 0; }
+
+/* --- 버튼 --- */
+.btn {
+  display: inline-block;
+  padding: 8px 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.btn:hover { filter: brightness(1.1); }
+.btn-ghost { background: transparent; border: 1px solid var(--line); color: var(--text); }
+.btn-lg { padding: 12px 26px; font-size: 1.05rem; }
+.btn-block { width: 100%; margin-top: 8px; }
+
+/* --- 본문 --- */
+.content { flex: 1; width: 100%; max-width: 960px; margin: 0 auto; padding: 32px 20px; }
+
+/* --- 홈 히어로 --- */
+.hero { text-align: center; padding: 40px 0; }
+.hero-title { font-size: 2.4rem; margin: 0 0 12px; letter-spacing: 2px; }
+.hero-sub { color: var(--muted); margin: 0 0 24px; }
+.hero-welcome { color: var(--accent-2); font-size: 1.1rem; }
+.hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 40px;
+}
+.feature-card {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+}
+.feature-card h3 { margin: 0 0 6px; font-size: 1.05rem; }
+.feature-card p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+/* --- 인증 카드 (로그인/회원가입) --- */
+.auth-card {
+  max-width: 380px;
+  margin: 40px auto;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 28px;
+}
+.auth-title { margin: 0 0 20px; text-align: center; }
+.auth-form { display: flex; flex-direction: column; gap: 6px; }
+.auth-form label { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+.auth-form input {
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+.auth-form input:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+.auth-alt { text-align: center; margin-top: 16px; color: var(--muted); font-size: 0.9rem; }
+.auth-alt a { color: var(--accent-2); }
+.auth-error { color: var(--danger); text-align: center; margin: 0 0 12px; }
+.field-error { color: var(--danger); font-size: 0.8rem; }
+.field-help { color: var(--muted); font-size: 0.75rem; }
+
+/* --- 메시지 --- */
+.messages { list-style: none; padding: 0; }
+.msg { padding: 10px 14px; border-radius: 8px; background: var(--panel-2); margin-bottom: 8px; }
+
+/* --- 푸터 --- */
+.site-footer {
+  text-align: center;
+  padding: 16px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  border-top: 2px solid var(--line);
+}

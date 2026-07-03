@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Django
+*.log
+staticfiles/
+media/
+db.sqlite3
+
+# 환경변수 (비밀값)
+.env
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+.cluade/
+.personal/

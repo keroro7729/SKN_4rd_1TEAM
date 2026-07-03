@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}WOOK'S CODING{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="{% url 'home' %}">WOOK'S CODING</a>
+    <nav class="nav">
+      {% if user.is_authenticated %}
+        <span class="nav-user">{{ user.username }} · {{ user.point }}P</span>
+        {% if user.is_service_admin %}
+          <a href="/admin/">관리자</a>
+        {% endif %}
+        <form action="{% url 'accounts:logout' %}" method="post" class="logout-form">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-ghost">로그아웃</button>
+        </form>
+      {% else %}
+        <a href="{% url 'accounts:login' %}">로그인</a>
+        <a href="{% url 'accounts:signup' %}" class="btn">회원가입</a>
+      {% endif %}
+    </nav>
+  </header>
+
+  <main class="content">
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li class="msg {{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <span>WOOK'S CODING · AI 기반 코딩 학습 · SKN 4차 프로젝트</span>
+  </footer>
+</body>
+</html>
