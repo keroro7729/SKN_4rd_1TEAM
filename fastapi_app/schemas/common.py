@@ -27,3 +27,4 @@ class InternalResponse(BaseModel):
     """내부 API 공통 응답 추적 필드."""
 
     request_id: Optional[str] = Field(default=None, description="X-Request-ID")
+    message: Optional[str] = None

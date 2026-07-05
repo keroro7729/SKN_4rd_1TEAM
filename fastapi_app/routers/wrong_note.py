@@ -15,6 +15,7 @@ from schemas.wrong_note import (
 )
 from logging_setup import log_ai_event
 from services import chroma, llm
+from services.llm import LLMNotImplementedError
 from services.security import verify_internal
 
 router = APIRouter(prefix="/ai/wrong-note", tags=["wrong-note"])
@@ -39,7 +40,19 @@ async def search(req: WrongNoteSearchRequest, ctx=Depends(verify_internal)):
 @router.post("/analyze", response_model=WrongNoteAnalyzeResponse)
 async def analyze(req: WrongNoteAnalyzeRequest, ctx=Depends(verify_internal)):
     """오답 원인 분석."""
-    result = await llm.analyze_wrong_note(req.code, req.comment, evidence=[])
+    try:
+        result = await llm.analyze_wrong_note(req.code, req.comment, evidence=[])
+    except LLMNotImplementedError:
+        log_ai_event(
+            "analyze",
+            model=config.OPENAI_MODEL,
+            status="not_implemented",
+        )
+        return WrongNoteAnalyzeResponse(
+            request_id=ctx["request_id"],
+            status=LLMStatus.failed,
+            message="not_implemented",
+        )
     log_ai_event("analyze", model=config.OPENAI_MODEL)
     return WrongNoteAnalyzeResponse(
         request_id=ctx["request_id"],
@@ -68,7 +81,33 @@ async def embed(req: WrongNoteEmbedRequest, ctx=Depends(verify_internal)):
 async def ask(req: NoteAskRequest, ctx=Depends(verify_internal)):
     """내 노트에 물어보기 (본인 노트만, 근거 note_id 포함)."""
     evidence = chroma.search_user_notes(req.user_id, req.question)
-    answer = await llm.answer_from_notes(req.question, evidence)
+    if not evidence:
+        log_ai_event("note_ask", user_id=req.user_id, hits=0)
+        return NoteAskResponse(
+            request_id=ctx["request_id"],
+            status=LLMStatus.empty,
+            message="not_enough_evidence",
+            answer="",
+            evidence_note_ids=[],
+            scores=[],
+        )
+    try:
+        answer = await llm.answer_from_notes(req.question, evidence)
+    except LLMNotImplementedError:
+        log_ai_event(
+            "note_ask",
+            user_id=req.user_id,
+            hits=len(evidence),
+            status="not_implemented",
+        )
+        return NoteAskResponse(
+            request_id=ctx["request_id"],
+            status=LLMStatus.failed,
+            message="not_implemented",
+            answer="",
+            evidence_note_ids=[e.note_id for e in evidence],
+            scores=[e.score for e in evidence],
+        )
     log_ai_event("note_ask", user_id=req.user_id, hits=len(evidence))
     return NoteAskResponse(
         request_id=ctx["request_id"],

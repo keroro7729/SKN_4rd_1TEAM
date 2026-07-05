@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     "gamification",
     "notices",
     "logs",
+    "ai_proxy",
     # STEP-03 화면(view 계층) 앱
     "mypage",
     "adminpanel",

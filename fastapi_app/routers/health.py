@@ -11,5 +11,7 @@ async def health() -> dict:
     return {
         "status": "ok",
         "model": config.OPENAI_MODEL,
-        "rag_status": "stub",  # STEP-06에서 ChromaDB 연결 상태로 대체
+        "rag_status": "vector_index_only",
+        "llm_status": "not_implemented",
+        "collection": config.CHROMA_COLLECTION,
     }
