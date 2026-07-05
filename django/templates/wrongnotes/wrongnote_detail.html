@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}오답노트 상세 · WOOK'S CODING{% endblock %}
+
+{% block content %}
+<form hidden>{% csrf_token %}</form>
+<div class="page-hero compact-hero">
+  <div>
+    <p class="eyebrow">WrongNote DetailView</p>
+    <h1 class="page-title">오답노트 상세</h1>
+    <p class="page-sub">틀린 제출, 내가 남긴 코멘트, 복습 상태를 한 번에 확인합니다.</p>
+  </div>
+  <div class="editor-actions">
+    <a href="{% url 'problems:detail' note.problem_id %}" class="btn btn-ghost">문제 다시 보기</a>
+    <a href="{% url 'wrongnotes:list' %}" class="btn btn-ghost">목록</a>
+  </div>
+</div>
+
+<div class="app-grid">
+  <section class="main-column">
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">#{{ note.id }} · {{ note.created_at|date:"Y-m-d H:i" }}</p>
+          <h2 class="section-title">{{ note.problem.title }}</h2>
+        </div>
+        <span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span>
+      </div>
+      <div class="note-tags">
+        <span class="badge badge-{{ note.problem.difficulty }}">{{ note.problem.get_difficulty_display }}</span>
+        {% for tag in note.tags.all %}<span class="tag">{{ tag.name }}</span>{% endfor %}
+      </div>
+      <div class="note-meta">
+        <span>제출 결과: {{ note.submission.get_result_display }}</span>
+        <span>실행 시간: {{ note.submission.elapsed_ms|default:0 }}ms</span>
+        {% if note.is_reviewed %}
+          <span class="reviewed">복습완료 {{ note.reviewed_at|date:"Y-m-d H:i" }}</span>
+        {% else %}
+          <button type="button" id="review-note-btn" class="btn btn-ghost btn-sm" data-review-url="{% url 'wrongnotes:review' note.id %}">복습완료</button>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="section-title">내가 적은 오답 원인</h2>
+      <p class="note-comment">{{ note.comment|linebreaksbr }}</p>
+    </section>
+
+    <section class="panel">
+      <h2 class="section-title">틀린 제출 코드</h2>
+      <pre class="code-view">{{ note.submission.code }}</pre>
+      {% if note.submission.error_message %}
+        <h3 class="sub-title">오류 메시지</h3>
+        <pre class="result-pre result-error-text">{{ note.submission.error_message }}</pre>
+      {% endif %}
+    </section>
+  </section>
+
+  <aside class="side-column">
+    <section class="panel">
+      <h2 class="section-title">인덱싱 상태</h2>
+      {% if vector %}
+        <p class="hint-note">ChromaDB 매핑이 생성되었습니다.</p>
+        <div class="mini-list">
+          <div class="mini-row"><span>embedding_id</span><span>{{ vector.embedding_id }}</span></div>
+          <div class="mini-row"><span>source</span><span>{{ vector.source }}</span></div>
+          <div class="mini-row"><span>indexed_at</span><span>{{ vector.indexed_at|date:"Y-m-d H:i" }}</span></div>
+        </div>
+      {% else %}
+        <p class="hint-note">아직 벡터 매핑이 없습니다. 저장은 완료됐고 인덱싱만 확인이 필요합니다.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2 class="section-title">분석 메모</h2>
+      {% if analysis %}
+        <div class="mini-list">
+          <div class="mini-row"><span>문제 핵심</span><span>{{ analysis.problem_core|default:"-"|truncatechars:30 }}</span></div>
+          <div class="mini-row"><span>오답 원인</span><span>{{ analysis.cause|default:"-"|truncatechars:30 }}</span></div>
+          <div class="mini-row"><span>풀이 과정</span><span>{{ analysis.solution|default:"-"|truncatechars:30 }}</span></div>
+          <div class="mini-row"><span>주의사항</span><span>{{ analysis.caution|default:"-"|truncatechars:30 }}</span></div>
+        </div>
+      {% else %}
+        <p class="hint-note">AI 분석이 없어도 오답노트 저장, 조회, 복습은 정상 동작합니다.</p>
+      {% endif %}
+      {% if analysis_errors %}
+        <pre class="result-pre result-error-text">{% for error in analysis_errors %}{{ error.stage }}: {{ error.message }}
+{% endfor %}</pre>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2 class="section-title">유사 오답노트</h2>
+      <div class="mini-list">
+        {% for item in similar_notes %}
+          <div class="mini-row">
+            <span>note_id {{ item.note_id }}</span>
+            <span>{{ item.score }}</span>
+          </div>
+        {% empty %}
+          <p class="empty compact">유사 오답노트 결과가 없습니다.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </aside>
+</div>
+
+<script>
+(() => {
+  const button = document.getElementById("review-note-btn");
+  if (!button) return;
+
+  const getCookie = (name) => {
+    const cookies = document.cookie ? document.cookie.split(";") : [];
+    for (const rawCookie of cookies) {
+      const cookie = rawCookie.trim();
+      if (cookie.startsWith(`${name}=`)) {
+        return decodeURIComponent(cookie.slice(name.length + 1));
+      }
+    }
+    return "";
+  };
+
+  button.addEventListener("click", async () => {
+    button.disabled = true;
+    try {
+      const response = await fetch(button.dataset.reviewUrl, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+          "Accept": "application/json",
+        },
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error_message || "복습 완료 처리에 실패했습니다.");
+      }
+      const label = document.createElement("span");
+      label.className = "reviewed";
+      label.textContent = "복습완료";
+      button.replaceWith(label);
+    } catch (error) {
+      button.disabled = false;
+      button.textContent = error.message;
+    }
+  });
+})();
+</script>
+{% endblock %}

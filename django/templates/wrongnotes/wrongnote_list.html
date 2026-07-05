@@ -46,7 +46,7 @@
             <span class="quest-index">{{ forloop.counter }}</span>
             <div class="list-main">
               <div class="note-head">
-                <span class="note-problem">{{ note.problem.title|truncatechars:50 }}</span>
+                <a class="note-problem" href="{% url 'wrongnotes:detail' note.id %}">{{ note.problem.title|truncatechars:50 }}</a>
                 <span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span>
               </div>
               <div class="note-tags">
@@ -115,7 +115,7 @@
       <h2 class="section-title">최근 오답노트</h2>
       <div class="mini-list">
         {% for note in recent_notes %}
-          <a class="mini-row" href="{% url 'wrongnotes:list' %}">
+          <a class="mini-row" href="{% url 'wrongnotes:detail' note.id %}">
             <span>{{ note.problem.title|truncatechars:24 }}</span>
             <span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span>
           </a>

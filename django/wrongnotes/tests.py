@@ -88,6 +88,37 @@ class WrongNoteCreateTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertFalse(WrongNote.objects.exists())
 
+    def test_wrong_note_detail_shows_saved_comment(self):
+        note = WrongNote.objects.create(
+            user=self.user,
+            problem=self.problem,
+            submission=self.submission,
+            comment="경계 조건을 다시 확인해야 한다.",
+            status="completed",
+        )
+
+        response = self.client.get(reverse("wrongnotes:detail", args=[note.id]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "경계 조건을 다시 확인해야 한다.")
+
+    def test_wrong_note_detail_is_user_scoped(self):
+        other_user = get_user_model().objects.create_user(
+            username="other-note-user",
+            password="pass12345",
+        )
+        note = WrongNote.objects.create(
+            user=other_user,
+            problem=self.problem,
+            submission=self.submission,
+            comment="다른 사용자 노트",
+            status="completed",
+        )
+
+        response = self.client.get(reverse("wrongnotes:detail", args=[note.id]))
+
+        self.assertEqual(response.status_code, 404)
+
     @patch("wrongnotes.views.call_fastapi")
     def test_note_ask_saves_query_log(self, mock_call):
         mock_call.return_value = {

@@ -6,7 +6,7 @@ from django.db.models import Count
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.views.generic import ListView, TemplateView
+from django.views.generic import DetailView, ListView, TemplateView
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 
@@ -93,6 +93,33 @@ class WrongNoteListView(LoginRequiredMixin, ListView):
                 self.request,
                 ctx["page_obj"],
             )
+        return ctx
+
+
+class WrongNoteDetailView(LoginRequiredMixin, DetailView):
+    """Show one wrong note owned by the authenticated user."""
+
+    template_name = "wrongnotes/wrongnote_detail.html"
+    context_object_name = "note"
+    pk_url_kwarg = "note_id"
+
+    def get_queryset(self):
+        return (
+            WrongNote.objects.filter(user=self.request.user)
+            .select_related("problem", "submission")
+            .prefetch_related("tags")
+        )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        note = self.object
+        ctx["analysis"] = note.ai_analysis.get("analysis", {}) if note.ai_analysis else {}
+        ctx["similar_notes"] = note.ai_analysis.get("similar_notes", []) if note.ai_analysis else []
+        ctx["analysis_errors"] = note.ai_analysis.get("errors", []) if note.ai_analysis else []
+        try:
+            ctx["vector"] = note.vector
+        except WrongNote.vector.RelatedObjectDoesNotExist:
+            ctx["vector"] = None
         return ctx
 
 
