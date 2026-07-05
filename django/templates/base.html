@@ -9,12 +9,16 @@
 </head>
 <body>
   <header class="site-header">
-    <a class="logo" href="{% url 'home' %}">WOOK'S CODING</a>
+    <a class="logo" href="{% url 'home' %}">
+      <span class="logo-mark">&lt;/&gt;</span>
+      <span>WOOK'S CODING</span>
+    </a>
     <nav class="nav">
+      <a href="{% url 'home' %}">홈</a>
       {% if user.is_authenticated %}
-        <a href="{% url 'problems:list' %}">문제</a>
+        <a href="{% url 'problems:list' %}">문제 풀이</a>
         <a href="{% url 'wrongnotes:list' %}">오답노트</a>
-        <a href="{% url 'wrongnotes:ask' %}">내 노트 질문</a>
+        <a href="{% url 'mypage:history' %}">학습 기록</a>
         <a href="{% url 'mypage:index' %}">마이페이지</a>
         {% if user.is_service_admin %}
           <a href="{% url 'adminpanel:dashboard' %}">운영</a>

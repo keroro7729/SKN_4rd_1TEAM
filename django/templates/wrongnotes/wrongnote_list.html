@@ -2,75 +2,145 @@
 {% block title %}오답노트 · WOOK'S CODING{% endblock %}
 
 {% block content %}
-<div class="page-head">
-  <h1 class="page-title">오답노트</h1>
-  <a href="{% url 'wrongnotes:ask' %}" class="btn btn-ghost">내 노트에 물어보기</a>
-</div>
 <form hidden>{% csrf_token %}</form>
-
-<section class="panel">
-  <h3 class="sub-title">최근 오답 제출</h3>
-  <table class="table">
-    <thead><tr><th>문제</th><th>결과</th><th>일시</th><th>작성</th></tr></thead>
-    <tbody>
-      {% for submission in recent_wrong_submissions %}
-        <tr>
-          <td>{{ submission.problem.title|truncatechars:36 }}</td>
-          <td><span class="badge badge-status-{{ submission.result }}">{{ submission.get_result_display }}</span></td>
-          <td>{{ submission.created_at|date:"m-d H:i" }}</td>
-          <td><a class="btn btn-ghost" href="{% url 'wrongnotes:create' submission.id %}">오답노트 작성</a></td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="4" class="empty">작성할 오답 제출이 없습니다.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</section>
-
-<div class="note-list">
-  {% for note in notes %}
-    <article class="card note-card">
-      <div class="note-head">
-        <span class="note-problem">{{ note.problem.title|truncatechars:50 }}</span>
-        <span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span>
-      </div>
-      <div class="note-tags">
-        {% for t in note.tags.all %}<span class="tag">{{ t.name }}</span>{% endfor %}
-      </div>
-      {% if note.comment %}<p class="note-comment">{{ note.comment|truncatechars:160 }}</p>{% endif %}
-      <div class="note-meta">
-        <span>{{ note.created_at|date:"Y-m-d H:i" }}</span>
-        {% if note.is_reviewed %}
-          <span class="reviewed">복습완료</span>
-        {% else %}
-          <button type="button" class="btn btn-ghost btn-sm review-note-btn" data-review-url="{% url 'wrongnotes:review' note.id %}">복습완료</button>
-        {% endif %}
-      </div>
-    </article>
-  {% empty %}
-    <p class="empty">아직 오답노트가 없습니다. 문제를 풀고 오답을 기록해 보세요.</p>
-  {% endfor %}
+<div class="page-hero compact-hero">
+  <div>
+    <p class="eyebrow">Wrong Note</p>
+    <h1 class="page-title">오답노트</h1>
+    <p class="page-sub">틀린 문제를 다시 분석하고 나만의 실수 패턴을 정리해보세요.</p>
+  </div>
+  <a href="{% url 'wrongnotes:ask' %}" class="btn">내 노트에 물어보기</a>
 </div>
 
-{% if pagination.show %}
-<nav class="pagination">
-  {% if pagination.has_previous %}
-    <a class="page-link page-edge" href="{{ pagination.previous_url }}">&lsaquo; 이전</a>
-  {% endif %}
-  {% for page in pagination.pages %}
-    {% if page.is_gap %}
-      <span class="page-gap">{{ page.label }}</span>
-    {% elif page.is_current %}
-      <span class="page-link page-current" aria-current="page">{{ page.label }}</span>
-    {% else %}
-      <a class="page-link" href="{{ page.url }}">{{ page.label }}</a>
+<div class="stat-row">
+  <div class="stat-card"><span class="stat-num">{{ note_stats.total }}</span><span class="stat-label">전체 오답노트</span></div>
+  <div class="stat-card"><span class="stat-num">{{ note_stats.unreviewed }}</span><span class="stat-label">미해결 노트</span></div>
+  <div class="stat-card"><span class="stat-num">{{ note_stats.reviewed }}</span><span class="stat-label">해결 완료 노트</span></div>
+  <div class="stat-card"><span class="stat-num">{{ note_stats.indexed }}</span><span class="stat-label">인덱싱 완료</span></div>
+</div>
+
+<div class="app-grid">
+  <section class="main-column">
+    <form class="panel filter-panel" method="get">
+      <input type="text" name="q" value="{{ q }}" placeholder="문제 제목, 키워드, 실수 유형으로 검색하세요." class="filter-input search-input">
+      <div class="filter-row">
+        <span class="filter-label">상태</span>
+        {% for value, label in status_filters %}
+          <label class="segmented-option">
+            <input type="radio" name="status" value="{{ value }}" {% if value == cur_status %}checked{% endif %}>
+            <span>{{ label }}</span>
+          </label>
+        {% endfor %}
+      </div>
+      <div class="editor-actions">
+        <button type="submit" class="btn">검색</button>
+        <a href="{% url 'wrongnotes:list' %}" class="btn btn-ghost">초기화</a>
+      </div>
+    </form>
+
+    <section class="panel">
+      <h2 class="section-title">오답노트 목록</h2>
+      <div class="note-list">
+        {% for note in notes %}
+          <article class="list-row note-row">
+            <span class="quest-index">{{ forloop.counter }}</span>
+            <div class="list-main">
+              <div class="note-head">
+                <span class="note-problem">{{ note.problem.title|truncatechars:50 }}</span>
+                <span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span>
+              </div>
+              <div class="note-tags">
+                {% for t in note.tags.all %}<span class="tag">{{ t.name }}</span>{% endfor %}
+              </div>
+              {% if note.comment %}<p class="note-comment">{{ note.comment|truncatechars:150 }}</p>{% endif %}
+              <div class="note-meta">
+                <span>{{ note.created_at|date:"Y-m-d H:i" }}</span>
+                {% if note.is_reviewed %}
+                  <span class="reviewed">복습완료</span>
+                {% else %}
+                  <button type="button" class="btn btn-ghost btn-sm review-note-btn" data-review-url="{% url 'wrongnotes:review' note.id %}">복습완료</button>
+                {% endif %}
+              </div>
+            </div>
+          </article>
+        {% empty %}
+          <p class="empty">아직 오답노트가 없습니다. 문제를 풀고 오답을 기록해보세요.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    {% if pagination.show %}
+    <nav class="pagination">
+      {% if pagination.has_previous %}<a class="page-link page-edge" href="{{ pagination.previous_url }}">이전</a>{% endif %}
+      {% for page in pagination.pages %}
+        {% if page.is_gap %}
+          <span class="page-gap">{{ page.label }}</span>
+        {% elif page.is_current %}
+          <span class="page-link page-current" aria-current="page">{{ page.label }}</span>
+        {% else %}
+          <a class="page-link" href="{{ page.url }}">{{ page.label }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if pagination.has_next %}<a class="page-link page-edge" href="{{ pagination.next_url }}">다음</a>{% endif %}
+    </nav>
     {% endif %}
-  {% endfor %}
-  {% if pagination.has_next %}
-    <a class="page-link page-edge" href="{{ pagination.next_url }}">다음 &rsaquo;</a>
-  {% endif %}
-</nav>
-{% endif %}
+  </section>
+
+  <aside class="side-column">
+    <section class="panel">
+      <h2 class="section-title">내 노트에 물어보기</h2>
+      <p class="hint-note">오답노트 기반으로 반복 실수와 취약 개념을 질문하세요.</p>
+      <div class="mini-list">
+        {% for question in suggested_questions %}
+          <a class="mini-row" href="{% url 'wrongnotes:ask' %}?q={{ question|urlencode }}">{{ question }}</a>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="section-title">RAG가 찾은 나의 실수 패턴</h2>
+      {% if pattern_rows %}
+        {% for row in pattern_rows %}
+          <div class="progress-row">
+            <span>{{ row.error_pattern }}</span>
+            <strong>{{ row.count }}</strong>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="hint-note">오답 원인 태그가 쌓이면 반복 패턴을 보여줍니다.</p>
+      {% endif %}
+    </section>
+
+    <section class="panel">
+      <h2 class="section-title">최근 오답노트</h2>
+      <div class="mini-list">
+        {% for note in recent_notes %}
+          <a class="mini-row" href="{% url 'wrongnotes:list' %}">
+            <span>{{ note.problem.title|truncatechars:24 }}</span>
+            <span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span>
+          </a>
+        {% empty %}
+          <p class="empty compact">최근 오답노트가 없습니다.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="section-title">최근 오답 제출</h2>
+      <div class="mini-list">
+        {% for submission in recent_wrong_submissions %}
+          <a class="mini-row" href="{% url 'wrongnotes:create' submission.id %}">
+            <span>{{ submission.problem.title|truncatechars:24 }}</span>
+            <span>작성</span>
+          </a>
+        {% empty %}
+          <p class="empty compact">작성할 오답 제출이 없습니다.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </aside>
+</div>
+
 <script>
 (() => {
   const getCookie = (name) => {

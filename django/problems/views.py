@@ -7,6 +7,8 @@ from django.views.generic import DetailView, ListView
 
 from config.choices import DIFFICULTY_CHOICES
 from config.pagination import build_pagination_context
+from submissions.models import Submission
+from wrongnotes.models import WrongNote
 
 from .models import Problem, ProblemCategory
 
@@ -28,6 +30,7 @@ class ProblemListView(LoginRequiredMixin, ListView):
         self.f_category = self.request.GET.get("category") or ""
         self.f_difficulty = self.request.GET.get("difficulty") or ""
         self.f_tag = self.request.GET.get("tag") or ""
+        self.f_status = self.request.GET.get("status") or ""
         self.f_q = (self.request.GET.get("q") or "").strip()
 
         if self.f_category:
@@ -38,6 +41,29 @@ class ProblemListView(LoginRequiredMixin, ListView):
             qs = qs.filter(tags__slug=self.f_tag)
         if self.f_q:
             qs = qs.filter(title__icontains=self.f_q)
+        if self.f_status:
+            user = self.request.user
+            solved_ids = Submission.objects.filter(
+                user=user,
+                submission_type="submit",
+                result="success",
+            ).values_list("problem_id", flat=True)
+            wrong_ids = Submission.objects.filter(
+                user=user,
+                submission_type="submit",
+                result__in=["wrong", "error", "timeout"],
+            ).values_list("problem_id", flat=True)
+            note_ids = WrongNote.objects.filter(user=user).values_list(
+                "problem_id", flat=True
+            )
+            if self.f_status == "solved":
+                qs = qs.filter(id__in=solved_ids)
+            elif self.f_status == "unsolved":
+                qs = qs.exclude(id__in=solved_ids)
+            elif self.f_status == "wrong":
+                qs = qs.filter(id__in=wrong_ids)
+            elif self.f_status == "has_note":
+                qs = qs.filter(id__in=note_ids)
         return qs.distinct()
 
     def get_context_data(self, **kwargs):
@@ -79,7 +105,33 @@ class ProblemListView(LoginRequiredMixin, ListView):
         ctx["cur_category"] = self.f_category
         ctx["cur_difficulty"] = self.f_difficulty
         ctx["cur_tag"] = self.f_tag
+        ctx["cur_status"] = self.f_status
         ctx["q"] = self.f_q
+        ctx["status_filters"] = [
+            ("", "전체"),
+            ("unsolved", "미해결"),
+            ("solved", "해결 완료"),
+            ("wrong", "오답 제출"),
+            ("has_note", "오답노트 있음"),
+        ]
+        ctx["recommended_problems"] = (
+            Problem.objects.filter(is_active=True)
+            .select_related("category")
+            .prefetch_related("tags")
+            .order_by("id")[:3]
+        )
+        ctx["recent_wrong_notes"] = (
+            WrongNote.objects.filter(user=self.request.user)
+            .select_related("problem")
+            .order_by("-created_at")[:3]
+        )
+        ctx["today_problem"] = (
+            Problem.objects.filter(is_active=True)
+            .select_related("category")
+            .prefetch_related("tags")
+            .order_by("?")
+            .first()
+        )
         if ctx.get("page_obj"):
             ctx["pagination"] = build_pagination_context(
                 self.request,

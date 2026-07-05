@@ -2,38 +2,43 @@
 {% block title %}내 노트에 물어보기 · WOOK'S CODING{% endblock %}
 
 {% block content %}
-<h1 class="page-title">내 노트에 물어보기</h1>
-<p class="page-sub">저장된 내 오답노트를 근거로 답변합니다. 근거 note_id와 score를 함께 확인합니다.</p>
 <form hidden>{% csrf_token %}</form>
-
-<section class="panel">
-  <textarea id="note-question" class="code-input" placeholder="예: DP 문제에서 내가 자주 놓치는 부분은?"></textarea>
-  <div class="editor-actions">
-    <button id="note-ask-btn" type="button" class="btn">질문하기</button>
-    <span id="note-ask-status" class="hint-note">본인 오답노트만 검색합니다.</span>
-  </div>
-
-  <div id="note-answer" class="result-area" hidden></div>
-  <div id="note-evidence" class="result-area" hidden></div>
-</section>
-
-<section class="panel">
-  <h3 class="sub-title">최근 질문</h3>
-  <table class="table">
-    <thead><tr><th>질문</th><th>근거</th><th>일시</th></tr></thead>
-    <tbody>
-      {% for log in recent_logs %}
-        <tr>
-          <td>{{ log.query|truncatechars:60 }}</td>
-          <td>{{ log.evidence_note_ids }}</td>
-          <td>{{ log.created_at|date:"m-d H:i" }}</td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="3" class="empty">아직 질문 기록이 없습니다.</td></tr>
+<div class="ask-layout">
+  <aside class="panel ask-sidebar">
+    <h2 class="section-title">추천 질문</h2>
+    <div class="mini-list">
+      {% for question in suggested_questions %}
+        <button type="button" class="mini-row question-preset" data-question="{{ question }}">{{ question }}</button>
       {% endfor %}
-    </tbody>
-  </table>
-</section>
+    </div>
+
+    <h2 class="section-title">최근 질문</h2>
+    <div class="mini-list">
+      {% for log in recent_logs %}
+        <button type="button" class="mini-row question-preset" data-question="{{ log.query }}">{{ log.query|truncatechars:32 }}</button>
+      {% empty %}
+        <p class="empty compact">최근 질문이 없습니다.</p>
+      {% endfor %}
+    </div>
+  </aside>
+
+  <section class="panel ask-main">
+    <div class="section-head">
+      <h1 class="page-title">내 노트 질의</h1>
+      <span id="note-ask-status" class="hint-note">본인 오답노트만 검색합니다.</span>
+    </div>
+
+    <div class="chat-box">
+      <div id="note-answer" class="answer-card" hidden></div>
+      <div id="note-evidence" class="evidence-list" hidden></div>
+    </div>
+
+    <div class="ask-input-row">
+      <textarea id="note-question" class="code-input ask-input" placeholder="내 오답노트에 대해 물어보세요.">{{ initial_question }}</textarea>
+      <button id="note-ask-btn" type="button" class="btn">질문</button>
+    </div>
+  </section>
+</div>
 
 <script>
 (() => {
@@ -54,12 +59,15 @@
     return "";
   };
 
-  const show = (element, text) => {
-    element.textContent = text;
-    element.hidden = false;
-  };
+  const escapeHtml = (value) => String(value || "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
+  }[char]));
 
-  askButton.addEventListener("click", async () => {
+  const ask = async () => {
     const question = questionInput.value.trim();
     if (!question) {
       statusText.textContent = "질문을 입력하세요.";
@@ -87,22 +95,32 @@
       }
 
       statusText.textContent = `처리 완료 · ${data.status}`;
-      show(answerBox, data.answer || "근거가 없어 답변을 생성하지 않았습니다.");
+      answerBox.innerHTML = `
+        <strong>오답노트 RAG 답변</strong>
+        <p>${escapeHtml(data.answer || "근거가 부족하거나 AI 답변 생성이 아직 구현되지 않았습니다.")}</p>
+      `;
+      answerBox.hidden = false;
 
       const ids = data.evidence_note_ids || [];
       const scores = data.scores || [];
-      show(
-        evidenceBox,
-        ids.length
-          ? ids.map((id, index) => `note_id ${id} · score ${scores[index] ?? ""}`).join("\n")
-          : "검색된 근거 오답노트가 없습니다."
-      );
+      evidenceBox.innerHTML = ids.length
+        ? ids.map((id, index) => `<span class="evidence-pill">note_id ${escapeHtml(id)} · ${escapeHtml(scores[index] ?? "")}</span>`).join("")
+        : `<span class="hint-note">검색된 근거 오답노트가 없습니다.</span>`;
+      evidenceBox.hidden = false;
     } catch (error) {
       statusText.textContent = error.message;
     } finally {
       askButton.disabled = false;
     }
+  };
+
+  document.querySelectorAll(".question-preset").forEach((button) => {
+    button.addEventListener("click", () => {
+      questionInput.value = button.dataset.question;
+      ask();
+    });
   });
+  askButton.addEventListener("click", ask);
 })();
 </script>
 {% endblock %}

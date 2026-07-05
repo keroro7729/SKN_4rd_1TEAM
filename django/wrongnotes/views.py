@@ -2,6 +2,7 @@
 import json
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Count
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -25,18 +26,44 @@ class WrongNoteListView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        return (
+        self.f_q = (self.request.GET.get("q") or "").strip()
+        self.f_status = self.request.GET.get("status") or ""
+        qs = (
             WrongNote.objects.filter(user=self.request.user)
             .select_related("problem", "submission")
             .prefetch_related("tags")
-            .order_by("-created_at")
         )
+        if self.f_q:
+            qs = qs.filter(problem__title__icontains=self.f_q)
+        if self.f_status == "reviewed":
+            qs = qs.filter(is_reviewed=True)
+        elif self.f_status == "unreviewed":
+            qs = qs.filter(is_reviewed=False)
+        elif self.f_status:
+            qs = qs.filter(status=self.f_status)
+        return qs.order_by("-created_at")
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        notes_all = WrongNote.objects.filter(user=self.request.user)
         existing_submission_ids = WrongNote.objects.filter(
             user=self.request.user
         ).values_list("submission_id", flat=True)
+        ctx["note_stats"] = {
+            "total": notes_all.count(),
+            "unreviewed": notes_all.filter(is_reviewed=False).count(),
+            "reviewed": notes_all.filter(is_reviewed=True).count(),
+            "indexed": notes_all.filter(status="indexed").count(),
+        }
+        ctx["q"] = self.f_q
+        ctx["cur_status"] = self.f_status
+        ctx["status_filters"] = [
+            ("", "전체"),
+            ("unreviewed", "미해결"),
+            ("reviewed", "해결 완료"),
+            ("indexed", "인덱싱 완료"),
+            ("index_failed", "인덱싱 실패"),
+        ]
         ctx["recent_wrong_submissions"] = (
             Submission.objects.filter(
                 user=self.request.user,
@@ -47,6 +74,20 @@ class WrongNoteListView(LoginRequiredMixin, ListView):
             .select_related("problem")
             .order_by("-created_at")[:10]
         )
+        ctx["recent_notes"] = (
+            notes_all.select_related("problem").order_by("-created_at")[:5]
+        )
+        ctx["pattern_rows"] = (
+            notes_all.exclude(error_pattern="")
+            .values("error_pattern")
+            .annotate(count=Count("id"))
+            .order_by("-count")[:4]
+        )
+        ctx["suggested_questions"] = [
+            "내가 어떤 유형에서 자주 틀렸지?",
+            "최근 반복되는 실수 패턴은?",
+            "DP 문제 약점 정리해줘",
+        ]
         if ctx.get("page_obj"):
             ctx["pagination"] = build_pagination_context(
                 self.request,
@@ -72,6 +113,17 @@ class WrongNoteCreateView(LoginRequiredMixin, TemplateView):
         submission = self.get_submission()
         ctx["submission"] = submission
         ctx["problem"] = submission.problem
+        ctx["similar_recent_notes"] = (
+            WrongNote.objects.filter(
+                user=self.request.user,
+                problem__tags__in=submission.problem.tags.all(),
+            )
+            .exclude(submission=submission)
+            .select_related("problem")
+            .prefetch_related("tags")
+            .distinct()
+            .order_by("-created_at")[:3]
+        )
         return ctx
 
     def post(self, request, *args, **kwargs):
@@ -166,6 +218,12 @@ class NoteAskView(LoginRequiredMixin, TemplateView):
         ctx["recent_logs"] = WrongNoteQueryLog.objects.filter(
             user=self.request.user
         ).order_by("-created_at")[:5]
+        ctx["initial_question"] = (self.request.GET.get("q") or "").strip()
+        ctx["suggested_questions"] = [
+            "내가 어떤 문제 유형에서 자주 틀렸지?",
+            "최근 반복되는 실수 패턴은?",
+            "그래프 문제 약점 정리해줘",
+        ]
         return ctx
 
     def post(self, request, *args, **kwargs):
