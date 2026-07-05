@@ -1,5 +1,7 @@
 """Pagination helpers shared by list views."""
 
+PAGE_BLOCK_SIZE = 10
+
 
 def _page_url(base_query: str, page_number: int) -> str:
     separator = "&" if base_query else ""
@@ -13,21 +15,17 @@ def build_pagination_context(request, page_obj) -> dict:
     base_query = query.urlencode()
     paginator = page_obj.paginator
 
+    current_page = page_obj.number
+    block_start = ((current_page - 1) // PAGE_BLOCK_SIZE) * PAGE_BLOCK_SIZE + 1
+    block_end = min(block_start + PAGE_BLOCK_SIZE - 1, paginator.num_pages)
     pages = []
-    for page in paginator.get_elided_page_range(
-        page_obj.number,
-        on_each_side=2,
-        on_ends=2,
-    ):
-        if page == paginator.ELLIPSIS:
-            pages.append({"is_gap": True, "label": page})
-            continue
+    for page in range(block_start, block_end + 1):
         pages.append(
             {
                 "is_gap": False,
                 "number": page,
                 "label": str(page),
-                "is_current": page == page_obj.number,
+                "is_current": page == current_page,
                 "url": _page_url(base_query, page),
             }
         )
