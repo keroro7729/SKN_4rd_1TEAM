@@ -33,13 +33,17 @@ class AIProxyClientTests(TestCase):
 
     @patch("ai_proxy.client.urllib.request.urlopen")
     def test_call_fastapi_logs_success_and_normalizes_response(self, mock_urlopen):
-        mock_urlopen.return_value = FakeHTTPResponse(
-            {
-                "status": "success",
-                "request_id": "fastapi-request",
-                "content": "hint text",
-            }
-        )
+        def echo_request_id(request, timeout=None):
+            headers = {key.lower(): value for key, value in request.header_items()}
+            return FakeHTTPResponse(
+                {
+                    "status": "success",
+                    "request_id": headers["x-request-id"],
+                    "content": "hint text",
+                }
+            )
+
+        mock_urlopen.side_effect = echo_request_id
 
         result = call_fastapi(
             user=self.user,
