@@ -1,0 +1,12 @@
+# WOOK'S CODING - Dedicated worker server orchestration.
+# Run this file only on the Docker Worker EC2 instance.
+
+services:
+  worker:
+    build: ./worker
+    env_file: .env
+    environment:
+      LOG_DIR: /logs
+    volumes:
+      - ./volumes/logs:/logs
+    restart: unless-stopped

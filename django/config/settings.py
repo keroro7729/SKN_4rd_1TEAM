@@ -32,8 +32,6 @@ DEFAULT_ALLOWED_HOSTS = ",".join(
         "localhost",
         "127.0.0.1",
         "3.36.123.126",
-        "43.203.216.32",
-        "ec2-43-203-216-32.ap-northeast-2.compute.amazonaws.com",
     ]
 )
 ALLOWED_HOSTS = [

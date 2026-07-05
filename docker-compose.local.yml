@@ -1,5 +1,5 @@
 # Local development override.
-# Use this only when running PostgreSQL as a Docker container locally:
+# Use this only when running PostgreSQL and the worker locally:
 # docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
 
 services:
@@ -28,8 +28,13 @@ services:
         condition: service_healthy
 
   worker:
+    build: ./worker
+    env_file: .env
     environment:
+      LOG_DIR: /logs
       POSTGRES_HOST: postgres
+    volumes:
+      - ./volumes/logs:/logs
     depends_on:
       postgres:
         condition: service_healthy
