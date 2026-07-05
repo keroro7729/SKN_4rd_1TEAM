@@ -1,14 +1,15 @@
-"""오답노트 화면 (STEP-03).
+"""오답노트 화면."""
+import json
 
-권한: 로그인 필요 + 본인 데이터만(§6.1). 저장/AI 분석/RAG 는 STEP-06/07 에서 Fetch 로 연결.
-"""
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic import ListView, TemplateView
 
 from submissions.models import Submission
 
 from .models import WrongNote
+from .services import analyze_wrong_note
 
 
 class WrongNoteListView(LoginRequiredMixin, ListView):
@@ -32,16 +33,87 @@ class WrongNoteCreateView(LoginRequiredMixin, TemplateView):
 
     template_name = "wrongnotes/wrongnote_form.html"
 
+    def get_submission(self):
+        return get_object_or_404(
+            Submission.objects.select_related("problem"),
+            pk=self.kwargs["submission_id"],
+            user=self.request.user,
+        )
+
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        submission = get_object_or_404(
-            Submission.objects.select_related("problem"),
-            pk=kwargs["submission_id"],
-            user=self.request.user,  # 본인 제출만
-        )
+        submission = self.get_submission()
         ctx["submission"] = submission
         ctx["problem"] = submission.problem
         return ctx
+
+    def post(self, request, *args, **kwargs):
+        submission = self.get_submission()
+        if submission.submission_type != "submit":
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "error_message": "최종 제출 결과만 오답노트로 저장할 수 있습니다.",
+                },
+                status=400,
+            )
+        if submission.result not in {"wrong", "error", "timeout"}:
+            return JsonResponse(
+                {
+                    "ok": False,
+                    "error_message": "오답, 오류, 시간초과 제출만 오답노트로 저장할 수 있습니다.",
+                },
+                status=400,
+            )
+
+        try:
+            payload = json.loads(request.body.decode("utf-8") or "{}")
+        except json.JSONDecodeError:
+            return JsonResponse(
+                {"ok": False, "error_message": "invalid_json"},
+                status=400,
+            )
+
+        comment = (payload.get("comment") or "").strip()
+        if not comment:
+            return JsonResponse(
+                {"ok": False, "error_message": "코멘트를 입력하세요."},
+                status=400,
+            )
+
+        note = (
+            WrongNote.objects.filter(user=request.user, submission=submission)
+            .order_by("-id")
+            .first()
+        )
+        if note is None:
+            note = WrongNote.objects.create(
+                user=request.user,
+                submission=submission,
+                problem=submission.problem,
+                comment=comment,
+                status="completed",
+            )
+        note.problem = submission.problem
+        note.comment = comment
+        note.status = "completed"
+        note.save(update_fields=["problem", "comment", "status"])
+        note.tags.set(submission.problem.tags.all())
+
+        ai_result = analyze_wrong_note(note)
+        note.ai_analysis = ai_result
+        note.save(update_fields=["ai_analysis"])
+
+        return JsonResponse(
+            {
+                "ok": True,
+                "wrong_note_id": note.id,
+                "status": note.status,
+                "ai_analysis": ai_result,
+                "list_url": "/wrongnotes/",
+            },
+            status=201,
+        )
 
 
 class NoteAskView(LoginRequiredMixin, TemplateView):

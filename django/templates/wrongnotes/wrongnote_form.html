@@ -3,6 +3,7 @@
 
 {% block content %}
 <h1 class="page-title">오답노트 작성</h1>
+<form hidden>{% csrf_token %}</form>
 
 <section class="panel" data-submission-id="{{ submission.id }}" data-problem-id="{{ problem.id }}">
   <div class="note-head">
@@ -17,15 +18,93 @@
   <textarea id="wrongnote-comment" class="code-input" placeholder="예: 인덱스 범위를 잘못 계산했다"></textarea>
 
   <div class="editor-actions">
-    <!-- STEP-07 Fetch: 저장 + FastAPI /ai/wrong-note/analyze 연결 -->
-    <button id="wrongnote-save-btn" type="button" class="btn" disabled>오답노트 저장</button>
-    <span class="hint-note">저장·AI 분석 연결은 STEP-06/07에서 구현됩니다.</span>
+    <button id="wrongnote-save-btn" type="button" class="btn">오답노트 저장</button>
+    <span id="wrongnote-status" class="hint-note">저장하면 AI 분석과 유사 오답노트 검색을 함께 요청합니다.</span>
   </div>
 
-  <!-- STEP-07 Fetch 대상 DOM -->
   <div id="similar-notes" class="result-area" hidden></div>
   <div id="ai-analysis" class="result-area" hidden></div>
 </section>
 
 <p class="back-link"><a href="{% url 'wrongnotes:list' %}">← 오답노트 목록</a></p>
+<script>
+(() => {
+  const section = document.querySelector("[data-submission-id]");
+  const commentInput = document.getElementById("wrongnote-comment");
+  const saveButton = document.getElementById("wrongnote-save-btn");
+  const statusText = document.getElementById("wrongnote-status");
+  const similarBox = document.getElementById("similar-notes");
+  const analysisBox = document.getElementById("ai-analysis");
+
+  const getCookie = (name) => {
+    const cookies = document.cookie ? document.cookie.split(";") : [];
+    for (const rawCookie of cookies) {
+      const cookie = rawCookie.trim();
+      if (cookie.startsWith(`${name}=`)) {
+        return decodeURIComponent(cookie.slice(name.length + 1));
+      }
+    }
+    return "";
+  };
+
+  const show = (element, text) => {
+    element.textContent = text;
+    element.hidden = false;
+  };
+
+  saveButton.addEventListener("click", async () => {
+    similarBox.hidden = true;
+    analysisBox.hidden = true;
+    saveButton.disabled = true;
+    statusText.textContent = "저장 및 AI 분석 요청 중입니다.";
+
+    try {
+      const response = await fetch(window.location.pathname, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({
+          submission_id: Number(section.dataset.submissionId),
+          problem_id: Number(section.dataset.problemId),
+          comment: commentInput.value,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error_message || "오답노트 저장 실패");
+      }
+
+      const ai = data.ai_analysis || {};
+      const analysis = ai.analysis || {};
+      const similarNotes = ai.similar_notes || [];
+      const errors = ai.errors || [];
+
+      statusText.textContent = `저장 완료 · note_id ${data.wrong_note_id}`;
+      show(
+        similarBox,
+        similarNotes.length
+          ? similarNotes.map((note) => `note_id ${note.note_id} · ${note.source} · score ${note.score}`).join("\n")
+          : "유사 오답노트가 없습니다."
+      );
+      show(
+        analysisBox,
+        [
+          `문제 핵심: ${analysis.problem_core || ""}`,
+          `오답 원인: ${analysis.cause || ""}`,
+          `풀이 과정: ${analysis.solution || ""}`,
+          `주의사항: ${analysis.caution || ""}`,
+          errors.length ? `AI 처리 오류: ${errors.map((error) => `${error.stage} ${error.message}`).join(" / ")}` : "",
+        ].filter(Boolean).join("\n")
+      );
+    } catch (error) {
+      statusText.textContent = error.message;
+    } finally {
+      saveButton.disabled = false;
+    }
+  });
+})();
+</script>
 {% endblock %}

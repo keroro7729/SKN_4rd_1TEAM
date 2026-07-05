@@ -146,6 +146,11 @@ LOG_DIR = Path(os.environ.get("LOG_DIR") or (BASE_DIR.parent / "logs"))
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
 (LOG_DIR / "django").mkdir(parents=True, exist_ok=True)
 
+# --- 내부 AI API (Django -> FastAPI) ---
+FASTAPI_BASE_URL = os.environ.get("FASTAPI_BASE_URL", "http://fastapi:8001").rstrip("/")
+INTERNAL_API_KEY = os.environ.get("INTERNAL_API_KEY", "dev-internal-key")
+INTERNAL_API_TIMEOUT_SEC = int(os.environ.get("INTERNAL_API_TIMEOUT_SEC", "20"))
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

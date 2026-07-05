@@ -99,6 +99,16 @@
         const error = data.error_message ? `\n\n오류:\n${data.error_message}` : "";
         const score = data.total ? ` / 테스트 ${data.passed}/${data.total}` : "";
         show(statusBox, `결과: ${data.submission_result} / Job: ${jobStatus}${score}${output}${error}`);
+        if (data.wrong_note_create_url) {
+          const spacer = document.createElement("div");
+          spacer.style.marginTop = "12px";
+          const link = document.createElement("a");
+          link.href = data.wrong_note_create_url;
+          link.className = "btn btn-ghost";
+          link.textContent = "오답노트 작성";
+          spacer.appendChild(link);
+          statusBox.appendChild(spacer);
+        }
         hide(loadingBox);
         return;
       }

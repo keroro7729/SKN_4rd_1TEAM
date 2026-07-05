@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
 from problems.models import Problem
@@ -102,6 +103,12 @@ def submission_result(request, submission_id):
     elapsed_ms = submission.elapsed_ms
     if elapsed_ms is None:
         elapsed_ms = payload.get("elapsed_ms", 0)
+    wrong_note_create_url = None
+    if (
+        submission.submission_type == "submit"
+        and submission.result in {"wrong", "error", "timeout"}
+    ):
+        wrong_note_create_url = reverse("wrongnotes:create", args=[submission.id])
 
     return JsonResponse(
         {
@@ -117,6 +124,7 @@ def submission_result(request, submission_id):
             "total": payload.get("total", 0),
             "passed": payload.get("passed", 0),
             "case_results": payload.get("case_results", []),
+            "wrong_note_create_url": wrong_note_create_url,
             "job": {
                 "id": job.id if job else None,
                 "status": job_status,
