@@ -50,7 +50,7 @@ jobs:
             docker compose restart nginx
             docker compose ps
             docker compose exec -T django python manage.py check
-            docker compose exec -T django python manage.py shell -c "from problems.models import Problem; count = Problem.objects.filter(is_active=True).count(); print(f'active problems: {count}'); raise SystemExit(0 if count > 0 else 1)"
+            docker compose exec -T django python manage.py bootstrap_postgres --skip-migrate --require-rds
             curl -fsSI http://localhost/health/ >/dev/null
 
   deploy-worker:
