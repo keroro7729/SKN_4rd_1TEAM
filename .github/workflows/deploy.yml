@@ -21,7 +21,11 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
             test -f .env
-            docker compose up --build -d
+            if grep -Eq '^POSTGRES_HOST=postgres$' .env; then
+              echo "POSTGRES_HOST must point to the RDS endpoint in production."
+              exit 1
+            fi
+            docker compose up --build -d --remove-orphans
             for i in $(seq 1 30); do
               if docker compose exec -T django python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/', timeout=5).read()"; then
                 break

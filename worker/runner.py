@@ -8,9 +8,19 @@ Docker sandbox 내부에서 Python 3.11 코드를 격리 실행한다.
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
-from config import CODE_TIMEOUT_SEC
+from config import CODE_TIMEOUT_SEC, STDERR_LIMIT, STDOUT_LIMIT
+
+
+def limit_text(value, limit: int) -> str:
+    """Return a UTF-8 string truncated for DB storage."""
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        value = value.decode("utf-8", errors="replace")
+    return str(value)[:limit]
 
 
 def run_code(code: str, stdin_data: str = "", timeout: int = CODE_TIMEOUT_SEC) -> dict:
@@ -18,6 +28,7 @@ def run_code(code: str, stdin_data: str = "", timeout: int = CODE_TIMEOUT_SEC) -
     with tempfile.TemporaryDirectory() as tmp:
         src = Path(tmp) / "solution.py"
         src.write_text(code, encoding="utf-8")
+        started = time.monotonic()
         try:
             proc = subprocess.run(
                 [sys.executable, str(src)],
@@ -28,13 +39,20 @@ def run_code(code: str, stdin_data: str = "", timeout: int = CODE_TIMEOUT_SEC) -
                 cwd=tmp,
             )
             return {
-                "stdout": proc.stdout,
-                "stderr": proc.stderr,
+                "stdout": limit_text(proc.stdout, STDOUT_LIMIT),
+                "stderr": limit_text(proc.stderr, STDERR_LIMIT),
                 "returncode": proc.returncode,
                 "timed_out": False,
+                "elapsed_ms": int((time.monotonic() - started) * 1000),
             }
-        except subprocess.TimeoutExpired:
-            return {"stdout": "", "stderr": "", "returncode": None, "timed_out": True}
+        except subprocess.TimeoutExpired as exc:
+            return {
+                "stdout": limit_text(exc.stdout, STDOUT_LIMIT),
+                "stderr": limit_text(exc.stderr, STDERR_LIMIT),
+                "returncode": None,
+                "timed_out": True,
+                "elapsed_ms": int((time.monotonic() - started) * 1000),
+            }
 
 
 def normalize(text: str) -> str:
@@ -43,9 +61,25 @@ def normalize(text: str) -> str:
     return "\n".join(line.rstrip() for line in lines).rstrip("\n")
 
 
-def compare_output(expected: str, actual: str, mode: str = "line_trim") -> bool:
-    """채점 비교. 기본 line_trim. (float_tolerance는 STEP-04에서 확장)"""
-    if mode == "float_tolerance":
-        # TODO(STEP-04): 부동소수 허용 오차 비교
-        pass
+def compare_output(
+    expected: str,
+    actual: str,
+    mode: str = "line_trim",
+    float_tolerance: float = 1e-6,
+) -> bool:
+    """채점 비교."""
+    if mode == "exact":
+        return expected == actual
+    if mode == "float":
+        expected_values = normalize(expected).split()
+        actual_values = normalize(actual).split()
+        if len(expected_values) != len(actual_values):
+            return False
+        try:
+            return all(
+                abs(float(exp) - float(act)) <= float_tolerance
+                for exp, act in zip(expected_values, actual_values)
+            )
+        except ValueError:
+            return False
     return normalize(expected) == normalize(actual)

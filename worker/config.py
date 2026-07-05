@@ -20,6 +20,8 @@ DB_CONFIG = {
 # --- 실행 제한 (지시문 §3 확정 기준) ---
 CODE_TIMEOUT_SEC = int(os.environ.get("CODE_TIMEOUT_SEC", "5"))
 POLL_INTERVAL_SEC = float(os.environ.get("WORKER_POLL_INTERVAL_SEC", "2"))
+STDOUT_LIMIT = int(os.environ.get("STDOUT_LIMIT", "10000"))
+STDERR_LIMIT = int(os.environ.get("STDERR_LIMIT", "10000"))
 
 # --- 로깅 (개발/디버깅) ---
 # LOG_DIR 이 비면 <repo루트>/logs. Docker 는 compose 가 /app/logs 주입.

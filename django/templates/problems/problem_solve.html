@@ -28,21 +28,21 @@
     {% endif %}
   </section>
 
-  <!-- 우: 코드 에디터 (실행/제출 로직은 STEP-04, Fetch 연결은 STEP-07) -->
+  <!-- 우: 코드 에디터 -->
   <section class="panel editor-pane" data-problem-id="{{ problem.id }}">
     <label class="sub-title" for="code-input">코드 (Python 3.11)</label>
-    <textarea id="code-input" class="code-input" spellcheck="false"
+    <textarea id="code-editor" class="code-input" spellcheck="false"
               placeholder="여기에 코드를 작성하세요"># 여기에 코드를 작성하세요
 </textarea>
 
     <div class="editor-actions">
-      <button id="run-btn" type="button" class="btn btn-ghost" disabled>실행</button>
-      <button id="submit-btn" type="button" class="btn" disabled>제출</button>
-      <span class="hint-note">실행/제출은 STEP-04, AI 힌트는 STEP-06/07에서 연결됩니다.</span>
+      <button id="run-code-btn" type="button" class="btn btn-ghost">실행</button>
+      <button id="submit-btn" type="button" class="btn">제출</button>
     </div>
 
-    <!-- STEP-07 Fetch 대상 DOM -->
-    <div id="result-area" class="result-area" hidden></div>
+    <div id="run-loading-box" class="result-area" hidden>실행 중입니다.</div>
+    <div id="run-error-box" class="result-area" hidden></div>
+    <div id="result-status-box" class="result-area" hidden></div>
 
     <div class="hint-box">
       <div class="hint-levels">
@@ -56,4 +56,91 @@
 </div>
 
 <p class="back-link"><a href="{% url 'problems:list' %}">← 목록으로</a></p>
+<script>
+(() => {
+  const pane = document.querySelector(".editor-pane");
+  const editor = document.getElementById("code-editor");
+  const runButton = document.getElementById("run-code-btn");
+  const submitButton = document.getElementById("submit-btn");
+  const loadingBox = document.getElementById("run-loading-box");
+  const errorBox = document.getElementById("run-error-box");
+  const statusBox = document.getElementById("result-status-box");
+
+  const getCookie = (name) => {
+    const cookies = document.cookie ? document.cookie.split(";") : [];
+    for (const rawCookie of cookies) {
+      const cookie = rawCookie.trim();
+      if (cookie.startsWith(`${name}=`)) {
+        return decodeURIComponent(cookie.slice(name.length + 1));
+      }
+    }
+    return "";
+  };
+
+  const show = (element, text) => {
+    element.textContent = text;
+    element.hidden = false;
+  };
+
+  const hide = (...elements) => elements.forEach((element) => { element.hidden = true; });
+
+  const pollResult = async (submissionId) => {
+    for (let i = 0; i < 60; i += 1) {
+      const response = await fetch(`/submissions/${submissionId}/result/`, {
+        headers: {"Accept": "application/json"},
+      });
+      if (!response.ok) {
+        throw new Error("결과 조회 실패");
+      }
+      const data = await response.json();
+      const jobStatus = data.job.status;
+      if (["success", "failed", "timeout"].includes(jobStatus)) {
+        const output = data.output ? `\n\n출력:\n${data.output}` : "";
+        const error = data.error_message ? `\n\n오류:\n${data.error_message}` : "";
+        show(statusBox, `결과: ${data.result} / Job: ${jobStatus}${output}${error}`);
+        hide(loadingBox);
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    throw new Error("결과 대기 시간이 초과되었습니다.");
+  };
+
+  const run = async () => {
+    hide(errorBox, statusBox);
+    show(loadingBox, "실행 대기열에 등록 중입니다.");
+    runButton.disabled = true;
+    submitButton.disabled = true;
+    try {
+      const response = await fetch("{% url 'submissions:run' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({
+          problem_id: Number(pane.dataset.problemId),
+          code: editor.value,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "실행 요청 실패");
+      }
+      show(loadingBox, "실행 중입니다.");
+      await pollResult(data.submission_id);
+    } catch (error) {
+      hide(loadingBox);
+      show(errorBox, error.message);
+    } finally {
+      runButton.disabled = false;
+      submitButton.disabled = false;
+    }
+  };
+
+  runButton.addEventListener("click", run);
+  submitButton.addEventListener("click", run);
+})();
+</script>
 {% endblock %}

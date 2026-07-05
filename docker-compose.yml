@@ -1,25 +1,7 @@
-# WOOK'S CODING - 전체 컴포넌트 오케스트레이션 (STEP-09 프리뷰)
-# 루트 통합 .env 를 모든 서비스가 공유한다.
+# WOOK'S CODING - App server orchestration for RDS deployment.
+# PostgreSQL은 AWS RDS를 사용하며, 루트 .env의 POSTGRES_HOST를 그대로 따른다.
 
 services:
-  postgres:
-    image: postgres:16
-    env_file: .env
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    # 접속 준비 완료를 알려야 django/worker 의 migrate/polling 이 안전하게 시작된다.
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 12
-
   chromadb:
     image: chromadb/chroma:0.5.3
     volumes:
@@ -30,7 +12,6 @@ services:
     build: ./django
     env_file: .env
     environment:
-      POSTGRES_HOST: postgres
       LOG_DIR: /logs   # /app/logs 는 Django 'logs' 앱과 충돌 → /logs 로 분리
     # migrate 결과는 migrate.log 로, gunicorn 실행 로그는 access/error.log 로 남긴다.
     # (migrate 실패 시 '>' 리다이렉트가 exit code 를 보존 → && 체인이 멈춰 원인 확인 가능)
@@ -45,9 +26,6 @@ services:
       - staticfiles:/app/staticfiles
       - ./volumes/logs:/logs        # 개발/디버깅/AI연구용 로그 (호스트 보존)
       - ./volumes/data:/app/data:ro     # seed 데이터(CSV) 적재용 — 읽기 전용
-    depends_on:
-      postgres:
-        condition: service_healthy   # migrate 를 postgres 준비 후에만 실행
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/', timeout=2).read()\""]
       interval: 5s
@@ -72,13 +50,9 @@ services:
     build: ./worker
     env_file: .env
     environment:
-      POSTGRES_HOST: postgres
       LOG_DIR: /logs   # /app/logs 는 Django 'logs' 앱과 충돌 → /logs 로 분리
     volumes:
       - ./volumes/logs:/logs        # worker/app.log (호스트 보존)
-    depends_on:
-      postgres:
-        condition: service_healthy   # postgres 준비 후 polling 시작(초기 노이즈 감소)
 
   nginx:
     image: nginx:1.27-alpine
@@ -92,6 +66,5 @@ services:
         condition: service_healthy
 
 volumes:
-  pgdata:
   chromadata:
   staticfiles:
