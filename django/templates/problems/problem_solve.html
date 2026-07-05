@@ -2,6 +2,7 @@
 {% block title %}{{ problem.title|truncatechars:30 }} · 문제풀이{% endblock %}
 
 {% block content %}
+<form hidden>{% csrf_token %}</form>
 <div class="solve-layout">
   <!-- 좌: 문제 -->
   <section class="panel problem-pane">
@@ -43,6 +44,10 @@
     <div id="run-loading-box" class="result-area" hidden>실행 중입니다.</div>
     <div id="run-error-box" class="result-area" hidden></div>
     <div id="result-status-box" class="result-area" hidden></div>
+    <div class="wrong-note-action">
+      <a id="wrong-note-create-link" href="{% url 'wrongnotes:list' %}" class="btn btn-danger-ghost">오답노트 작성 →</a>
+      <span id="wrong-note-help" class="hint-note">오답 제출 후에는 바로 작성 화면으로 이동합니다.</span>
+    </div>
 
     <div class="hint-box">
       <div class="hint-levels">
@@ -65,6 +70,8 @@
   const loadingBox = document.getElementById("run-loading-box");
   const errorBox = document.getElementById("run-error-box");
   const statusBox = document.getElementById("result-status-box");
+  const wrongNoteLink = document.getElementById("wrong-note-create-link");
+  const wrongNoteHelp = document.getElementById("wrong-note-help");
 
   const getCookie = (name) => {
     const cookies = document.cookie ? document.cookie.split(";") : [];
@@ -98,17 +105,14 @@
         const output = data.output ? `\n\n출력:\n${data.output}` : "";
         const error = data.error_message ? `\n\n오류:\n${data.error_message}` : "";
         const score = data.total ? ` / 테스트 ${data.passed}/${data.total}` : "";
-        show(statusBox, `결과: ${data.submission_result} / Job: ${jobStatus}${score}${output}${error}`);
         if (data.wrong_note_create_url) {
-          const spacer = document.createElement("div");
-          spacer.style.marginTop = "12px";
-          const link = document.createElement("a");
-          link.href = data.wrong_note_create_url;
-          link.className = "btn btn-ghost";
-          link.textContent = "오답노트 작성";
-          spacer.appendChild(link);
-          statusBox.appendChild(spacer);
+          wrongNoteLink.href = data.wrong_note_create_url;
+          wrongNoteHelp.textContent = "현재 제출 결과로 오답노트를 작성할 수 있습니다.";
+        } else {
+          wrongNoteLink.href = "{% url 'wrongnotes:list' %}";
+          wrongNoteHelp.textContent = "정답 또는 실행 결과는 오답노트 작성 대상이 아닙니다.";
         }
+        show(statusBox, `결과: ${data.submission_result} / Job: ${jobStatus}${score}${output}${error}`);
         hide(loadingBox);
         return;
       }
@@ -119,6 +123,8 @@
 
   const createJob = async (url, queuedMessage, runningMessage) => {
     hide(errorBox, statusBox);
+    wrongNoteLink.href = "{% url 'wrongnotes:list' %}";
+    wrongNoteHelp.textContent = "오답 제출 후에는 바로 작성 화면으로 이동합니다.";
     show(loadingBox, queuedMessage);
     runButton.disabled = true;
     submitButton.disabled = true;

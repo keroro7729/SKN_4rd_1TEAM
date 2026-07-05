@@ -7,6 +7,25 @@
   <a href="{% url 'wrongnotes:ask' %}" class="btn btn-ghost">내 노트에 물어보기</a>
 </div>
 
+<section class="panel">
+  <h3 class="sub-title">최근 오답 제출</h3>
+  <table class="table">
+    <thead><tr><th>문제</th><th>결과</th><th>일시</th><th>작성</th></tr></thead>
+    <tbody>
+      {% for submission in recent_wrong_submissions %}
+        <tr>
+          <td>{{ submission.problem.title|truncatechars:36 }}</td>
+          <td><span class="badge badge-status-{{ submission.result }}">{{ submission.get_result_display }}</span></td>
+          <td>{{ submission.created_at|date:"m-d H:i" }}</td>
+          <td><a class="btn btn-ghost" href="{% url 'wrongnotes:create' submission.id %}">오답노트 작성</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="empty">작성할 오답 제출이 없습니다.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
 <div class="note-list">
   {% for note in notes %}
     <article class="card note-card">
@@ -20,7 +39,7 @@
       {% if note.comment %}<p class="note-comment">{{ note.comment|truncatechars:160 }}</p>{% endif %}
       <div class="note-meta">
         <span>{{ note.created_at|date:"Y-m-d H:i" }}</span>
-        {% if note.is_reviewed %}<span class="reviewed">✔ 복습완료</span>{% endif %}
+        {% if note.is_reviewed %}<span class="reviewed">복습완료</span>{% endif %}
       </div>
     </article>
   {% empty %}

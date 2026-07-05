@@ -22,10 +22,27 @@ class WrongNoteListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         return (
             WrongNote.objects.filter(user=self.request.user)
-            .select_related("problem")
+            .select_related("problem", "submission")
             .prefetch_related("tags")
             .order_by("-created_at")
         )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        existing_submission_ids = WrongNote.objects.filter(
+            user=self.request.user
+        ).values_list("submission_id", flat=True)
+        ctx["recent_wrong_submissions"] = (
+            Submission.objects.filter(
+                user=self.request.user,
+                submission_type="submit",
+                result__in=["wrong", "error", "timeout"],
+            )
+            .exclude(id__in=existing_submission_ids)
+            .select_related("problem")
+            .order_by("-created_at")[:10]
+        )
+        return ctx
 
 
 class WrongNoteCreateView(LoginRequiredMixin, TemplateView):

@@ -59,6 +59,7 @@ body {
 }
 .btn:hover { filter: brightness(1.1); }
 .btn-ghost { background: transparent; border: 1px solid var(--line); color: var(--text); }
+.btn-danger-ghost { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
 .btn-lg { padding: 12px 26px; font-size: 1.05rem; }
 .btn-block { width: 100%; margin-top: 8px; }
 
@@ -193,6 +194,15 @@ body {
 .hint-box { margin-top: 16px; }
 .hint-levels { display: flex; gap: 8px; }
 .hint-area { margin-top: 10px; }
+.wrong-note-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
 
 /* 오답노트 */
 .note-list { display: flex; flex-direction: column; gap: 12px; }
