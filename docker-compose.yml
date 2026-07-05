@@ -16,6 +16,7 @@ services:
     command: >
       sh -c "mkdir -p /logs/django &&
              python manage.py migrate --no-input > /logs/django/migrate.log 2>&1 &&
+             python manage.py load_problems > /logs/django/load_problems.log 2>&1 &&
              python manage.py collectstatic --noinput &&
              gunicorn config.wsgi:application --bind 0.0.0.0:8000 --access-logfile /logs/django/access.log --error-logfile /logs/django/error.log --capture-output"
     volumes:
