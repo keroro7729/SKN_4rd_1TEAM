@@ -1,25 +1,34 @@
 {% extends "base.html" %}
-{% block title %}문제 목록 · WOOK'S CODING{% endblock %}
+{% block title %}&#47928;&#51228; &#47785;&#47197; · WOOK'S CODING{% endblock %}
 
 {% block content %}
-<h1 class="page-title">문제 목록</h1>
+<h1 class="page-title">&#47928;&#51228; &#47785;&#47197;</h1>
+
+<nav class="problem-menu" aria-label="&#47928;&#51228; &#48516;&#47448;">
+  {% for item in menu_items %}
+    <a
+      class="btn {% if item.active %}btn-primary{% else %}btn-ghost{% endif %}"
+      href="{% url 'problems:list' %}?{% if item.category %}category={{ item.category }}{% endif %}{% if item.category and item.difficulty %}&{% endif %}{% if item.difficulty %}difficulty={{ item.difficulty }}{% endif %}"
+    >{{ item.label }}</a>
+  {% endfor %}
+</nav>
 
 <form class="filter-form" method="get">
-  <input type="text" name="q" value="{{ q }}" placeholder="제목 검색" class="filter-input">
+  <input type="text" name="q" value="{{ q }}" placeholder="&#51228;&#47785; &#44160;&#49353;" class="filter-input">
   <select name="category" class="filter-input">
-    <option value="">전체 카테고리</option>
+    <option value="">&#51204;&#52404; &#48516;&#47448;</option>
     {% for c in categories %}
       <option value="{{ c.slug }}" {% if c.slug == cur_category %}selected{% endif %}>{{ c.name }}</option>
     {% endfor %}
   </select>
   <select name="difficulty" class="filter-input">
-    <option value="">전체 난이도</option>
+    <option value="">&#51204;&#52404; &#45212;&#51060;&#46020;</option>
     {% for value, label in difficulties %}
       <option value="{{ value }}" {% if value == cur_difficulty %}selected{% endif %}>{{ label }}</option>
     {% endfor %}
   </select>
-  <button type="submit" class="btn">필터</button>
-  <a href="{% url 'problems:list' %}" class="btn btn-ghost">초기화</a>
+  <button type="submit" class="btn">&#54596;&#53552;</button>
+  <a href="{% url 'problems:list' %}" class="btn btn-ghost">&#52488;&#44592;&#54868;</a>
 </form>
 
 <div class="problem-list">
@@ -29,24 +38,25 @@
       <span class="list-main">
         <span class="list-title">{{ p.title|truncatechars:70 }}</span>
         <span class="list-tags">
+          <span class="tag">{{ p.category.name }}</span>
           {% for t in p.tags.all %}<span class="tag">{{ t.name }}</span>{% endfor %}
         </span>
       </span>
       <span class="badge badge-{{ p.difficulty }}">{{ p.get_difficulty_display }}</span>
     </a>
   {% empty %}
-    <p class="empty">조건에 맞는 문제가 없습니다.</p>
+    <p class="empty">&#51312;&#44148;&#50640; &#47582;&#45716; &#47928;&#51228;&#44032; &#50630;&#49845;&#45768;&#45796;.</p>
   {% endfor %}
 </div>
 
 {% if is_paginated %}
 <nav class="pagination">
   {% if page_obj.has_previous %}
-    <a class="btn btn-ghost" href="?{% if q %}q={{ q }}&{% endif %}{% if cur_category %}category={{ cur_category }}&{% endif %}{% if cur_difficulty %}difficulty={{ cur_difficulty }}&{% endif %}page={{ page_obj.previous_page_number }}">이전</a>
+    <a class="btn btn-ghost" href="?{% if q %}q={{ q }}&{% endif %}{% if cur_category %}category={{ cur_category }}&{% endif %}{% if cur_difficulty %}difficulty={{ cur_difficulty }}&{% endif %}page={{ page_obj.previous_page_number }}">&#51060;&#51204;</a>
   {% endif %}
   <span class="page-info">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
   {% if page_obj.has_next %}
-    <a class="btn btn-ghost" href="?{% if q %}q={{ q }}&{% endif %}{% if cur_category %}category={{ cur_category }}&{% endif %}{% if cur_difficulty %}difficulty={{ cur_difficulty }}&{% endif %}page={{ page_obj.next_page_number }}">다음</a>
+    <a class="btn btn-ghost" href="?{% if q %}q={{ q }}&{% endif %}{% if cur_category %}category={{ cur_category }}&{% endif %}{% if cur_difficulty %}difficulty={{ cur_difficulty }}&{% endif %}page={{ page_obj.next_page_number }}">&#45796;&#51020;</a>
   {% endif %}
 </nav>
 {% endif %}

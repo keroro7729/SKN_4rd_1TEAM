@@ -43,6 +43,38 @@ class ProblemListView(LoginRequiredMixin, ListView):
         ctx = super().get_context_data(**kwargs)
         ctx["categories"] = ProblemCategory.objects.filter(is_active=True).order_by("name")
         ctx["difficulties"] = DIFFICULTY_CHOICES
+        ctx["menu_items"] = [
+            {
+                "label": "전체",
+                "category": "",
+                "difficulty": "",
+                "active": not self.f_category and not self.f_difficulty,
+            },
+            {
+                "label": "자료구조",
+                "category": "data-structures",
+                "difficulty": "",
+                "active": self.f_category == "data-structures" and not self.f_difficulty,
+            },
+            {
+                "label": "알고리즘 초급",
+                "category": "algorithms",
+                "difficulty": "beginner",
+                "active": self.f_category == "algorithms" and self.f_difficulty == "beginner",
+            },
+            {
+                "label": "알고리즘 중급",
+                "category": "algorithms",
+                "difficulty": "intermediate",
+                "active": self.f_category == "algorithms" and self.f_difficulty == "intermediate",
+            },
+            {
+                "label": "알고리즘 고급",
+                "category": "algorithms",
+                "difficulty": "advanced",
+                "active": self.f_category == "algorithms" and self.f_difficulty == "advanced",
+            },
+        ]
         ctx["cur_category"] = self.f_category
         ctx["cur_difficulty"] = self.f_difficulty
         ctx["cur_tag"] = self.f_tag

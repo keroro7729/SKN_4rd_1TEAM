@@ -44,8 +44,8 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "--difficulty",
-            default="beginner",
-            help="Difficulty assigned to imported problem rows.",
+            default="auto",
+            help="Difficulty assigned to imported problem rows. Use auto to infer from source_file.",
         )
         parser.add_argument(
             "--no-sync-problems",
