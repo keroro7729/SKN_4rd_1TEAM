@@ -13,6 +13,7 @@ from config.choices import (
     JOB_STATUS_CHOICES,
     JOB_TYPE_CHOICES,
     SUBMISSION_RESULT_CHOICES,
+    SUBMISSION_TYPE_CHOICES,
 )
 from problems.models import Problem
 
@@ -34,6 +35,13 @@ class Submission(models.Model):
     result = models.CharField(
         "채점결과", max_length=20, choices=SUBMISSION_RESULT_CHOICES, default="pending"
     )
+    submission_type = models.CharField(
+        "제출유형",
+        max_length=20,
+        choices=SUBMISSION_TYPE_CHOICES,
+        default="submit",
+        db_index=True,
+    )
     output = models.TextField("실행출력", blank=True)
     error_message = models.TextField("오류메시지", blank=True)
     elapsed_ms = models.PositiveIntegerField("실행시간(ms)", null=True, blank=True)
@@ -42,7 +50,10 @@ class Submission(models.Model):
     class Meta:
         verbose_name = "제출"
         verbose_name_plural = "제출"
-        indexes = [models.Index(fields=["user", "problem", "created_at"])]
+        indexes = [
+            models.Index(fields=["user", "problem", "created_at"]),
+            models.Index(fields=["user", "submission_type", "created_at"]),
+        ]
 
     def __str__(self):
         return f"Submission#{self.pk} · u{self.user_id} p{self.problem_id} · {self.result}"

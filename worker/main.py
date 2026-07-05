@@ -107,7 +107,7 @@ def process_one(conn) -> bool:
             """
             SELECT id, submission_id, user_id
               FROM submissions_executionjob
-             WHERE status = 'pending' AND job_type = 'code_run'
+             WHERE status = 'pending' AND job_type IN ('code_run', 'code_submit')
              ORDER BY created_at, id
              FOR UPDATE SKIP LOCKED
              LIMIT 1

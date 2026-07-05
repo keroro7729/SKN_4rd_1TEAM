@@ -6,8 +6,16 @@ from .models import ExecutionJob, Submission
 
 @admin.register(Submission)
 class SubmissionAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "problem", "result", "elapsed_ms", "created_at")
-    list_filter = ("result", "created_at")
+    list_display = (
+        "id",
+        "user",
+        "problem",
+        "submission_type",
+        "result",
+        "elapsed_ms",
+        "created_at",
+    )
+    list_filter = ("submission_type", "result", "created_at")
     search_fields = ("user__username", "problem__title")
     raw_id_fields = ("user", "problem")
 

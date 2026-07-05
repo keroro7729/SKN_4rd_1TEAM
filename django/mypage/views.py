@@ -14,7 +14,7 @@ class MyPageView(LoginRequiredMixin, TemplateView):
         ctx = super().get_context_data(**kwargs)
         user = self.request.user
         ctx["submissions"] = (
-            Submission.objects.filter(user=user)
+            Submission.objects.filter(user=user, submission_type="submit")
             .select_related("problem")
             .order_by("-created_at")[:10]
         )

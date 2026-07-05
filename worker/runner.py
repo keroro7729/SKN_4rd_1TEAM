@@ -56,9 +56,9 @@ def run_code(code: str, stdin_data: str = "", timeout: int = CODE_TIMEOUT_SEC) -
 
 
 def normalize(text: str) -> str:
-    """LF 정규화 + 라인별 끝 공백 제거."""
+    """LF 정규화 + 라인별 양끝 공백 제거."""
     lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
-    return "\n".join(line.rstrip() for line in lines).rstrip("\n")
+    return "\n".join(line.strip() for line in lines).strip("\n")
 
 
 def compare_output(

@@ -19,8 +19,14 @@ SUBMISSION_RESULT_CHOICES = [
     ("timeout", "시간초과"),
 ]
 
+SUBMISSION_TYPE_CHOICES = [
+    ("run", "실행"),
+    ("submit", "최종제출"),
+]
+
 JOB_TYPE_CHOICES = [
     ("code_run", "코드실행"),
+    ("code_submit", "코드제출"),
 ]
 
 JOB_STATUS_CHOICES = [
