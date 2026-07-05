@@ -2,7 +2,7 @@
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class LLMStatus(str, Enum):
@@ -21,3 +21,9 @@ class Evidence(BaseModel):
     source: str = "wrong_note"
     score: float
     title: Optional[str] = None
+
+
+class InternalResponse(BaseModel):
+    """내부 API 공통 응답 추적 필드."""
+
+    request_id: Optional[str] = Field(default=None, description="X-Request-ID")

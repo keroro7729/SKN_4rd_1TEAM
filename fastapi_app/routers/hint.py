@@ -12,7 +12,7 @@ router = APIRouter(prefix="/ai", tags=["hint"])
 
 
 @router.post("/hint", response_model=HintResponse)
-async def create_hint(req: HintRequest, _=Depends(verify_internal)) -> HintResponse:
+async def create_hint(req: HintRequest, ctx=Depends(verify_internal)) -> HintResponse:
     content = await llm.generate_hint(req.problem_id, req.user_code, req.hint_level)
     log_ai_event(
         "hint",
@@ -21,6 +21,7 @@ async def create_hint(req: HintRequest, _=Depends(verify_internal)) -> HintRespo
         model=config.OPENAI_MODEL,
     )
     return HintResponse(
+        request_id=ctx["request_id"],
         status=LLMStatus.success,
         hint_level=req.hint_level,
         content=content,
