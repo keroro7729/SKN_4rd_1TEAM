@@ -1,14 +1,8 @@
 """WrongNote application services."""
-import json
-import urllib.error
-import urllib.request
-import uuid
-
-from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
-from logs.models import LLMRequestLog
+from ai_proxy.client import call_fastapi as proxy_call_fastapi
 from .models import WrongNoteVector
 
 
@@ -23,77 +17,16 @@ def call_fastapi(
     path: str,
     payload: dict,
 ) -> dict:
-    """Call FastAPI with required internal headers and persist an LLM request log."""
-    request_id = uuid.uuid4().hex
-    input_text = json.dumps(payload, ensure_ascii=False)
-    log = LLMRequestLog.objects.create(
+    """Call FastAPI through the shared AI proxy client and return raw payload."""
+    result = proxy_call_fastapi(
         user=user,
         request_type=request_type,
-        request_id=request_id,
-        input_text=input_text,
-        status="pending",
+        path=path,
+        payload=payload,
     )
-
-    url = f"{settings.FASTAPI_BASE_URL}{path}"
-    data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-    req = urllib.request.Request(
-        url,
-        data=data,
-        headers={
-            "Content-Type": "application/json",
-            "X-Internal-API-Key": settings.INTERNAL_API_KEY,
-            "X-Request-ID": request_id,
-        },
-        method="POST",
-    )
-
-    try:
-        with urllib.request.urlopen(
-            req,
-            timeout=settings.INTERNAL_API_TIMEOUT_SEC,
-        ) as response:
-            raw = response.read().decode("utf-8")
-        result = json.loads(raw or "{}")
-        log.status = result.get("status") or "success"
-        log.response_text = raw
-        log.completed_at = timezone.now()
-        log.save(
-            update_fields=[
-                "status",
-                "response_text",
-                "completed_at",
-            ]
-        )
-        return result
-    except urllib.error.HTTPError as exc:
-        error_body = exc.read().decode("utf-8", errors="replace")
-        log.status = "failed"
-        log.error_type = f"HTTP_{exc.code}"
-        log.error_message = error_body
-        log.completed_at = timezone.now()
-        log.save(
-            update_fields=[
-                "status",
-                "error_type",
-                "error_message",
-                "completed_at",
-            ]
-        )
-        raise FastAPIClientError(error_body) from exc
-    except Exception as exc:  # noqa: BLE001
-        log.status = "failed"
-        log.error_type = exc.__class__.__name__
-        log.error_message = str(exc)
-        log.completed_at = timezone.now()
-        log.save(
-            update_fields=[
-                "status",
-                "error_type",
-                "error_message",
-                "completed_at",
-            ]
-        )
-        raise FastAPIClientError(str(exc)) from exc
+    if result.status not in {"success", "empty"}:
+        raise FastAPIClientError(result.message)
+    return result.raw or result.to_response()
 
 
 def build_wrong_note_payload(note) -> dict:

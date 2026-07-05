@@ -13,6 +13,7 @@ urlpatterns = [
     path("health/", HealthCheckView.as_view(), name="health"),
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
+    path("ai-proxy/", include("ai_proxy.urls")),
     path("problems/", include("problems.urls")),
     path("submissions/", include("submissions.urls")),
     path("wrongnotes/", include("wrongnotes.urls")),
