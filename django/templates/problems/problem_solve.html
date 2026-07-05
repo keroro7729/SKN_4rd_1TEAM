@@ -92,7 +92,8 @@
   const hide = (...elements) => elements.forEach((element) => { element.hidden = true; });
 
   const pollResult = async (submissionId) => {
-    for (let i = 0; i < 60; i += 1) {
+    const maxPollCount = 35;
+    for (let i = 0; i < maxPollCount; i += 1) {
       const response = await fetch(`/submissions/${submissionId}/result/`, {
         headers: {"Accept": "application/json"},
       });
@@ -116,9 +117,13 @@
         hide(loadingBox);
         return;
       }
+      show(
+        loadingBox,
+        `처리 대기 중입니다. Job: ${jobStatus} · ${i + 1}/${maxPollCount}`
+      );
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
-    throw new Error("결과 대기 시간이 초과되었습니다.");
+    throw new Error("결과 대기 시간이 초과되었습니다. Worker 서버 상태를 확인해 주세요.");
   };
 
   const createJob = async (url, queuedMessage, runningMessage) => {

@@ -23,7 +23,7 @@ def limit_text(value, limit: int) -> str:
     return str(value)[:limit]
 
 
-def run_code(code: str, stdin_data: str = "", timeout: int = CODE_TIMEOUT_SEC) -> dict:
+def run_code(code: str, stdin_data: str = "", timeout: float = CODE_TIMEOUT_SEC) -> dict:
     """사용자 코드를 별도 프로세스로 실행하고 결과를 반환한다."""
     with tempfile.TemporaryDirectory() as tmp:
         src = Path(tmp) / "solution.py"

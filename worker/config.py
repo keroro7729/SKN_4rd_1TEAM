@@ -8,6 +8,11 @@ from dotenv import load_dotenv
 ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(ROOT / ".env")
 
+
+def env_int(key: str, default: str, minimum: int = 1) -> int:
+    value = int(os.environ.get(key, default))
+    return max(minimum, value)
+
 # --- PostgreSQL (jobs polling) ---
 DB_CONFIG = {
     "dbname": os.environ.get("POSTGRES_DB", "wooks_coding"),
@@ -18,10 +23,12 @@ DB_CONFIG = {
 }
 
 # --- 실행 제한 (지시문 §3 확정 기준) ---
-CODE_TIMEOUT_SEC = int(os.environ.get("CODE_TIMEOUT_SEC", "5"))
+CODE_TIMEOUT_SEC = env_int("CODE_TIMEOUT_SEC", "5")
+MAX_TEST_CASES = env_int("MAX_TEST_CASES", "5")
+DEFAULT_TEST_CASES = min(env_int("DEFAULT_TEST_CASES", "1"), MAX_TEST_CASES)
 POLL_INTERVAL_SEC = float(os.environ.get("WORKER_POLL_INTERVAL_SEC", "2"))
-STDOUT_LIMIT = int(os.environ.get("STDOUT_LIMIT", "10000"))
-STDERR_LIMIT = int(os.environ.get("STDERR_LIMIT", "10000"))
+STDOUT_LIMIT = env_int("STDOUT_LIMIT", "10000")
+STDERR_LIMIT = env_int("STDERR_LIMIT", "10000")
 
 # --- 로깅 (개발/디버깅) ---
 # LOG_DIR 이 비면 <repo루트>/logs. Docker 는 compose 가 /app/logs 주입.

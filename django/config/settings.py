@@ -150,6 +150,12 @@ LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
 FASTAPI_BASE_URL = os.environ.get("FASTAPI_BASE_URL", "http://fastapi:8001").rstrip("/")
 INTERNAL_API_KEY = os.environ.get("INTERNAL_API_KEY", "dev-internal-key")
 INTERNAL_API_TIMEOUT_SEC = int(os.environ.get("INTERNAL_API_TIMEOUT_SEC", "20"))
+CODE_JOB_RESULT_TIMEOUT_SEC = int(
+    os.environ.get(
+        "CODE_JOB_RESULT_TIMEOUT_SEC",
+        str(int(os.environ.get("CODE_TIMEOUT_SEC", "5")) + 10),
+    )
+)
 
 LOGGING = {
     "version": 1,

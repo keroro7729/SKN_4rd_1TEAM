@@ -2,10 +2,12 @@
 import json
 
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
 from problems.models import Problem
@@ -14,6 +16,43 @@ from .models import ExecutionJob, Submission
 
 
 FINISHED_JOB_STATUSES = {"success", "failed", "timeout"}
+ACTIVE_JOB_STATUSES = {"pending", "running"}
+
+
+def _expire_stale_job(job):
+    """Finish stale jobs so the browser never waits indefinitely."""
+    if job is None or job.status not in ACTIVE_JOB_STATUSES:
+        return
+
+    base_time = job.started_at or job.created_at
+    elapsed_sec = (timezone.now() - base_time).total_seconds()
+    if elapsed_sec < settings.CODE_JOB_RESULT_TIMEOUT_SEC:
+        return
+
+    message = (
+        "코드 실행 Worker 응답이 지연되었습니다. "
+        "Worker 서버 상태와 로그를 확인해 주세요."
+    )
+    payload = {
+        "passed": 0,
+        "total": 0,
+        "case_results": [],
+        "stdout": "",
+        "stderr": "",
+        "error_message": message,
+        "elapsed_ms": int(elapsed_sec * 1000),
+    }
+    submission = job.submission
+    submission.result = "error"
+    submission.output = ""
+    submission.error_message = message
+    submission.elapsed_ms = payload["elapsed_ms"]
+    submission.save(update_fields=["result", "output", "error_message", "elapsed_ms"])
+
+    job.status = "failed"
+    job.result_payload = payload
+    job.finished_at = timezone.now()
+    job.save(update_fields=["status", "result_payload", "finished_at"])
 
 
 def _parse_json_body(request):
@@ -96,6 +135,10 @@ def submission_result(request, submission_id):
         pk=submission_id,
     )
     job = submission.jobs.order_by("-created_at", "-id").first()
+    _expire_stale_job(job)
+    if job is not None:
+        submission.refresh_from_db(fields=["result", "output", "error_message", "elapsed_ms"])
+        job.refresh_from_db(fields=["status", "result_payload"])
     payload = job.result_payload if job else {}
     job_status = job.status if job else "pending"
     output = submission.output or payload.get("stdout", "") or payload.get("output", "")

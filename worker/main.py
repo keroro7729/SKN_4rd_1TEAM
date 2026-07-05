@@ -18,7 +18,13 @@ import uuid
 import psycopg
 from psycopg.types.json import Json
 
-from config import DB_CONFIG, POLL_INTERVAL_SEC
+from config import (
+    CODE_TIMEOUT_SEC,
+    DB_CONFIG,
+    DEFAULT_TEST_CASES,
+    MAX_TEST_CASES,
+    POLL_INTERVAL_SEC,
+)
 from logging_setup import setup_logging
 from runner import compare_output, run_code
 
@@ -49,16 +55,23 @@ def log_system_error(conn, user_id, message: str, exc: Exception) -> None:
         )
 
 
-def fetch_test_cases(cur, problem_id: int) -> list[dict]:
+def test_case_limit(job_type: str) -> int:
+    """Use a fast sample for runs and fuller validation for final submissions."""
+    if job_type == "code_submit":
+        return MAX_TEST_CASES
+    return DEFAULT_TEST_CASES
+
+
+def fetch_test_cases(cur, problem_id: int, limit: int) -> list[dict]:
     cur.execute(
         """
         SELECT input_data, expected_output, compare_mode, float_tolerance
           FROM problems_testcase
          WHERE problem_id = %s
          ORDER BY id
-         LIMIT 5
+         LIMIT %s
         """,
-        (problem_id,),
+        (problem_id, limit),
     )
     return [
         {
@@ -105,7 +118,7 @@ def process_one(conn) -> bool:
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT id, submission_id, user_id
+            SELECT id, submission_id, user_id, job_type
               FROM submissions_executionjob
              WHERE status = 'pending' AND job_type IN ('code_run', 'code_submit')
              ORDER BY created_at, id
@@ -117,7 +130,7 @@ def process_one(conn) -> bool:
         if row is None:
             return False
 
-        job_id, submission_id, user_id = row
+        job_id, submission_id, user_id, job_type = row
         cur.execute(
             """
             UPDATE submissions_executionjob
@@ -140,7 +153,7 @@ def process_one(conn) -> bool:
             if submission is None:
                 raise RuntimeError(f"submission not found: {submission_id}")
             code, problem_id = submission
-            test_cases = fetch_test_cases(cur, problem_id)
+            test_cases = fetch_test_cases(cur, problem_id, test_case_limit(job_type))
 
         if not test_cases:
             payload = {
@@ -155,31 +168,43 @@ def process_one(conn) -> bool:
             conn.commit()
             return True
 
-        total_elapsed = 0
+        job_started = time.monotonic()
         passed = 0
         first_stdout = ""
         first_stderr = ""
         first_error = ""
         case_results = []
 
+        def elapsed_ms() -> int:
+            return int((time.monotonic() - job_started) * 1000)
+
+        def timeout_payload() -> dict:
+            return {
+                "passed": passed,
+                "total": len(test_cases),
+                "case_results": case_results,
+                "stdout": first_stdout,
+                "stderr": first_stderr,
+                "error_message": "실행 시간이 초과되었습니다.",
+                "elapsed_ms": elapsed_ms(),
+                "timeout_sec": CODE_TIMEOUT_SEC,
+            }
+
         for index, case in enumerate(test_cases, start=1):
-            run = run_code(code, case["input"])
-            total_elapsed += run.get("elapsed_ms") or 0
+            remaining_timeout = CODE_TIMEOUT_SEC - (time.monotonic() - job_started)
+            if remaining_timeout <= 0:
+                case_results.append({"case": index, "passed": False, "error": "timeout"})
+                finish_job(conn, job_id, submission_id, "timeout", "timeout", timeout_payload())
+                conn.commit()
+                return True
+
+            run = run_code(code, case["input"], timeout=max(0.1, remaining_timeout))
             first_stdout = first_stdout or run.get("stdout", "")
             first_stderr = first_stderr or run.get("stderr", "")
 
             if run["timed_out"]:
-                first_error = "실행 시간이 초과되었습니다."
-                payload = {
-                    "passed": passed,
-                    "total": len(test_cases),
-                    "case_results": case_results,
-                    "stdout": first_stdout,
-                    "stderr": first_stderr,
-                    "error_message": first_error,
-                    "elapsed_ms": total_elapsed,
-                }
-                finish_job(conn, job_id, submission_id, "timeout", "timeout", payload)
+                case_results.append({"case": index, "passed": False, "error": "timeout"})
+                finish_job(conn, job_id, submission_id, "timeout", "timeout", timeout_payload())
                 conn.commit()
                 return True
 
@@ -192,7 +217,7 @@ def process_one(conn) -> bool:
                     "stdout": first_stdout,
                     "stderr": first_stderr,
                     "error_message": first_error,
-                    "elapsed_ms": total_elapsed,
+                    "elapsed_ms": elapsed_ms(),
                 }
                 finish_job(conn, job_id, submission_id, "failed", "error", payload)
                 conn.commit()
@@ -214,7 +239,7 @@ def process_one(conn) -> bool:
                     "stdout": first_stdout,
                     "stderr": first_stderr,
                     "error_message": "기대 출력과 다릅니다.",
-                    "elapsed_ms": total_elapsed,
+                    "elapsed_ms": elapsed_ms(),
                 }
                 finish_job(conn, job_id, submission_id, "success", "wrong", payload)
                 conn.commit()
@@ -227,7 +252,7 @@ def process_one(conn) -> bool:
             "stdout": first_stdout,
             "stderr": first_stderr,
             "error_message": "",
-            "elapsed_ms": total_elapsed,
+            "elapsed_ms": elapsed_ms(),
         }
         finish_job(conn, job_id, submission_id, "success", "success", payload)
         conn.commit()
