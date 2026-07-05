@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -65,6 +66,23 @@ SOURCE_DIFFICULTY_MAP = {
 }
 
 VALID_DIFFICULTIES = {"basic", "beginner", "intermediate", "advanced"}
+
+TITLE_RULES = [
+    (("median", "middle element"), "배열 중앙값 맞추기"),
+    (("tetris", "field"), "테트리스 필드 비우기"),
+    (("ascii", "weight"), "문자열 ASCII 무게"),
+    (("stove", "chicken", "cook"), "자동 꺼짐 스토브 조리 시간"),
+    (("card", "pile"), "카드 더미 이동 게임"),
+    (("shortest-path", "color", "weight"), "그래프 색칠과 간선 가중치"),
+    (("three distinct", "sum"), "세 수의 합 찾기"),
+    (("binary string", "minimum total cost"), "이진 문자열 최소 비용"),
+    (("tree", "color"), "트리 색칠하기"),
+    (("probability", "team"), "팀 구성 확률 계산"),
+    (("periodic", "difference"), "차이 배열 주기 찾기"),
+    (("substring",), "부분 문자열 처리"),
+    (("palindrome",), "팰린드롬 판별"),
+    (("parentheses",), "괄호 문자열 처리"),
+]
 
 
 class Command(BaseCommand):
@@ -121,12 +139,100 @@ class Command(BaseCommand):
         return SOURCE_DIFFICULTY_MAP.get(source_file, "beginner")
 
     def _title(self, row: dict, index: int, description: str) -> str:
-        title = (
-            (row.get("question") or "").strip()
-            or description.splitlines()[0].strip()
-            or f"문제 {index}"
+        explicit_title = self._explicit_title(row)
+        if explicit_title:
+            return explicit_title
+
+        source_text = " ".join(
+            [
+                row.get("question") or "",
+                row.get("problem_understanding") or "",
+                description,
+            ]
         )
-        return title[:200]
+        normalized = source_text.lower()
+        for keywords, generated_title in TITLE_RULES:
+            if all(keyword in normalized for keyword in keywords):
+                return generated_title
+
+        return self._fallback_title(row, index, description)
+
+    def _explicit_title(self, row: dict) -> str:
+        question = (row.get("question") or "").strip()
+        first_line = question.splitlines()[0].strip() if question else ""
+        if not first_line:
+            return ""
+
+        title_match = re.match(
+            r"^(?:problem\s+[a-z0-9]+|[a-z0-9]+)\s*[:.\-]\s*(.{4,80})$",
+            first_line,
+            flags=re.IGNORECASE,
+        )
+        if title_match:
+            return self._clean_title(title_match.group(1))
+
+        if self._looks_like_short_title(first_line):
+            return self._clean_title(first_line)
+        return ""
+
+    def _looks_like_short_title(self, text: str) -> bool:
+        if len(text) > 70:
+            return False
+        lowered = text.lower()
+        sentence_markers = (
+            "you are given",
+            "given ",
+            "there are",
+            "we have",
+            "calculate",
+            "determine",
+            "find ",
+            "print ",
+        )
+        return not any(marker in lowered for marker in sentence_markers)
+
+    def _fallback_title(self, row: dict, index: int, description: str) -> str:
+        candidates = [
+            row.get("problem_understanding") or "",
+            description,
+            row.get("question") or "",
+        ]
+        for candidate in candidates:
+            first_sentence = self._first_sentence(candidate)
+            title = self._compress_sentence(first_sentence)
+            if title:
+                return title
+        return f"문제 {index}"
+
+    def _first_sentence(self, text: str) -> str:
+        text = re.sub(r"\s+", " ", (text or "").strip())
+        if not text:
+            return ""
+        parts = re.split(r"(?<=[.!?。])\s+|(?<=[다요죠])\.\s*", text, maxsplit=1)
+        return parts[0].strip()
+
+    def _compress_sentence(self, sentence: str) -> str:
+        sentence = self._clean_title(sentence)
+        if not sentence:
+            return ""
+        sentence = re.sub(
+            r"^(You are given|Given|There are|We have)\s+",
+            "",
+            sentence,
+            flags=re.IGNORECASE,
+        )
+        sentence = re.sub(
+            r"(주어집니다|주어진다|구하세요|판별하세요|출력하라|계산하라|생각해 봅시다).*$",
+            "",
+            sentence,
+        )
+        sentence = re.sub(r"\s+", " ", sentence).strip(" .,:;-")
+        return sentence[:40] if sentence else ""
+
+    def _clean_title(self, text: str) -> str:
+        text = re.sub(r"\s+", " ", (text or "").strip())
+        text = text.strip(" #*-:;,.()[]{}")
+        return text[:80]
 
     def _get_category(self, slug: str) -> ProblemCategory:
         category, _ = ProblemCategory.objects.get_or_create(
