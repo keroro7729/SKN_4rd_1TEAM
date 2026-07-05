@@ -27,9 +27,24 @@ SECRET_KEY = os.environ.get(
     "dev-insecure-secret-key-change-in-production",
 )
 DEBUG = env_bool("DJANGO_DEBUG", "True")
+DEFAULT_ALLOWED_HOSTS = ",".join(
+    [
+        "localhost",
+        "127.0.0.1",
+        "3.36.123.126",
+        "43.203.216.32",
+        "ec2-43-203-216-32.ap-northeast-2.compute.amazonaws.com",
+    ]
+)
 ALLOWED_HOSTS = [
-    h.strip()
-    for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    h
+    for h in {
+        *[host.strip() for host in DEFAULT_ALLOWED_HOSTS.split(",")],
+        *[
+            host.strip()
+            for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
+        ],
+    }
     if h.strip()
 ]
 
