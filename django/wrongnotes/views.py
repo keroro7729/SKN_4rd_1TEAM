@@ -1,4 +1,4 @@
-"""오답노트 화면."""
+"""Wrong note views."""
 import json
 
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -6,14 +6,15 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic import ListView, TemplateView
 
+from config.pagination import build_pagination_context
 from submissions.models import Submission
 
-from .models import WrongNote
-from .services import analyze_wrong_note
+from .models import WrongNote, WrongNoteQueryLog
+from .services import FastAPIClientError, analyze_wrong_note, call_fastapi, embed_wrong_note
 
 
 class WrongNoteListView(LoginRequiredMixin, ListView):
-    """본인 오답노트 목록."""
+    """List the authenticated user's wrong notes."""
 
     template_name = "wrongnotes/wrongnote_list.html"
     context_object_name = "notes"
@@ -42,11 +43,16 @@ class WrongNoteListView(LoginRequiredMixin, ListView):
             .select_related("problem")
             .order_by("-created_at")[:10]
         )
+        if ctx.get("page_obj"):
+            ctx["pagination"] = build_pagination_context(
+                self.request,
+                ctx["page_obj"],
+            )
         return ctx
 
 
 class WrongNoteCreateView(LoginRequiredMixin, TemplateView):
-    """오답노트 작성 화면. 대상 Submission 은 본인 것만 허용."""
+    """Create a wrong note from a final failed submission."""
 
     template_name = "wrongnotes/wrongnote_form.html"
 
@@ -120,6 +126,18 @@ class WrongNoteCreateView(LoginRequiredMixin, TemplateView):
         ai_result = analyze_wrong_note(note)
         note.ai_analysis = ai_result
         note.save(update_fields=["ai_analysis"])
+        try:
+            index_result = embed_wrong_note(note)
+            ai_result["index"] = index_result
+            note.ai_analysis = ai_result
+            note.save(update_fields=["ai_analysis"])
+        except FastAPIClientError as exc:
+            ai_result.setdefault("errors", []).append(
+                {"stage": "embed", "message": str(exc)}
+            )
+            note.ai_analysis = ai_result
+            note.status = "index_failed"
+            note.save(update_fields=["ai_analysis", "status"])
 
         return JsonResponse(
             {
@@ -134,6 +152,61 @@ class WrongNoteCreateView(LoginRequiredMixin, TemplateView):
 
 
 class NoteAskView(LoginRequiredMixin, TemplateView):
-    """내 노트에 물어보기 화면 (RAG 호출은 STEP-06/07)."""
+    """Ask questions against the authenticated user's wrong notes."""
 
     template_name = "wrongnotes/note_ask.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["recent_logs"] = WrongNoteQueryLog.objects.filter(
+            user=self.request.user
+        ).order_by("-created_at")[:5]
+        return ctx
+
+    def post(self, request, *args, **kwargs):
+        try:
+            payload = json.loads(request.body.decode("utf-8") or "{}")
+        except json.JSONDecodeError:
+            return JsonResponse(
+                {"ok": False, "error_message": "invalid_json"},
+                status=400,
+            )
+
+        question = (payload.get("question") or "").strip()
+        if not question:
+            return JsonResponse(
+                {"ok": False, "error_message": "질문을 입력하세요."},
+                status=400,
+            )
+
+        try:
+            result = call_fastapi(
+                user=request.user,
+                request_type="note_ask",
+                path="/ai/wrong-note/ask",
+                payload={"user_id": request.user.id, "question": question},
+            )
+        except FastAPIClientError as exc:
+            return JsonResponse(
+                {"ok": False, "error_message": str(exc)},
+                status=502,
+            )
+
+        log = WrongNoteQueryLog.objects.create(
+            user=request.user,
+            query=question,
+            answer=result.get("answer", ""),
+            evidence_note_ids=result.get("evidence_note_ids", []),
+            scores=result.get("scores", []),
+        )
+        return JsonResponse(
+            {
+                "ok": True,
+                "query_log_id": log.id,
+                "status": result.get("status"),
+                "answer": log.answer,
+                "evidence_note_ids": log.evidence_note_ids,
+                "scores": log.scores,
+                "request_id": result.get("request_id"),
+            }
+        )

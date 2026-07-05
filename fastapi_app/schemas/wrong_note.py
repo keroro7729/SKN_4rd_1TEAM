@@ -44,6 +44,7 @@ class WrongNoteEmbedRequest(BaseModel):
     wrong_note_id: int
     user_id: int
     content: str
+    problem_title: Optional[str] = None
 
 
 class WrongNoteEmbedResponse(InternalResponse):

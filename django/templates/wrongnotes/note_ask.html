@@ -3,17 +3,106 @@
 
 {% block content %}
 <h1 class="page-title">내 노트에 물어보기</h1>
-<p class="page-sub">본인 오답노트를 근거로 답합니다. (note_id / score 근거 표시 — RAG 연결은 STEP-06/07)</p>
+<p class="page-sub">저장된 내 오답노트를 근거로 답변합니다. 근거 note_id와 score를 함께 확인합니다.</p>
+<form hidden>{% csrf_token %}</form>
 
 <section class="panel">
-  <textarea id="note-question" class="code-input" placeholder="예: 내가 자주 틀리는 그래프 탐색 실수는?"></textarea>
+  <textarea id="note-question" class="code-input" placeholder="예: DP 문제에서 내가 자주 놓치는 부분은?"></textarea>
   <div class="editor-actions">
-    <button id="note-ask-btn" type="button" class="btn" disabled>질문하기</button>
-    <span class="hint-note">RAG 질의 연결은 STEP-06/07에서 구현됩니다.</span>
+    <button id="note-ask-btn" type="button" class="btn">질문하기</button>
+    <span id="note-ask-status" class="hint-note">본인 오답노트만 검색합니다.</span>
   </div>
 
-  <!-- STEP-07 Fetch 대상 DOM -->
   <div id="note-answer" class="result-area" hidden></div>
   <div id="note-evidence" class="result-area" hidden></div>
 </section>
+
+<section class="panel">
+  <h3 class="sub-title">최근 질문</h3>
+  <table class="table">
+    <thead><tr><th>질문</th><th>근거</th><th>일시</th></tr></thead>
+    <tbody>
+      {% for log in recent_logs %}
+        <tr>
+          <td>{{ log.query|truncatechars:60 }}</td>
+          <td>{{ log.evidence_note_ids }}</td>
+          <td>{{ log.created_at|date:"m-d H:i" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3" class="empty">아직 질문 기록이 없습니다.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<script>
+(() => {
+  const questionInput = document.getElementById("note-question");
+  const askButton = document.getElementById("note-ask-btn");
+  const statusText = document.getElementById("note-ask-status");
+  const answerBox = document.getElementById("note-answer");
+  const evidenceBox = document.getElementById("note-evidence");
+
+  const getCookie = (name) => {
+    const cookies = document.cookie ? document.cookie.split(";") : [];
+    for (const rawCookie of cookies) {
+      const cookie = rawCookie.trim();
+      if (cookie.startsWith(`${name}=`)) {
+        return decodeURIComponent(cookie.slice(name.length + 1));
+      }
+    }
+    return "";
+  };
+
+  const show = (element, text) => {
+    element.textContent = text;
+    element.hidden = false;
+  };
+
+  askButton.addEventListener("click", async () => {
+    const question = questionInput.value.trim();
+    if (!question) {
+      statusText.textContent = "질문을 입력하세요.";
+      return;
+    }
+
+    answerBox.hidden = true;
+    evidenceBox.hidden = true;
+    askButton.disabled = true;
+    statusText.textContent = "오답노트 검색 중입니다.";
+
+    try {
+      const response = await fetch(window.location.pathname, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({ question }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error_message || "질문 처리에 실패했습니다.");
+      }
+
+      statusText.textContent = `처리 완료 · ${data.status}`;
+      show(answerBox, data.answer || "근거가 없어 답변을 생성하지 않았습니다.");
+
+      const ids = data.evidence_note_ids || [];
+      const scores = data.scores || [];
+      show(
+        evidenceBox,
+        ids.length
+          ? ids.map((id, index) => `note_id ${id} · score ${scores[index] ?? ""}`).join("\n")
+          : "검색된 근거 오답노트가 없습니다."
+      );
+    } catch (error) {
+      statusText.textContent = error.message;
+    } finally {
+      askButton.disabled = false;
+    }
+  });
+})();
+</script>
 {% endblock %}

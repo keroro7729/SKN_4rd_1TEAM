@@ -51,7 +51,12 @@ async def analyze(req: WrongNoteAnalyzeRequest, ctx=Depends(verify_internal)):
 @router.post("/embed", response_model=WrongNoteEmbedResponse)
 async def embed(req: WrongNoteEmbedRequest, ctx=Depends(verify_internal)):
     """저장된 오답노트를 ChromaDB에 인덱싱 (F-14)."""
-    out = chroma.embed_note(req.user_id, req.wrong_note_id, req.content)
+    out = chroma.embed_note(
+        req.user_id,
+        req.wrong_note_id,
+        req.content,
+        problem_title=req.problem_title,
+    )
     return WrongNoteEmbedResponse(
         request_id=ctx["request_id"],
         status=LLMStatus.success,

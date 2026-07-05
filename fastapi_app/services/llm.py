@@ -29,4 +29,7 @@ async def analyze_wrong_note(code: str, comment: str, evidence: list[Evidence]) 
 async def answer_from_notes(question: str, evidence: list[Evidence]) -> str:
     """내 노트 질의응답. 근거 없는 단정 금지."""
     # TODO(STEP-06): 근거 노트 기반 RAG 답변 생성
-    return "[stub] 근거 노트를 바탕으로 한 답변입니다."
+    if not evidence:
+        return "검색된 근거 오답노트가 없습니다."
+    note_ids = ", ".join(str(item.note_id) for item in evidence)
+    return f"[stub] 근거 오답노트 note_id {note_ids}를 바탕으로 한 답변입니다."

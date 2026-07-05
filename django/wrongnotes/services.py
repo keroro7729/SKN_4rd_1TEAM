@@ -5,9 +5,11 @@ import urllib.request
 import uuid
 
 from django.conf import settings
+from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 
 from logs.models import LLMRequestLog
+from .models import WrongNoteVector
 
 
 class FastAPIClientError(RuntimeError):
@@ -109,6 +111,58 @@ def build_wrong_note_payload(note) -> dict:
         "code": note.submission.code,
         "comment": note.comment,
     }
+
+
+def build_wrong_note_index_content(note) -> str:
+    """Build the text stored in ChromaDB for wrong-note RAG."""
+    tags = ", ".join(tag.name for tag in note.tags.all())
+    submission = note.submission
+    analysis = note.ai_analysis.get("analysis", {}) if note.ai_analysis else {}
+    parts = [
+        f"문제명: {note.problem.title}",
+        f"난이도: {note.problem.difficulty}",
+        f"태그: {tags}",
+        f"사용자 코멘트: {note.comment}",
+        f"제출 결과: {submission.result}",
+        f"오류 메시지: {submission.error_message or ''}",
+        f"제출 코드: {submission.code or ''}",
+        f"문제 핵심: {analysis.get('problem_core', '')}",
+        f"오답 원인: {analysis.get('cause', '')}",
+        f"풀이 과정: {analysis.get('solution', '')}",
+        f"주의사항: {analysis.get('caution', '')}",
+    ]
+    return "\n".join(part for part in parts if part.strip())
+
+
+def embed_wrong_note(note) -> dict:
+    """Index a saved wrong note through FastAPI and update local vector metadata."""
+    payload = {
+        "wrong_note_id": note.id,
+        "user_id": note.user_id,
+        "content": build_wrong_note_index_content(note),
+        "problem_title": note.problem.title,
+    }
+    result = call_fastapi(
+        user=note.user,
+        request_type="wrong_note_embed",
+        path="/ai/wrong-note/embed",
+        payload=payload,
+    )
+    indexed_at = parse_datetime(result.get("indexed_at") or "")
+    if indexed_at is None:
+        indexed_at = timezone.now()
+    WrongNoteVector.objects.update_or_create(
+        wrong_note=note,
+        defaults={
+            "user": note.user,
+            "embedding_id": result.get("embedding_id") or f"wrong_note:{note.id}",
+            "source": "wrong_note",
+            "indexed_at": indexed_at,
+        },
+    )
+    note.status = "indexed"
+    note.save(update_fields=["status"])
+    return result
 
 
 def analyze_wrong_note(note) -> dict:

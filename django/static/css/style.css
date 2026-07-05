@@ -177,7 +177,41 @@ body {
 .badge-status-timeout, .badge-status-empty { background: #423a24; color: #e6c86b; }
 
 /* 페이지네이션 */
-.pagination { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 24px; }
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.page-link {
+  min-width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  color: var(--text);
+  border: 1px solid transparent;
+  border-radius: 2px;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.page-link:hover { border-color: var(--line); color: var(--accent-2); }
+.page-current {
+  color: var(--accent);
+  border-color: var(--line);
+  background: var(--panel);
+}
+.page-edge {
+  min-width: auto;
+  color: var(--muted);
+}
+.page-gap {
+  color: var(--muted);
+  padding: 0 4px;
+}
 .page-info { color: var(--muted); }
 
 /* 문제 풀이 (2단 레이아웃) */

@@ -6,6 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import DetailView, ListView
 
 from config.choices import DIFFICULTY_CHOICES
+from config.pagination import build_pagination_context
 
 from .models import Problem, ProblemCategory
 
@@ -15,7 +16,7 @@ class ProblemListView(LoginRequiredMixin, ListView):
 
     template_name = "problems/problem_list.html"
     context_object_name = "problems"
-    paginate_by = 20
+    paginate_by = 10
 
     def get_queryset(self):
         qs = (
@@ -79,6 +80,11 @@ class ProblemListView(LoginRequiredMixin, ListView):
         ctx["cur_difficulty"] = self.f_difficulty
         ctx["cur_tag"] = self.f_tag
         ctx["q"] = self.f_q
+        if ctx.get("page_obj"):
+            ctx["pagination"] = build_pagination_context(
+                self.request,
+                ctx["page_obj"],
+            )
         return ctx
 
 

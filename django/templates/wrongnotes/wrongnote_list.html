@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="page-head">
-  <h1 class="page-title">내 오답노트</h1>
+  <h1 class="page-title">오답노트</h1>
   <a href="{% url 'wrongnotes:ask' %}" class="btn btn-ghost">내 노트에 물어보기</a>
 </div>
 
@@ -47,11 +47,23 @@
   {% endfor %}
 </div>
 
-{% if is_paginated %}
+{% if pagination.show %}
 <nav class="pagination">
-  {% if page_obj.has_previous %}<a class="btn btn-ghost" href="?page={{ page_obj.previous_page_number }}">이전</a>{% endif %}
-  <span class="page-info">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-  {% if page_obj.has_next %}<a class="btn btn-ghost" href="?page={{ page_obj.next_page_number }}">다음</a>{% endif %}
+  {% if pagination.has_previous %}
+    <a class="page-link page-edge" href="{{ pagination.previous_url }}">&lsaquo; 이전</a>
+  {% endif %}
+  {% for page in pagination.pages %}
+    {% if page.is_gap %}
+      <span class="page-gap">{{ page.label }}</span>
+    {% elif page.is_current %}
+      <span class="page-link page-current" aria-current="page">{{ page.label }}</span>
+    {% else %}
+      <a class="page-link" href="{{ page.url }}">{{ page.label }}</a>
+    {% endif %}
+  {% endfor %}
+  {% if pagination.has_next %}
+    <a class="page-link page-edge" href="{{ pagination.next_url }}">다음 &rsaquo;</a>
+  {% endif %}
 </nav>
 {% endif %}
 {% endblock %}
