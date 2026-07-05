@@ -11,6 +11,12 @@ from config.choices import MISSION_STATUS_CHOICES, POINT_ACTION_TYPE_CHOICES
 
 class Mission(models.Model):
     title = models.CharField("미션명", max_length=200)
+    trigger_action = models.CharField(
+        "진행조건",
+        max_length=30,
+        choices=POINT_ACTION_TYPE_CHOICES,
+        default="submission_created",
+    )
     target_count = models.PositiveIntegerField("목표횟수", default=1)
     reward_point = models.PositiveIntegerField("보상포인트", default=0)
     is_active = models.BooleanField("활성", default=True)
@@ -18,7 +24,7 @@ class Mission(models.Model):
     class Meta:
         verbose_name = "미션"
         verbose_name_plural = "미션"
-        indexes = [models.Index(fields=["is_active"])]
+        indexes = [models.Index(fields=["is_active", "trigger_action"])]
 
     def __str__(self):
         return self.title

@@ -10,6 +10,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_GET, require_POST
 
+from gamification.services import record_user_action
 from problems.models import Problem
 
 from .models import ExecutionJob, Submission
@@ -98,6 +99,8 @@ def _create_code_job(request, *, submission_type: str, job_type: str):
                 "submission_type": submission_type,
             },
         )
+    if submission_type == "submit":
+        record_user_action(request.user, "submission_created", submission)
 
     return JsonResponse(
         {
@@ -152,6 +155,12 @@ def submission_result(request, submission_id):
         and submission.result in {"wrong", "error", "timeout"}
     ):
         wrong_note_create_url = reverse("wrongnotes:create", args=[submission.id])
+    if (
+        submission.submission_type == "submit"
+        and submission.result == "success"
+        and job_status in FINISHED_JOB_STATUSES
+    ):
+        record_user_action(request.user, "solve_success", submission)
 
     return JsonResponse(
         {

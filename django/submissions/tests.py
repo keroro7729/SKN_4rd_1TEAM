@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from problems.models import Problem, ProblemCategory
+from gamification.models import PointLog
 
 from .models import ExecutionJob, Submission
 
@@ -62,6 +63,16 @@ class SubmissionEndpointTests(TestCase):
 
         self.assertEqual(submission.submission_type, "submit")
         self.assertEqual(job.job_type, "code_submit")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.point, 10)
+        self.assertTrue(
+            PointLog.objects.filter(
+                user=self.user,
+                action_type="submission_created",
+                related_model="submission",
+                related_id=submission.id,
+            ).exists()
+        )
 
     def test_result_response_exposes_step04_polling_fields(self):
         submission = Submission.objects.create(
@@ -94,3 +105,13 @@ class SubmissionEndpointTests(TestCase):
         self.assertEqual(body["elapsed_ms"], 12)
         self.assertEqual(body["passed"], 2)
         self.assertEqual(body["total"], 2)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.point, 20)
+        self.assertTrue(
+            PointLog.objects.filter(
+                user=self.user,
+                action_type="solve_success",
+                related_model="submission",
+                related_id=submission.id,
+            ).exists()
+        )

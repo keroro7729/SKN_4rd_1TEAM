@@ -4,9 +4,13 @@ import json
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.views.generic import ListView, TemplateView
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 
 from config.pagination import build_pagination_context
+from gamification.services import record_user_action
 from submissions.models import Submission
 
 from .models import WrongNote, WrongNoteQueryLog
@@ -138,6 +142,7 @@ class WrongNoteCreateView(LoginRequiredMixin, TemplateView):
             note.ai_analysis = ai_result
             note.status = "index_failed"
             note.save(update_fields=["ai_analysis", "status"])
+        record_user_action(request.user, "wrongnote_completed", note)
 
         return JsonResponse(
             {
@@ -210,3 +215,29 @@ class NoteAskView(LoginRequiredMixin, TemplateView):
                 "request_id": result.get("request_id"),
             }
         )
+
+
+@login_required
+@require_POST
+def review_wrong_note(request, note_id):
+    """Mark a wrong note as reviewed and award review points once."""
+    note = get_object_or_404(WrongNote, pk=note_id, user=request.user)
+    if not note.is_reviewed:
+        note.is_reviewed = True
+        note.reviewed_at = timezone.now()
+        note.save(update_fields=["is_reviewed", "reviewed_at"])
+        reward = record_user_action(request.user, "review_completed", note)
+        point_created = reward["point_created"]
+    else:
+        point_created = False
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "wrong_note_id": note.id,
+            "is_reviewed": note.is_reviewed,
+            "reviewed_at": note.reviewed_at.isoformat() if note.reviewed_at else None,
+            "point_created": point_created,
+            "user_point": request.user.point,
+        }
+    )

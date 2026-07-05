@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
+from gamification.models import PointLog
 from problems.models import Problem, ProblemCategory
 from submissions.models import Submission
 
@@ -63,6 +64,16 @@ class WrongNoteCreateTests(TestCase):
         self.assertEqual(note.status, "completed")
         self.assertEqual(note.ai_analysis["analysis"]["cause"], "stub cause")
         self.assertEqual(note.ai_analysis["index"]["embedding_id"], "wrong_note:1")
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.point, 15)
+        self.assertTrue(
+            PointLog.objects.filter(
+                user=self.user,
+                action_type="wrongnote_completed",
+                related_model="wrongnote",
+                related_id=note.id,
+            ).exists()
+        )
 
     def test_success_submission_cannot_create_wrong_note(self):
         self.submission.result = "success"
@@ -99,3 +110,31 @@ class WrongNoteCreateTests(TestCase):
         query_log = WrongNoteQueryLog.objects.get(pk=body["query_log_id"])
         self.assertEqual(query_log.answer, "근거 답변")
         self.assertEqual(query_log.evidence_note_ids, [1])
+
+    def test_review_wrong_note_awards_points_once(self):
+        note = WrongNote.objects.create(
+            user=self.user,
+            problem=self.problem,
+            submission=self.submission,
+            comment="복습 대상",
+            status="indexed",
+        )
+
+        first = self.client.post(reverse("wrongnotes:review", args=[note.id]))
+        second = self.client.post(reverse("wrongnotes:review", args=[note.id]))
+
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(second.status_code, 200)
+        note.refresh_from_db()
+        self.user.refresh_from_db()
+        self.assertTrue(note.is_reviewed)
+        self.assertEqual(self.user.point, 10)
+        self.assertEqual(
+            PointLog.objects.filter(
+                user=self.user,
+                action_type="review_completed",
+                related_model="wrongnote",
+                related_id=note.id,
+            ).count(),
+            1,
+        )

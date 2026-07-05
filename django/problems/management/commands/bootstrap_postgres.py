@@ -135,15 +135,16 @@ class Command(BaseCommand):
     @transaction.atomic
     def _seed_base_data(self) -> list[SeedResult]:
         mission_specs = [
-            ("오늘 문제 1개 풀기", 1, 30),
-            ("오답노트 1개 작성하기", 1, 30),
-            ("복습 1개 완료하기", 1, 30),
+            ("오늘 문제 1개 풀기", "submission_created", 1, 30),
+            ("오답노트 1개 작성하기", "wrongnote_completed", 1, 30),
+            ("복습 1개 완료하기", "review_completed", 1, 30),
         ]
         mission_created = 0
-        for title, target_count, reward_point in mission_specs:
-            _, created = Mission.objects.get_or_create(
+        for title, trigger_action, target_count, reward_point in mission_specs:
+            _, created = Mission.objects.update_or_create(
                 title=title,
                 defaults={
+                    "trigger_action": trigger_action,
                     "target_count": target_count,
                     "reward_point": reward_point,
                     "is_active": True,
