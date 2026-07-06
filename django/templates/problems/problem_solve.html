@@ -1,250 +1,53 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}{{ problem.title|truncatechars:30 }} · 문제 풀이{% endblock %}
-
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+{% endblock %}
 {% block content %}
 <form hidden>{% csrf_token %}</form>
-<div class="solve-topbar">
-  <span>이번 문제를 해결하면 문제풀이 포인트가 지급됩니다.</span>
-  <span class="hint-note">Python 3.11 · Docker Worker</span>
-</div>
-
-<div class="solve-layout wide">
-  <section class="panel problem-pane">
-    <div class="problem-head">
-      <span class="badge badge-{{ problem.difficulty }}">{{ problem.get_difficulty_display }}</span>
-      {% for t in problem.tags.all %}<span class="tag">{{ t.name }}</span>{% endfor %}
-    </div>
-    <h1 class="problem-title">{{ problem.title }}</h1>
-
-    <h3 class="sub-title">문제</h3>
-    <div class="problem-desc">{{ problem.description|linebreaksbr }}</div>
-
-    {% if problem.constraints %}
-      <h3 class="sub-title">제한사항</h3>
-      <div class="problem-desc">{{ problem.constraints|linebreaksbr }}</div>
-    {% endif %}
-
-    {% if sample_cases %}
-      <h3 class="sub-title">예제</h3>
-      {% for tc in sample_cases %}
-        <div class="testcase">
-          <div><strong>입력</strong><pre>{{ tc.input_data }}</pre></div>
-          <div><strong>출력</strong><pre>{{ tc.expected_output }}</pre></div>
-        </div>
-      {% endfor %}
-    {% endif %}
-  </section>
-
-  <section class="panel editor-pane" data-problem-id="{{ problem.id }}">
-    <div class="section-head">
-      <label class="sub-title" for="code-editor">코드 작성</label>
-      <select class="filter-input" aria-label="실행 언어">
-        <option>Python 3.11</option>
-      </select>
-    </div>
-    <textarea id="code-editor" class="code-input code-editor-large" spellcheck="false" placeholder="# 여기에 코드를 작성하세요"></textarea>
-
-    <div class="editor-actions">
-      <button id="run-code-btn" type="button" class="btn btn-ghost">실행</button>
-      <button id="submit-btn" type="button" class="btn">제출</button>
-      <button id="reset-code-btn" type="button" class="btn btn-ghost">초기화</button>
-    </div>
-
-    <div id="run-loading-box" class="result-area" hidden></div>
-    <div id="run-error-box" class="result-area result-error" hidden></div>
-    <div id="result-status-box" class="result-card" hidden></div>
-
-    <div class="wrong-note-action">
-      <a id="wrong-note-create-link" href="{% url 'wrongnotes:list' %}" class="btn btn-danger-ghost">오답노트 작성</a>
-      <span id="wrong-note-help" class="hint-note">오답 제출 후에는 바로 작성 화면으로 이동합니다.</span>
-    </div>
-  </section>
-</div>
-
-<section class="panel hint-panel">
-  <div class="section-head">
-    <h2 class="section-title">AI 단계별 힌트</h2>
-    <span class="hint-note">정답 직접 노출 없이 사고 과정을 유도합니다.</span>
+<section class="game-page solve-page">
+  <div class="game-topbar"><div class="game-window-dots"><span></span><span></span><span></span></div><div class="game-route">/quest-board <b>›</b> solve <b>›</b> #{{ problem.id }}</div><div class="game-mode-pill">정답 시 +20P</div></div>
+  <div class="solve-header">
+    <p class="game-eyebrow">Code Battle Stage</p>
+    <h1 class="game-title">#{{ problem.id }} {{ problem.title }}</h1>
+    <p class="game-sub"><span class="badge badge-{{ problem.difficulty }}">{{ problem.get_difficulty_display }}</span> {% for t in problem.tags.all %}<span class="game-chip">{{ t.name }}</span>{% endfor %}</p>
   </div>
-  <div class="hint-levels">
-    <button type="button" class="btn btn-ghost hint-btn" data-level="1">1단계 힌트</button>
-    <button type="button" class="btn btn-ghost hint-btn" data-level="2">2단계 힌트</button>
-    <button type="button" class="btn btn-ghost hint-btn" data-level="3">3단계 힌트</button>
-  </div>
-  <div id="hint-area" class="hint-area" hidden></div>
-</section>
 
-<p class="back-link"><a href="{% url 'problems:list' %}">목록으로 돌아가기</a></p>
+  <div class="solve-layout">
+    <section class="game-panel solve-pane">
+      <div class="game-panel-head"><h2>문제 보기</h2><p>조건과 예제를 확인하고 풀이 전략을 세우세요.</p></div>
+      <div class="problem-desc">{{ problem.description|linebreaksbr }}</div>
+      {% if problem.constraints %}<h3 class="section-title">제한사항</h3><ul class="constraints-list">{% for line in problem.constraints.splitlines %}<li>{{ line }}</li>{% endfor %}</ul>{% endif %}
+      {% if sample_cases %}<h3 class="section-title">예제</h3>{% for tc in sample_cases %}<div class="testcase"><div><strong>입력</strong><pre>{{ tc.input_data }}</pre></div><div><strong>출력</strong><pre>{{ tc.expected_output }}</pre></div></div>{% endfor %}{% endif %}
+    </section>
 
-<script>
-(() => {
-  const pane = document.querySelector(".editor-pane");
-  const editor = document.getElementById("code-editor");
-  const runButton = document.getElementById("run-code-btn");
-  const submitButton = document.getElementById("submit-btn");
-  const resetButton = document.getElementById("reset-code-btn");
-  const loadingBox = document.getElementById("run-loading-box");
-  const errorBox = document.getElementById("run-error-box");
-  const statusBox = document.getElementById("result-status-box");
-  const wrongNoteLink = document.getElementById("wrong-note-create-link");
-  const wrongNoteHelp = document.getElementById("wrong-note-help");
-  const hintArea = document.getElementById("hint-area");
+    <section class="game-panel solve-pane editor-pane" data-problem-id="{{ problem.id }}" data-run-url="{% url 'submissions:run' %}" data-submit-url="{% url 'submissions:submit' %}" data-result-url-template="/submissions/__ID__/result/" data-hint-url="{% url 'ai_proxy:hint' %}" data-wrongnote-list-url="{% url 'wrongnotes:list' %}">
+      <div class="editor-toolbar"><label class="section-title" for="code-editor">코드 작성</label><div class="editor-toolbar-right"><select class="game-input" aria-label="실행 언어"><option>Python</option></select><span class="autosave-note">자동 저장됨</span><button id="reset-code-btn" type="button" class="game-mini-btn ghost">초기화</button></div></div>
+      <textarea id="code-editor" spellcheck="false" placeholder="# 여기에 코드를 작성하세요"></textarea>
+      <div class="editor-actions"><button id="run-code-btn" type="button" class="game-btn ghost">▶ 실행</button><button id="submit-btn" type="button" class="game-btn primary">제출하기</button></div>
+      <div id="run-loading-box" class="result-area" hidden></div><div id="run-error-box" class="result-area result-error" hidden></div><div id="result-status-box" class="result-card" hidden></div>
+    </section>
 
-  const getCookie = (name) => {
-    const cookies = document.cookie ? document.cookie.split(";") : [];
-    for (const rawCookie of cookies) {
-      const cookie = rawCookie.trim();
-      if (cookie.startsWith(`${name}=`)) {
-        return decodeURIComponent(cookie.slice(name.length + 1));
-      }
-    }
-    return "";
-  };
-
-  const showText = (element, text) => {
-    element.textContent = text;
-    element.hidden = false;
-  };
-
-  const hide = (...elements) => elements.forEach((element) => { element.hidden = true; });
-
-  const updateWrongNoteLink = (data) => {
-    if (data.wrong_note_create_url) {
-      wrongNoteLink.href = data.wrong_note_create_url;
-      wrongNoteHelp.textContent = "현재 제출 결과로 오답노트를 작성할 수 있습니다.";
-    } else {
-      wrongNoteLink.href = "{% url 'wrongnotes:list' %}";
-      wrongNoteHelp.textContent = "오답 제출 결과가 있을 때 작성 화면으로 이동합니다.";
-    }
-  };
-
-  const renderResult = (data) => {
-    const resultLabel = data.submission_result || "pending";
-    const passed = data.total ? `${data.passed}/${data.total}` : "-";
-    const caseRows = (data.case_results || []).map((item) => (
-      `<li>TC${item.case}: ${item.passed ? "통과" : "실패"}${item.error ? ` · ${item.error}` : ""}</li>`
-    )).join("");
-    statusBox.innerHTML = `
-      <div class="result-header">
-        <strong>결과: ${resultLabel}</strong>
-        <span>Job: ${data.job_status}</span>
-        <span>테스트 ${passed}</span>
-        <span>실행 시간 ${data.elapsed_ms || 0}ms</span>
+    <aside class="game-panel hint-sidebar">
+      <div class="game-panel-head"><h2>AI 파트너 힌트</h2></div>
+      <p class="hint-note">정답을 직접 노출하지 않고 사고 과정을 단계적으로 유도합니다.</p>
+      <div class="hint-accordion" id="hint-accordion">
+        {% for level in "123" %}<div class="hint-step" data-level="{{ level }}"><button type="button" class="hint-step-toggle" data-level="{{ level }}" disabled><span>힌트 {{ level }}단계</span><span class="lock-label">잠금 🔒</span></button><div class="hint-step-body" id="hint-body-{{ level }}" hidden></div></div>{% endfor %}
       </div>
-      ${data.output ? `<pre class="result-pre">출력\n${data.output}</pre>` : ""}
-      ${data.error_message ? `<pre class="result-pre result-error-text">${data.error_message}</pre>` : ""}
-      ${caseRows ? `<ul class="case-list">${caseRows}</ul>` : ""}
-    `;
-    statusBox.hidden = false;
-  };
-
-  const pollResult = async (submissionId) => {
-    const maxPollCount = 20;
-    for (let i = 0; i < maxPollCount; i += 1) {
-      const response = await fetch(`/submissions/${submissionId}/result/`, {
-        headers: {"Accept": "application/json"},
-      });
-      if (!response.ok) {
-        throw new Error("결과 조회에 실패했습니다.");
-      }
-      const data = await response.json();
-      if (data.is_finished) {
-        updateWrongNoteLink(data);
-        renderResult(data);
-        hide(loadingBox);
-        return;
-      }
-      showText(loadingBox, `채점 중입니다. Job: ${data.job_status} · ${i + 1}/${maxPollCount}`);
-      await new Promise((resolve) => setTimeout(resolve, 700));
-    }
-    throw new Error("결과 대기 시간이 초과되었습니다. Worker 상태를 확인하세요.");
-  };
-
-  const createJob = async (url, queuedMessage) => {
-    hide(errorBox, statusBox);
-    wrongNoteLink.href = "{% url 'wrongnotes:list' %}";
-    wrongNoteHelp.textContent = "오답 제출 후에는 바로 작성 화면으로 이동합니다.";
-    showText(loadingBox, queuedMessage);
-    runButton.disabled = true;
-    submitButton.disabled = true;
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCookie("csrftoken"),
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({
-          problem_id: Number(pane.dataset.problemId),
-          code: editor.value,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error_message || "요청에 실패했습니다.");
-      }
-      if (data.is_finished) {
-        updateWrongNoteLink(data);
-        renderResult(data);
-        hide(loadingBox);
-      } else {
-        showText(loadingBox, "결과 확인 중입니다. 응답이 없으면 잠시 후 다시 확인합니다.");
-        await pollResult(data.submission_id);
-      }
-    } catch (error) {
-      hide(loadingBox);
-      showText(errorBox, error.message);
-    } finally {
-      runButton.disabled = false;
-      submitButton.disabled = false;
-    }
-  };
-
-  const requestHint = async (level, button) => {
-    button.disabled = true;
-    showText(hintArea, "힌트를 요청하는 중입니다.");
-    try {
-      const response = await fetch("{% url 'ai_proxy:hint' %}", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCookie("csrftoken"),
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({
-          problem_id: Number(pane.dataset.problemId),
-          hint_level: Number(level),
-          user_code: editor.value,
-        }),
-      });
-      const data = await response.json();
-      const content = data.data && data.data.content ? data.data.content : "";
-      if (data.status === "success") {
-        showText(hintArea, content);
-      } else {
-        showText(hintArea, `힌트 생성 상태: ${data.message || data.status} · request_id ${data.request_id || "-"}`);
-      }
-    } catch (error) {
-      showText(hintArea, error.message);
-    } finally {
-      button.disabled = false;
-    }
-  };
-
-  runButton.addEventListener("click", () => {
-    createJob("{% url 'submissions:run' %}", "실행 대기열에 등록 중입니다.");
-  });
-  submitButton.addEventListener("click", () => {
-    createJob("{% url 'submissions:submit' %}", "제출 대기열에 등록 중입니다.");
-  });
-  resetButton.addEventListener("click", () => {
-    editor.value = "";
-    hide(errorBox, statusBox, loadingBox, hintArea);
-  });
-  document.querySelectorAll(".hint-btn").forEach((button) => {
-    button.addEventListener("click", () => requestHint(button.dataset.level, button));
-  });
-})();
-</script>
+      <button id="hint-next-btn" type="button" class="game-btn ghost">다음 힌트 요청</button>
+      <a id="wrong-note-create-link" href="{% url 'wrongnotes:list' %}" class="game-btn ghost">📕 오답노트 작성</a>
+      <p id="wrong-note-help" class="hint-note">오답 제출 후 회고 워크스페이스로 이동합니다.</p>
+    </aside>
+  </div>
+  <div class="pixel-journey" aria-hidden="true"></div>
+  <p class="back-link"><a href="{% url 'problems:list' %}">← 목록으로 돌아가기</a></p>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="{% static 'js/problem_solve.js' %}?v=game-design-v8"></script>
 {% endblock %}

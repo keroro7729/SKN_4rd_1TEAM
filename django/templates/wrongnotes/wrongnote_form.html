@@ -1,188 +1,41 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}오답노트 작성 · WOOK'S CODING{% endblock %}
-
 {% block content %}
 <form hidden>{% csrf_token %}</form>
-<div class="page-hero compact-hero">
-  <div>
-    <p class="eyebrow">WrongNote CreateView</p>
-    <h1 class="page-title">오답노트 작성</h1>
-    <p class="page-sub">왜 틀렸는지 기록하고 같은 실수를 줄여보세요.</p>
-  </div>
-  <a href="{% url 'problems:detail' problem.id %}" class="btn btn-ghost">문제 보기</a>
-</div>
+<section class="game-page wrongnote-page" data-submission-id="{{ submission.id }}" data-problem-id="{{ problem.id }}">
+  <div class="game-topbar"><div class="game-window-dots"><span></span><span></span><span></span></div><div class="game-route">/wrong-notes <b>›</b> reflection <b>›</b> #{{ submission.id }}</div><div class="game-mode-pill">오답 회고 워크스페이스</div></div>
+  <div class="game-hero compact-hero"><div><p class="game-eyebrow">WrongNote Reflection Workspace</p><h1 class="game-title">문제 · 코드 · 결과를 보고 <span class="accent">회고 작성</span></h1><p class="game-sub">탭으로 정보를 나눠 확인하고, 과거 코드와 비교해 반복 실수까지 찾아봅니다.</p></div><a class="game-btn ghost" href="{% url 'problems:detail' problem.id %}">문제 다시 보기</a></div>
 
-<section class="panel note-create-shell" data-submission-id="{{ submission.id }}" data-problem-id="{{ problem.id }}">
-  <div class="note-create-grid">
-    <div class="note-input-column">
-      <section class="sub-panel">
-        <h2 class="section-title">문제 정보</h2>
-        <p class="note-problem">{{ problem.title }}</p>
-        <div class="note-tags">
-          <span class="badge badge-{{ problem.difficulty }}">{{ problem.get_difficulty_display }}</span>
-          {% for tag in problem.tags.all %}<span class="tag">{{ tag.name }}</span>{% endfor %}
-        </div>
-      </section>
+  <div class="reflection-workspace">
+    <div class="reflection-summary"><div class="game-stat-card"><span>현재 결과</span><strong>{{ submission.get_result_display }}</strong></div><div class="game-stat-card"><span>실행 시간</span><strong>{{ submission.elapsed_ms|default:0 }}ms</strong></div><div class="game-stat-card"><span>회고 방식</span><strong>5 Tabs</strong></div></div>
 
-      <section class="sub-panel">
-        <h2 class="section-title">오답 화면 / 실행 결과</h2>
-        <pre class="code-view">{{ submission.code }}</pre>
-        <div class="result-summary">
-          <span class="badge badge-status-{{ submission.result }}">{{ submission.get_result_display }}</span>
-          <span>실행 시간 {{ submission.elapsed_ms|default:0 }}ms</span>
-        </div>
-        {% if submission.error_message %}
-          <pre class="result-pre result-error-text">{{ submission.error_message }}</pre>
-        {% endif %}
-      </section>
+    <div id="reflection-stage" class="reflection-stage is-active">
+      <div class="reflection-tabs" role="tablist">
+        <button class="reflection-tab is-active" type="button" data-tab="problem">문제 보기</button>
+        <button class="reflection-tab" type="button" data-tab="current-code">현재 코드</button>
+        <button class="reflection-tab" type="button" data-tab="history-code">과거 코드</button>
+        <button class="reflection-tab" type="button" data-tab="run-result">실행 결과</button>
+        <button class="reflection-tab" type="button" data-tab="reflection">회고 작성</button>
+      </div>
 
-      <section class="sub-panel">
-        <h2 class="section-title">내가 어디에서 틀렸는지 적어보기</h2>
-        <textarea id="wrongnote-comment" class="code-input note-comment-input" maxlength="1000" placeholder="예: 경계 조건을 잘못 계산했습니다."></textarea>
-        <p class="hint-note"><span id="comment-count">0</span> / 1000</p>
-      </section>
+      <section class="reflection-panel is-active" data-panel="problem"><div class="reflection-grid"><article class="game-panel"><div class="game-panel-head"><h2>{{ problem.title }}</h2><span class="badge badge-{{ problem.difficulty }}">{{ problem.get_difficulty_display }}</span></div><p class="game-sub">{{ problem.description|linebreaksbr }}</p><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:14px;">{% for tag in problem.tags.all %}<span class="game-chip">{{ tag.name }}</span>{% endfor %}</div></article><aside class="game-panel accent-cyan"><h2>확인 포인트</h2><ul class="reflection-guide-list"><li>입력 범위와 예외 케이스를 먼저 봅니다.</li><li>태그를 보고 풀이 전략을 추정합니다.</li><li>내 코드가 문제 요구 출력과 맞는지 확인합니다.</li></ul></aside></div></section>
+
+      <section class="reflection-panel" data-panel="current-code"><div class="reflection-grid"><article class="game-panel"><div class="game-panel-head"><h2>현재 제출 코드</h2><button type="button" class="game-mini-btn copy-code-btn" data-target="current-code-block">복사</button></div><pre id="current-code-block" class="code-view">{{ submission.code }}</pre></article><aside class="game-panel accent-warning"><h2>코드 체크리스트</h2><ul class="reflection-guide-list"><li>기저 조건 / 초기값이 빠지지 않았나요?</li><li>인덱스 범위가 초과되지 않나요?</li><li>출력 형식이 예제와 동일한가요?</li><li>시간 복잡도가 입력 범위를 버티나요?</li></ul></aside></div></section>
+
+      <section class="reflection-panel" data-panel="history-code"><div class="reflection-code-compare"><article class="game-panel"><div class="game-panel-head"><h2>현재 코드</h2></div><pre class="code-view">{{ submission.code }}</pre></article><article class="game-panel accent-purple"><div class="game-panel-head"><h2>선택한 과거 코드</h2></div><pre id="history-code-view" class="code-view">과거 제출을 선택하세요.</pre></article></div><section class="game-panel" style="margin-top:14px;"><div class="game-panel-head"><h2>같은 문제 과거 제출</h2><p>이전 코드와 현재 코드를 비교하세요.</p></div><div class="history-list">{% for old in submission_history %}<button type="button" class="game-row history-item" data-code="{{ old.code|escape }}" data-result="{{ old.get_result_display }}"><span>{{ old.created_at|date:"Y.m.d H:i" }} · {{ old.get_result_display }}</span><span class="badge badge-status-{{ old.result }}">{{ old.elapsed_ms|default:0 }}ms</span></button>{% empty %}<p class="game-empty">같은 문제의 과거 제출이 없습니다.</p>{% endfor %}</div></section></section>
+
+      <section class="reflection-panel" data-panel="run-result"><div class="reflection-grid"><article class="game-panel"><div class="game-panel-head"><h2>제출 결과</h2><span class="badge badge-status-{{ submission.result }}">{{ submission.get_result_display }}</span></div><div class="game-list"><div class="game-row"><span>실행 시간</span><span>{{ submission.elapsed_ms|default:0 }}ms</span></div><div class="game-row"><span>제출 ID</span><span>#{{ submission.id }}</span></div></div>{% if submission.output %}<h3>stdout</h3><pre class="result-pre">{{ submission.output }}</pre>{% endif %}{% if submission.error_message %}<h3>오류 메시지</h3><pre class="result-pre result-error-text">{{ submission.error_message }}</pre>{% endif %}</article><aside class="game-panel accent-cyan"><h2>결과 해석</h2><p class="hint-note">오답/오류/시간초과 원인을 회고에 적으면 AI 분석 정확도가 올라갑니다.</p></aside></div></section>
+
+      <section class="reflection-panel" data-panel="reflection"><div class="reflection-grid"><article class="game-panel"><div class="game-panel-head"><h2>내가 어디에서 틀렸는지 적어보기</h2><span class="hint-note"><span id="comment-count">0</span> / 1000</span></div><div class="quick-template-row"><button type="button" class="game-mini-btn ghost template-btn" data-template="기저 조건/초기값을 놓쳐서 특정 입력에서 값이 어긋났습니다.">기저 조건</button><button type="button" class="game-mini-btn ghost template-btn" data-template="배열 인덱스 범위를 잘못 생각해 런타임 오류 또는 잘못된 결과가 발생했습니다.">인덱스 범위</button><button type="button" class="game-mini-btn ghost template-btn" data-template="문제에서 요구한 출력 형식과 다르게 출력했습니다.">출력 형식</button><button type="button" class="game-mini-btn ghost template-btn" data-template="입력 크기에 비해 시간 복잡도가 커서 시간초과가 발생했습니다.">시간 복잡도</button></div><textarea id="wrongnote-comment" class="game-textarea" maxlength="1000" placeholder="예: dp[2] 초기화를 빼먹어서 3번째 값부터 틀렸습니다. 전에도 기저 조건을 자주 놓쳤습니다."></textarea></article><aside class="game-panel accent-warning"><h2>좋은 회고 기준</h2><ul class="reflection-guide-list"><li>틀린 원인을 한 문장으로 적기</li><li>다음에 확인할 체크포인트 적기</li><li>비슷한 과거 실수가 있었는지 비교하기</li></ul></aside></div></section>
+
+      <div class="wn-action-zone"><a class="game-btn ghost" href="{% url 'wrongnotes:list' %}">돌아가기</a><button id="prev-tab-btn" type="button" class="game-btn ghost">← 이전 탭</button><button id="next-tab-btn" type="button" class="game-btn ghost">다음 탭 →</button><button id="wrongnote-save-btn" type="button" class="game-btn primary">AI 피드백 보기</button></div><p id="wrongnote-status" class="hint-note" style="text-align:right;">회고를 작성하면 AI 분석과 RAG 검색 결과를 보여줍니다.</p>
     </div>
 
-    <div class="note-analysis-column">
-      <section class="sub-panel">
-        <h2 class="section-title">AI 오답 분석 결과</h2>
-        <p class="hint-note">작성한 코멘트와 실행 결과를 바탕으로 실수 원인을 정리합니다.</p>
-        <div id="ai-analysis" class="analysis-grid" hidden></div>
-        <div id="analysis-empty" class="empty compact">저장하면 분석 결과가 표시됩니다.</div>
-      </section>
-
-      <section class="sub-panel">
-        <h2 class="section-title">유사 오답 참고</h2>
-        <p class="hint-note">내 과거 오답노트에서 비슷한 실수를 찾습니다.</p>
-        <div id="similar-notes" class="evidence-list" hidden></div>
-        <div id="similar-empty" class="empty compact">
-          {% if similar_recent_notes %}
-            {% for note in similar_recent_notes %}
-              <p>{{ note.problem.title|truncatechars:32 }}</p>
-            {% endfor %}
-          {% else %}
-            유사 노트가 있으면 저장 후 표시됩니다.
-          {% endif %}
-        </div>
-      </section>
+    <div id="feedback-stage" class="feedback-stage">
+      <div class="feedback-layout"><section class="game-panel"><div class="game-panel-head"><h2>결과 요약</h2></div><div class="game-list"><div class="game-row"><span>문제</span><span>{{ problem.title|truncatechars:24 }}</span></div><div class="game-row"><span>결과</span><span class="badge badge-status-{{ submission.result }}">{{ submission.get_result_display }}</span></div><div class="game-row"><span>실행 시간</span><span>{{ submission.elapsed_ms|default:0 }}ms</span></div></div><h3>내 회고</h3><p id="saved-reflection" class="wrongnote-comment"></p></section><section class="game-panel accent-cyan"><div class="game-panel-head"><h2>유사 오답노트 RAG</h2></div><div id="similar-notes" class="evidence-list" hidden></div><div id="similar-empty" class="game-empty">유사 노트가 있으면 표시됩니다.</div></section><section class="game-panel accent-warning"><div class="game-panel-head"><h2>AI 오답 피드백</h2></div><div id="ai-analysis" class="analysis-grid" hidden></div><div id="analysis-empty" class="game-empty">AI 분석 결과를 기다리는 중입니다.</div></section></div><div class="wn-action-zone"><a class="game-btn primary" href="{% url 'wrongnotes:list' %}">오답노트 목록으로</a><button id="back-to-reflection-btn" type="button" class="game-btn ghost">회고 수정</button></div>
     </div>
-  </div>
-
-  <div class="note-save-bar">
-    <a class="btn btn-ghost" href="{% url 'wrongnotes:list' %}">돌아가기</a>
-    <button id="wrongnote-save-btn" type="button" class="btn">노트 저장하고 통합</button>
-    <span id="wrongnote-status" class="hint-note">저장 시 AI 분석과 벡터 인덱싱을 함께 요청합니다.</span>
   </div>
 </section>
-
-<script>
-(() => {
-  const section = document.querySelector("[data-submission-id]");
-  const commentInput = document.getElementById("wrongnote-comment");
-  const saveButton = document.getElementById("wrongnote-save-btn");
-  const statusText = document.getElementById("wrongnote-status");
-  const similarBox = document.getElementById("similar-notes");
-  const similarEmpty = document.getElementById("similar-empty");
-  const analysisBox = document.getElementById("ai-analysis");
-  const analysisEmpty = document.getElementById("analysis-empty");
-  const countText = document.getElementById("comment-count");
-
-  const getCookie = (name) => {
-    const cookies = document.cookie ? document.cookie.split(";") : [];
-    for (const rawCookie of cookies) {
-      const cookie = rawCookie.trim();
-      if (cookie.startsWith(`${name}=`)) {
-        return decodeURIComponent(cookie.slice(name.length + 1));
-      }
-    }
-    return "";
-  };
-
-  const escapeHtml = (value) => String(value || "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;",
-  }[char]));
-
-  const renderAnalysis = (analysis, errors) => {
-    const rows = [
-      ["문제 핵심", analysis.problem_core],
-      ["오답 원인", analysis.cause],
-      ["풀이 과정", analysis.solution],
-      ["주의사항", analysis.caution],
-    ];
-    analysisBox.innerHTML = rows.map(([title, body]) => `
-      <article class="analysis-card">
-        <strong>${title}</strong>
-        <p>${escapeHtml(body || "아직 분석 결과가 없습니다.")}</p>
-      </article>
-    `).join("");
-    if (errors.length) {
-      analysisBox.innerHTML += `<pre class="result-pre result-error-text">${escapeHtml(errors.map((error) => `${error.stage}: ${error.message}`).join("\n"))}</pre>`;
-    }
-    analysisBox.hidden = false;
-    analysisEmpty.hidden = true;
-  };
-
-  const renderSimilar = (similarNotes) => {
-    if (!similarNotes.length) {
-      similarEmpty.textContent = "유사 오답노트가 없습니다.";
-      similarEmpty.hidden = false;
-      similarBox.hidden = true;
-      return;
-    }
-    similarBox.innerHTML = similarNotes.map((note) => `
-      <article class="evidence-card">
-        <strong>note_id ${escapeHtml(note.note_id)}</strong>
-        <span>source ${escapeHtml(note.source)}</span>
-        <span>score ${escapeHtml(note.score)}</span>
-      </article>
-    `).join("");
-    similarBox.hidden = false;
-    similarEmpty.hidden = true;
-  };
-
-  commentInput.addEventListener("input", () => {
-    countText.textContent = commentInput.value.length;
-  });
-
-  saveButton.addEventListener("click", async () => {
-    similarBox.hidden = true;
-    analysisBox.hidden = true;
-    saveButton.disabled = true;
-    statusText.textContent = "저장 및 AI 분석 요청 중입니다.";
-
-    try {
-      const response = await fetch(window.location.pathname, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCookie("csrftoken"),
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({
-          submission_id: Number(section.dataset.submissionId),
-          problem_id: Number(section.dataset.problemId),
-          comment: commentInput.value,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error_message || "오답노트 저장에 실패했습니다.");
-      }
-
-      const ai = data.ai_analysis || {};
-      renderSimilar(ai.similar_notes || []);
-      renderAnalysis(ai.analysis || {}, ai.errors || []);
-      statusText.textContent = `저장 완료 · note_id ${data.wrong_note_id} · ${data.status}`;
-    } catch (error) {
-      statusText.textContent = error.message;
-    } finally {
-      saveButton.disabled = false;
-    }
-  });
-})();
-</script>
 {% endblock %}
+{% block scripts %}<script src="{% static 'js/wrongnote_form.js' %}?v=game-design-v8"></script>{% endblock %}
