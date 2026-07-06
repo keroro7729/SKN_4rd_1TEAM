@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}오답노트 작성 · WOOK'S CODING{% endblock %}
 {% block styles %}
-<link rel="stylesheet" href="{% static 'css/wrongnote_tabs.css' %}?v=wrongnote-tabs-v1">
+<link rel="stylesheet" href="{% static 'css/wrongnote_tabs.css' %}?v=wrongnote-ux-v6">
 {% endblock %}
 
 {% block content %}
@@ -22,9 +22,9 @@
 
   <header class="wnt-header">
     <div>
-      <p class="wnt-eyebrow">WrongNote CreateView · Tabbed Reflection Flow</p>
+      <p class="wnt-eyebrow">WrongNote CreateView · Guided Reflection Workspace</p>
       <h1>오답노트 작성 <small>#{{ problem.id }} · {{ problem.title }}</small></h1>
-      <p>문제 보기 → 내가 작성한 코드 → 실행 로그/결과 → 회고 작성 순서로 정리한 뒤 AI 피드백을 확인합니다.</p>
+      <p>문제·코드·과거 제출·실행 결과를 한곳에서 비교하고, 회고를 작성한 뒤 AI/RAG 피드백을 확인합니다.</p>
     </div>
     <a class="wnt-ghost-link" href="{% url 'problems:detail' problem.id %}">문제 풀이 화면으로</a>
   </header>
@@ -33,12 +33,12 @@
     <button type="button" class="wnt-flow-step is-active" data-step-target="input">
       <span>1</span>
       <strong>정리하기</strong>
-      <em>문제 · 코드 · 로그 · 회고</em>
+      <em>문제 · 코드 · 히스토리 · 결과 · 회고</em>
     </button>
     <button type="button" class="wnt-flow-step" data-step-target="feedback" disabled>
       <span>2</span>
       <strong>AI 피드백</strong>
-      <em>결과 · RAG · 분석</em>
+      <em>요약 · RAG · 피드백</em>
     </button>
   </nav>
 
@@ -49,14 +49,33 @@
           <strong>STEP 1</strong>
           <h2>내 오답 정리</h2>
         </div>
-        <p>탭을 넘기면서 필요한 정보만 확인하고, 마지막 탭에서 회고를 작성하세요.</p>
+        <p>한 번에 모든 정보를 보여주지 않고, 사용자가 필요한 정보만 탭으로 확인하도록 구성했습니다. 회고 전 과거 코드를 비교하면 반복 실수를 더 쉽게 발견할 수 있습니다.</p>
+      </div>
+
+      <div class="wnt-ux-summary" aria-label="오답노트 핵심 요약">
+        <article>
+          <span>현재 결과</span>
+          <strong>{{ submission.result|upper }}</strong>
+          <em>{{ submission.get_result_display }}</em>
+        </article>
+        <article>
+          <span>과거 제출</span>
+          <strong>{{ submission_history|length }}개</strong>
+          <em>같은 문제 기준</em>
+        </article>
+        <article>
+          <span>회고 방식</span>
+          <strong>원인 → 근거 → 다음 행동</strong>
+          <em>AI 분석 품질 향상</em>
+        </article>
       </div>
 
       <div class="wnt-tabbar" role="tablist" aria-label="오답노트 입력 탭">
         <button type="button" class="wnt-tab is-active" role="tab" aria-selected="true" data-tab-group="input" data-tab-target="problem">① 문제 보기</button>
-        <button type="button" class="wnt-tab" role="tab" aria-selected="false" data-tab-group="input" data-tab-target="code">② 내가 작성한 코드</button>
-        <button type="button" class="wnt-tab" role="tab" aria-selected="false" data-tab-group="input" data-tab-target="result">③ 실행 로그 / 결과</button>
-        <button type="button" class="wnt-tab" role="tab" aria-selected="false" data-tab-group="input" data-tab-target="reflection">④ 회고 작성</button>
+        <button type="button" class="wnt-tab" role="tab" aria-selected="false" data-tab-group="input" data-tab-target="code">② 현재 제출 코드</button>
+        <button type="button" class="wnt-tab" role="tab" aria-selected="false" data-tab-group="input" data-tab-target="history">③ 과거 코드</button>
+        <button type="button" class="wnt-tab" role="tab" aria-selected="false" data-tab-group="input" data-tab-target="result">④ 실행 결과</button>
+        <button type="button" class="wnt-tab" role="tab" aria-selected="false" data-tab-group="input" data-tab-target="reflection">⑤ 회고 작성</button>
       </div>
 
       <div class="wnt-tab-panels">
@@ -110,8 +129,82 @@
           <div class="wnt-code-toolbar">
             <span>Python 3.11</span>
             <em>Submission #{{ submission.id }}</em>
+            <button id="copy-current-code" type="button" class="wnt-inline-action">코드 복사</button>
           </div>
-          <pre class="wnt-code-view">{{ submission.code }}</pre>
+          <div class="wnt-code-review-layout">
+            <pre id="current-code-view" class="wnt-code-view">{{ submission.code }}</pre>
+            <aside class="wnt-code-checklist">
+              <strong>코드 확인 체크포인트</strong>
+              <label><input type="checkbox"> 입력 경계값을 확인했는가?</label>
+              <label><input type="checkbox"> 기저 조건/초기값을 빠뜨리지 않았는가?</label>
+              <label><input type="checkbox"> 인덱스 범위가 안전한가?</label>
+              <label><input type="checkbox"> 출력 형식이 문제 요구와 같은가?</label>
+              <p>체크한 내용은 저장되지 않고, 회고 작성 전 스스로 확인하기 위한 UI입니다.</p>
+            </aside>
+          </div>
+        </article>
+
+        <article id="wnt-input-history" class="wnt-tab-panel" data-tab-panel="input:history" hidden>
+          <div class="wnt-history-layout">
+            <aside class="wnt-history-list" aria-label="과거 제출 목록">
+              <div class="wnt-history-title">
+                <strong>같은 문제 과거 제출</strong>
+                <span>최근 8개</span>
+              </div>
+              {% for past in submission_history %}
+                <button
+                  type="button"
+                  class="wnt-history-card{% if forloop.first %} is-active{% endif %}"
+                  data-history-id="{{ past.id }}"
+                >
+                  <span class="wnt-history-result result-{{ past.result }}">{{ past.result|upper }}</span>
+                  <strong>#{{ past.id }} · {{ past.created_at|date:"m/d H:i" }}</strong>
+                  <em>{{ past.elapsed_ms|default:0 }}ms · {{ past.submission_type }}</em>
+                </button>
+                <template id="history-code-{{ past.id }}">{{ past.code }}</template>
+                <template id="history-output-{{ past.id }}">{% if past.output %}{{ past.output }}{% else %}출력 로그가 없습니다.{% endif %}</template>
+                <template id="history-error-{{ past.id }}">{% if past.error_message %}{{ past.error_message }}{% else %}오류 메시지가 없습니다.{% endif %}</template>
+              {% empty %}
+                <div class="wnt-empty compact">
+                  <strong>과거 제출 코드가 없습니다.</strong>
+                  <p>같은 문제를 여러 번 제출하면 이 탭에서 이전 코드와 현재 코드를 비교할 수 있습니다.</p>
+                </div>
+              {% endfor %}
+            </aside>
+
+            <section class="wnt-history-viewer">
+              <div class="wnt-compare-grid" aria-label="현재 코드와 과거 코드 비교">
+                <article class="wnt-compare-pane">
+                  <div class="wnt-code-toolbar">
+                    <span>현재 제출 코드</span>
+                    <em>#{{ submission.id }}</em>
+                  </div>
+                  <pre class="wnt-code-view">{{ submission.code }}</pre>
+                </article>
+                <article class="wnt-compare-pane is-past">
+                  <div class="wnt-code-toolbar">
+                    <span id="history-code-title">과거 제출 코드</span>
+                    <em>선택한 과거 제출</em>
+                  </div>
+                  <pre id="history-code-view" class="wnt-code-view">{% if submission_history %}왼쪽에서 과거 제출을 선택하세요.{% else %}아직 과거 제출 코드가 없습니다.{% endif %}</pre>
+                </article>
+              </div>
+              <div class="wnt-log-grid small">
+                <div class="wnt-output-box">
+                  <strong>과거 stdout</strong>
+                  <pre id="history-output-view">-</pre>
+                </div>
+                <div class="wnt-output-box error">
+                  <strong>과거 error / message</strong>
+                  <pre id="history-error-view">-</pre>
+                </div>
+              </div>
+              <div class="wnt-compare-tip">
+                <strong>비교 포인트</strong>
+                <p>현재 코드와 과거 코드를 나란히 보면서 반복되는 실수, 빠진 조건, 개선된 부분을 회고에 적어두세요.</p>
+              </div>
+            </section>
+          </div>
         </article>
 
         <article id="wnt-input-result" class="wnt-tab-panel" data-tab-panel="input:result" hidden>
@@ -148,7 +241,13 @@
         <article id="wnt-input-reflection" class="wnt-tab-panel" data-tab-panel="input:reflection" hidden>
           <div class="wnt-reflection-guide">
             <strong>회고 작성 가이드</strong>
-            <p>틀린 원인, 헷갈린 개념, 다음에 조심할 조건을 적으면 AI 피드백과 RAG 검색 품질이 좋아집니다.</p>
+            <p>좋은 회고는 “무엇을 틀렸는지 → 왜 틀렸는지 → 다음에 어떻게 막을지”가 한 문장 안에 들어갑니다.</p>
+          </div>
+          <div class="wnt-template-bank" aria-label="회고 빠른 입력 템플릿">
+            <button type="button" data-template="기저 조건 누락: 작은 입력(n=1, n=2)을 먼저 확인하지 않아 초기값이 틀어졌다. 다음에는 점화식 작성 전에 base case를 먼저 적겠다.">기저 조건</button>
+            <button type="button" data-template="인덱스 범위 실수: 배열/리스트 접근 범위를 정확히 확인하지 않아 경계값에서 틀렸다. 다음에는 반복문 시작/끝 인덱스를 먼저 검증하겠다.">인덱스 범위</button>
+            <button type="button" data-template="출력 형식 실수: 계산 로직은 맞았지만 출력 요구사항을 정확히 맞추지 못했다. 다음에는 예제 출력과 공백/줄바꿈을 비교하겠다.">출력 형식</button>
+            <button type="button" data-template="시간 복잡도 문제: 정답은 나왔지만 불필요한 반복으로 시간 초과 가능성이 있었다. 다음에는 입력 크기 기준으로 O(N), O(N log N) 가능 여부를 먼저 판단하겠다.">시간 복잡도</button>
           </div>
           <div class="wnt-label-row">
             <label class="wnt-label" for="wrongnote-comment">회고 / 내가 틀린 이유 <b>*</b></label>
@@ -167,24 +266,32 @@
 
     <aside class="wnt-side-summary">
       <section class="wnt-card">
-        <h2>현재 정리 상태</h2>
-        <ul class="wnt-check-list">
-          <li>문제 정보 확인</li>
-          <li>제출 코드 확인</li>
-          <li>실행 결과 확인</li>
-          <li>회고 입력 후 다음 단계</li>
-        </ul>
+        <h2>추천 사용 순서</h2>
+        <ol class="wnt-ordered-routine">
+          <li>문제 조건을 다시 읽기</li>
+          <li>현재 코드에서 의심 지점 표시</li>
+          <li>과거 코드와 반복 실수 비교</li>
+          <li>실행 결과로 실제 실패 원인 확인</li>
+          <li>회고 템플릿으로 다음 행동 작성</li>
+        </ol>
       </section>
       <section class="wnt-card accent">
-        <h2>AI 분석 기준</h2>
-        <p>정답을 바로 보여주기보다 오답 원인, 풀이 과정, 주의사항을 분리해서 제공합니다.</p>
+        <h2>좋은 회고 조건</h2>
+        <ul class="wnt-check-list">
+          <li>“틀렸다”보다 구체적인 원인을 적기</li>
+          <li>코드/출력/테스트케이스 근거 포함</li>
+          <li>다음 풀이에서 확인할 행동으로 끝내기</li>
+        </ul>
       </section>
     </aside>
 
     <div class="wnt-bottom-actions">
-      <a class="wnt-secondary-btn" href="{% url 'wrongnotes:list' %}">돌아가기</a>
-      <button id="wrongnote-save-btn" type="button" class="wnt-primary-btn">다음 · 결과와 AI 피드백 보기</button>
-      <p id="wrongnote-status" class="wnt-status">✓ 회고 탭에서 내용을 입력한 뒤 다음 단계로 이동하세요.</p>
+      <div class="wnt-tab-actions">
+        <button id="wnt-prev-tab" type="button" class="wnt-secondary-btn">← 이전 탭</button>
+        <button id="wnt-next-tab" type="button" class="wnt-secondary-btn">다음 탭 →</button>
+      </div>
+      <button id="wrongnote-save-btn" type="button" class="wnt-primary-btn">AI 피드백 보기</button>
+      <p id="wrongnote-status" class="wnt-status">✓ 회고 탭에서 내용을 입력한 뒤 AI 피드백을 확인하세요.</p>
     </div>
   </div>
 
@@ -265,5 +372,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'js/wrongnote_form.js' %}?v=wrongnote-tabs-v1"></script>
+<script src="{% static 'js/wrongnote_form.js' %}?v=wrongnote-ux-v6"></script>
 {% endblock %}

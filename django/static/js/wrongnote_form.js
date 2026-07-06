@@ -18,6 +18,22 @@
   const savedCommentPreview = document.getElementById('saved-comment-preview');
   const detailLink = document.getElementById('wrongnote-detail-link');
   const wrongnoteIdLabel = document.getElementById('wrongnote-id-label');
+  const historyButtons = document.querySelectorAll('.wnt-history-card');
+  const historyCodeTitle = document.getElementById('history-code-title');
+  const historyCodeView = document.getElementById('history-code-view');
+  const historyOutputView = document.getElementById('history-output-view');
+  const historyErrorView = document.getElementById('history-error-view');
+  const prevTabButton = document.getElementById('wnt-prev-tab');
+  const nextTabButton = document.getElementById('wnt-next-tab');
+  const copyCurrentCodeButton = document.getElementById('copy-current-code');
+  const currentCodeView = document.getElementById('current-code-view');
+  const templateButtons = document.querySelectorAll('[data-template]');
+
+  const tabOrder = {
+    input: ['problem', 'code', 'history', 'result', 'reflection'],
+    feedback: ['summary', 'rag', 'ai'],
+  };
+  const activeTabs = { input: 'problem', feedback: 'summary' };
 
   const getCookie = (name) => {
     const cookies = document.cookie ? document.cookie.split(';') : [];
@@ -56,7 +72,19 @@
     statusText.dataset.state = type;
   };
 
+  const updateTabNavButtons = (group = 'input') => {
+    if (group !== 'input') return;
+    const order = tabOrder.input;
+    const index = order.indexOf(activeTabs.input);
+    if (prevTabButton) prevTabButton.disabled = index <= 0;
+    if (nextTabButton) {
+      nextTabButton.disabled = index < 0 || index >= order.length - 1;
+      nextTabButton.textContent = index >= order.length - 2 ? '회고 작성으로 →' : '다음 탭 →';
+    }
+  };
+
   const switchTab = (group, target) => {
+    activeTabs[group] = target;
     document.querySelectorAll(`[data-tab-group="${group}"]`).forEach((button) => {
       const active = button.dataset.tabTarget === target;
       button.classList.toggle('is-active', active);
@@ -68,6 +96,16 @@
       panel.hidden = !active;
       panel.classList.toggle('is-active', active);
     });
+
+    updateTabNavButtons(group);
+  };
+
+  const moveInputTab = (direction) => {
+    const order = tabOrder.input;
+    const currentIndex = order.indexOf(activeTabs.input);
+    if (currentIndex < 0) return;
+    const nextIndex = Math.max(0, Math.min(order.length - 1, currentIndex + direction));
+    switchTab('input', order[nextIndex]);
   };
 
   const showStep = (target) => {
@@ -94,6 +132,9 @@
       switchTab(button.dataset.tabGroup, button.dataset.tabTarget);
     });
   });
+
+  prevTabButton?.addEventListener('click', () => moveInputTab(-1));
+  nextTabButton?.addEventListener('click', () => moveInputTab(1));
 
   stepButtons.forEach((button) => {
     button.addEventListener('click', () => {
@@ -188,6 +229,55 @@
     similarEmpty.hidden = true;
   };
 
+  const readTemplateText = (id) => {
+    const template = document.getElementById(id);
+    if (!template) return '-';
+    return template.content.textContent.trim() || '-';
+  };
+
+  const selectHistory = (id) => {
+    historyButtons.forEach((button) => {
+      button.classList.toggle('is-active', button.dataset.historyId === id);
+    });
+    if (historyCodeTitle) historyCodeTitle.textContent = `과거 제출 #${id}`;
+    if (historyCodeView) historyCodeView.textContent = readTemplateText(`history-code-${id}`);
+    if (historyOutputView) historyOutputView.textContent = readTemplateText(`history-output-${id}`);
+    if (historyErrorView) historyErrorView.textContent = readTemplateText(`history-error-${id}`);
+  };
+
+  historyButtons.forEach((button) => {
+    button.addEventListener('click', () => selectHistory(button.dataset.historyId));
+  });
+
+  if (historyButtons.length) {
+    selectHistory(historyButtons[0].dataset.historyId);
+  }
+
+  templateButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+      if (!commentInput) return;
+      const text = button.dataset.template || '';
+      const current = commentInput.value.trim();
+      commentInput.value = current ? `${current}\n${text}` : text;
+      countText.textContent = commentInput.value.length;
+      switchTab('input', 'reflection');
+      commentInput.focus();
+    });
+  });
+
+  copyCurrentCodeButton?.addEventListener('click', async () => {
+    const text = currentCodeView?.textContent || '';
+    if (!text.trim()) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      copyCurrentCodeButton.textContent = '복사 완료';
+      setTimeout(() => { copyCurrentCodeButton.textContent = '코드 복사'; }, 1400);
+    } catch (_) {
+      copyCurrentCodeButton.textContent = '복사 실패';
+      setTimeout(() => { copyCurrentCodeButton.textContent = '코드 복사'; }, 1400);
+    }
+  });
+
   commentInput?.addEventListener('input', () => {
     countText.textContent = commentInput.value.length;
   });
@@ -247,7 +337,9 @@
       setStatus(error.message || '요청 처리 중 오류가 발생했습니다.', 'error');
     } finally {
       saveButton.disabled = false;
-      saveButton.textContent = '다음 · 결과와 AI 피드백 보기';
+      saveButton.textContent = 'AI 피드백 보기';
     }
   });
+
+  updateTabNavButtons('input');
 })();
