@@ -133,15 +133,18 @@
   const renderResult = (data) => {
     const resultLabel = data.submission_result || "pending";
     const passed = data.total ? `${data.passed}/${data.total}` : "-";
+    console.info("submission result", {
+      job_status: data.job_status,
+      tests: passed,
+      elapsed_ms: data.elapsed_ms || 0,
+      job: data.job || null,
+    });
     const caseRows = (data.case_results || []).map((item) => (
-      `<li>TC${item.case}: ${item.passed ? "통과" : "실패"}${item.error ? ` · ${item.error}` : ""}</li>`
+      `<li>테스트케이스${item.case} ${item.passed ? "통과" : "실패"}${item.error ? ` - ${item.error}` : ""}</li>`
     )).join("");
     statusBox.innerHTML = `
       <div class="result-header">
         <strong>결과: ${resultLabel}</strong>
-        <span>Job: ${data.job_status}</span>
-        <span>테스트 ${passed}</span>
-        <span>실행 시간 ${data.elapsed_ms || 0}ms</span>
       </div>
       ${data.output ? `<pre class="result-pre">출력\n${data.output}</pre>` : ""}
       ${data.error_message ? `<pre class="result-pre result-error-text">${data.error_message}</pre>` : ""}
@@ -166,7 +169,8 @@
         hide(loadingBox);
         return;
       }
-      showText(loadingBox, `채점 중입니다. Job: ${data.job_status} · ${i + 1}/${maxPollCount}`);
+      console.info("submission polling", {submission_id: submissionId, job_status: data.job_status, attempt: i + 1});
+      showText(loadingBox, "채점중입니다.");
       await new Promise((resolve) => setTimeout(resolve, 700));
     }
     throw new Error("결과 대기 시간이 초과되었습니다. Worker 상태를 확인하세요.");
@@ -201,7 +205,7 @@
         renderResult(data);
         hide(loadingBox);
       } else {
-        showText(loadingBox, "결과 확인 중입니다. 응답이 없으면 잠시 후 다시 확인합니다.");
+        showText(loadingBox, "채점중입니다.");
         await pollResult(data.submission_id);
       }
     } catch (error) {
@@ -235,7 +239,8 @@
       if (data.status === "success") {
         showText(hintArea, content);
       } else {
-        showText(hintArea, `힌트 생성 상태: ${data.message || data.status} · request_id ${data.request_id || "-"}`);
+        console.info("hint response", {status: data.status, request_id: data.request_id, message: data.message});
+        showText(hintArea, content || "힌트를 불러오지 못했습니다.");
       }
     } catch (error) {
       showText(hintArea, error.message);

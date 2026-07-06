@@ -76,7 +76,7 @@ def _create_code_job(request, *, submission_type: str, job_type: str):
             status=400,
         )
     if not code.strip():
-        return JsonResponse({"ok": False, "error_message": "code_required"}, status=400)
+        return JsonResponse({"ok": False, "error_message": "코드를 작성해주세요."}, status=400)
 
     problem = get_object_or_404(Problem, pk=problem_id, is_active=True)
 

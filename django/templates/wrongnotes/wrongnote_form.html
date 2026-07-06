@@ -28,7 +28,6 @@
         <h2 class="section-title">실행 결과 요약</h2>
         <div class="result-summary">
           <span class="badge badge-status-{{ submission.result }}">{{ submission.get_result_display }}</span>
-          <span>실행 시간 {{ submission.elapsed_ms|default:0 }}ms</span>
         </div>
         <details class="fold-panel">
           <summary class="btn btn-ghost btn-sm">틀린 코드 보기</summary>
@@ -54,7 +53,7 @@
         <h2 class="section-title">AI 오답 분석 결과</h2>
         <p class="hint-note">작성한 코멘트와 실행 결과를 바탕으로 실수 원인을 정리합니다.</p>
         <div id="ai-analysis" class="analysis-grid" hidden></div>
-        <div id="analysis-empty" class="empty compact">저장하면 분석 결과가 표시됩니다.</div>
+        <div id="analysis-empty" class="empty compact" hidden></div>
       </section>
 
       <section class="sub-panel">
@@ -113,6 +112,13 @@
   }[char]));
 
   const renderAnalysis = (analysis, errors) => {
+    const safeErrors = errors || [];
+    const hasAnalysis = analysis && Object.values(analysis).some((value) => Boolean(value));
+    if (!hasAnalysis && !safeErrors.length) {
+      analysisBox.hidden = true;
+      analysisEmpty.hidden = true;
+      return;
+    }
     const rows = [
       ["문제 핵심", analysis.problem_core],
       ["오답 원인", analysis.cause],
@@ -125,8 +131,8 @@
         <p>${escapeHtml(body || "아직 분석 결과가 없습니다.")}</p>
       </article>
     `).join("");
-    if (errors.length) {
-      analysisBox.innerHTML += `<pre class="result-pre result-error-text">${escapeHtml(errors.map((error) => `${error.stage}: ${error.message}`).join("\n"))}</pre>`;
+    if (safeErrors.length) {
+      analysisBox.innerHTML += `<pre class="result-pre result-error-text">${escapeHtml(safeErrors.map((error) => `${error.stage}: ${error.message}`).join("\n"))}</pre>`;
     }
     analysisBox.hidden = false;
     analysisEmpty.hidden = true;
@@ -182,7 +188,8 @@
       const ai = data.ai_analysis || {};
       renderSimilar(ai.similar_notes || []);
       renderAnalysis(ai.analysis || {}, ai.errors || []);
-      statusText.textContent = `저장 완료 · note_id ${data.wrong_note_id} · ${data.status}`;
+      console.info("wrongnote save", {wrong_note_id: data.wrong_note_id, status: data.status, ai_analysis: data.ai_analysis || null});
+      statusText.textContent = "저장 완료";
     } catch (error) {
       statusText.textContent = error.message;
     } finally {
