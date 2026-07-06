@@ -23,7 +23,14 @@
         {% if user.is_service_admin %}
           <a href="{% url 'adminpanel:dashboard' %}">운영</a>
         {% endif %}
-        <span class="nav-user">{{ user.username }} · {{ user.point }}P</span>
+        <span class="nav-user">
+          {{ user.username }}
+          <span class="user-hp-icon">♥</span>
+          <span class="user-hp-bar" title="다음 레벨까지 {{ user.point }}P">
+            <span class="user-hp-fill" style="width: {% widthratio user.point 100 100 %}%;"></span>
+          </span>
+          · {{ user.point }}P
+        </span>
         <form action="{% url 'accounts:logout' %}" method="post" class="logout-form">
           {% csrf_token %}
           <button type="submit" class="btn btn-ghost">로그아웃</button>

@@ -1,4 +1,6 @@
 /* WOOK'S CODING - 다크 레트로 RPG / 도트 게임풍 기본 톤 (STEP-01) */
+@import url('https://cdn.jsdelivr.net/npm/galmuri@latest/dist/galmuri.css');
+
 :root {
   --bg: #0c0c0f;
   --panel: #16161b;
@@ -9,14 +11,26 @@
   --accent: #7c5cff;
   --accent-2: #35d0a5;
   --danger: #ff6b81;
+  --pixel-shadow: #000000;
 }
 
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: "Segoe UI", "Malgun Gothic", system-ui, sans-serif;
-  background: var(--bg);
+  font-family: "Galmuri11", "Segoe UI", "Malgun Gothic", system-ui, sans-serif;
+  background:
+    radial-gradient(1.5px 1.5px at 8% 12%, rgba(255,255,255,0.55), transparent),
+    radial-gradient(1.5px 1.5px at 22% 28%, rgba(255,255,255,0.35), transparent),
+    radial-gradient(2px 2px at 38% 8%, rgba(53,208,165,0.5), transparent),
+    radial-gradient(1.5px 1.5px at 55% 22%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(2px 2px at 72% 14%, rgba(124,92,255,0.5), transparent),
+    radial-gradient(1.5px 1.5px at 88% 30%, rgba(255,255,255,0.35), transparent),
+    radial-gradient(1.5px 1.5px at 15% 55%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(2px 2px at 92% 65%, rgba(53,208,165,0.4), transparent),
+    radial-gradient(1.5px 1.5px at 65% 80%, rgba(255,255,255,0.3), transparent),
+    var(--bg);
+  background-attachment: fixed;
   color: var(--text);
   min-height: 100vh;
   display: flex;
@@ -42,26 +56,46 @@ body {
 .nav { display: flex; align-items: center; gap: 14px; }
 .nav a { color: var(--muted); text-decoration: none; }
 .nav a:hover { color: var(--text); }
-.nav-user { color: var(--accent-2); font-size: 0.9rem; }
+.nav-user { color: var(--accent-2); font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px; }
+.user-hp-icon { color: var(--danger); font-size: 0.85rem; }
+.user-hp-bar {
+  display: inline-block;
+  width: 70px;
+  height: 8px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+.user-hp-fill { display: block; height: 100%; background: var(--danger); }
 .logout-form { margin: 0; }
 
-/* --- 버튼 --- */
+/* --- 버튼 (도트 게임풍) --- */
 .btn {
   display: inline-block;
-  padding: 8px 16px;
+  padding: 10px 18px;
   background: var(--accent);
   color: #fff;
-  border: none;
-  border-radius: 8px;
+  border: 2px solid #000;
+  border-radius: 2px;
   text-decoration: none;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  letter-spacing: 0.5px;
+  box-shadow: 3px 3px 0 var(--pixel-shadow);
+  transition: transform 0.05s ease, box-shadow 0.05s ease;
 }
 .btn:hover { filter: brightness(1.1); }
-.btn-ghost { background: transparent; border: 1px solid var(--line); color: var(--text); }
-.btn-danger-ghost { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
-.btn-lg { padding: 12px 26px; font-size: 1.05rem; }
-.btn-sm { padding: 4px 9px; font-size: 0.78rem; border-radius: 6px; }
+.btn:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--pixel-shadow);
+}
+.btn-ghost { background: var(--panel-2); border: 2px solid var(--accent-2); color: var(--accent-2); }
+.btn-danger-ghost { background: var(--panel-2); border: 2px solid var(--danger); color: var(--danger); }
+.btn-lg { padding: 14px 28px; font-size: 1rem; }
+.btn-sm { padding: 5px 10px; font-size: 0.75rem; box-shadow: 2px 2px 0 var(--pixel-shadow); }
 .btn-block { width: 100%; margin-top: 8px; }
 
 /* --- 본문 --- */
@@ -77,8 +111,8 @@ body {
   text-align: left;
   min-height: 340px;
   padding: 42px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  border: 2px solid var(--line);
+  border-radius: 4px;
   background:
     linear-gradient(135deg, rgba(53, 208, 165, 0.12), transparent 45%),
     var(--panel);
@@ -88,8 +122,106 @@ body {
 .hero-sub { color: var(--muted); margin: 0 0 24px; }
 .hero-welcome { color: var(--accent-2); font-size: 1.1rem; }
 .hero-actions { display: flex; gap: 12px; justify-content: flex-start; flex-wrap: wrap; }
-.hero-stage { display: flex; align-items: center; justify-content: center; min-height: 220px; border: 1px dashed var(--line); border-radius: 12px; }
-.pixel-card { padding: 18px 22px; border: 1px solid var(--accent-2); color: var(--accent-2); background: rgba(20, 19, 31, 0.78); font-weight: 800; line-height: 1.5; text-align: center; }
+.hero-stage { display: flex; align-items: center; justify-content: center; min-height: 220px; }
+
+/* --- 홈 히어로: 픽셀 휴대용 게임기 --- */
+.console {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  padding: 24px 42px;
+  background: linear-gradient(180deg, #767c9c, #565b78);
+  border: 4px solid #1c1a26;
+  border-radius: 26px;
+  box-shadow: 0 8px 0 #14121c, inset 0 2px 0 rgba(255, 255, 255, 0.18);
+}
+.console-screen {
+  position: relative;
+  padding: 26px 22px;
+  background: #10201a;
+  border: 4px solid #0a0a0f;
+  border-radius: 8px;
+  box-shadow: inset 0 0 26px rgba(0, 0, 0, 0.65);
+}
+.console-title {
+  margin: 0 0 14px;
+  font-size: 1.4rem;
+  line-height: 1.35;
+  color: var(--accent-2);
+  text-shadow: 0 0 8px rgba(53, 208, 165, 0.55);
+  font-weight: 800;
+}
+.console-sub {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.65;
+  color: #c9d3cd;
+}
+.console-dpad {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+}
+.console-dpad-left { left: 10px; }
+.console-dpad-right { right: 10px; }
+.console-dpad::before,
+.console-dpad::after {
+  content: "";
+  position: absolute;
+  background: #1c1a26;
+}
+.console-dpad::before { top: 8px; left: 0; width: 24px; height: 8px; }
+.console-dpad::after { top: 0; left: 8px; width: 8px; height: 24px; }
+.console-leaf {
+  position: absolute;
+  right: -4px;
+  bottom: -12px;
+  width: 34px;
+  height: 34px;
+  pointer-events: none;
+}
+.console-leaf::before,
+.console-leaf::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 16px;
+  height: 30px;
+  background: var(--accent-2);
+  border-radius: 0 100% 0 100%;
+  opacity: 0.92;
+}
+.console-leaf::before { left: 0; transform: rotate(-16deg); }
+.console-leaf::after { right: 0; transform: rotate(16deg); background: #2ab890; }
+
+/* --- 홈 화면 전체 배경: 별 + 모험 여정 --- */
+.quest-page { position: relative; z-index: 0; }
+.quest-stars {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1.5px 1.5px at 8% 15%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(1px 1px at 30% 55%, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(2px 2px at 55% 20%, rgba(53, 208, 165, 0.75), transparent),
+    radial-gradient(1px 1px at 78% 60%, rgba(255, 255, 255, 0.5), transparent),
+    radial-gradient(1.5px 1.5px at 20% 85%, rgba(124, 92, 255, 0.7), transparent),
+    radial-gradient(1px 1px at 92% 90%, rgba(255, 255, 255, 0.45), transparent),
+    radial-gradient(2px 2px at 45% 40%, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(1.5px 1.5px at 65% 75%, rgba(255, 255, 255, 0.4), transparent);
+  background-size: 240px 240px;
+  background-repeat: repeat;
+  animation: quest-star-twinkle 5s ease-in-out infinite alternate;
+}
+@keyframes quest-star-twinkle {
+  0% { opacity: 0.55; }
+  100% { opacity: 1; }
+}
+.pixel-journey.quest-goal { height: 130px; margin-top: 20px; }
+.quest-goal .pixel-flag { transform: scale(0.9); }
 
 .feature-grid {
   display: grid;
@@ -99,10 +231,17 @@ body {
 }
 .feature-card {
   background: var(--panel-2);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 20px;
+  border: 2px solid var(--line);
+  border-radius: 4px;
+  padding: 0;
+  overflow: hidden;
 }
+.feature-card .pixel-titlebar { display: flex; gap: 6px; padding: 6px 10px; background: var(--bg); border-bottom: 2px solid var(--line); }
+.feature-card .pixel-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.feature-card .pixel-dot:nth-child(1) { background: var(--danger); }
+.feature-card .pixel-dot:nth-child(2) { background: #e6c86b; }
+.feature-card .pixel-dot:nth-child(3) { background: var(--accent-2); }
+.feature-card .feature-body { padding: 20px; }
 .feature-card h3 { margin: 0 0 6px; font-size: 1.05rem; }
 .feature-card p { margin: 0; color: var(--muted); font-size: 0.9rem; }
 

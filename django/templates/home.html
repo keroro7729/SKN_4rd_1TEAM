@@ -3,6 +3,8 @@
 {% block title %}WOOK'S CODING · 홈{% endblock %}
 
 {% block content %}
+<div class="quest-page">
+<div class="quest-stars" aria-hidden="true"></div>
 <section class="hero hero-game">
   <div class="hero-copy">
     <p class="eyebrow">AI CODING TEST PLATFORM</p>
@@ -19,22 +21,45 @@
     </div>
   </div>
   <div class="hero-stage" aria-hidden="true">
-    <div class="pixel-card">LEVEL UP<br>YOUR CODING</div>
+    <div class="console">
+      <div class="console-dpad console-dpad-left"><span></span></div>
+      <div class="console-dpad console-dpad-right"><span></span></div>
+      <div class="console-screen">
+        <p class="console-title">AI-Guided<br>Personalized<br>Hint System.</p>
+        <p class="console-sub">Level Up Your Coding with<br>Smart, Adaptive Assistance!<br>Unlock Your Potential with AI.</p>
+      </div>
+      <div class="console-leaf"></div>
+    </div>
   </div>
 </section>
 
 <section class="feature-grid">
   <div class="feature-card">
-    <h3>AI 힌트</h3>
-    <p>정답을 바로 노출하지 않고 단계별로 풀이 방향을 안내합니다.</p>
+    <div class="pixel-titlebar">
+      <span class="pixel-dot"></span><span class="pixel-dot"></span><span class="pixel-dot"></span>
+    </div>
+    <div class="feature-body">
+      <h3>AI 힌트</h3>
+      <p>정답을 바로 노출하지 않고 단계별로 풀이 방향을 안내합니다.</p>
+    </div>
   </div>
   <div class="feature-card">
-    <h3>오답노트 RAG</h3>
-    <p>내 오답노트를 기반으로 비슷한 실수와 근거 note_id를 추적합니다.</p>
+    <div class="pixel-titlebar">
+      <span class="pixel-dot"></span><span class="pixel-dot"></span><span class="pixel-dot"></span>
+    </div>
+    <div class="feature-body">
+      <h3>오답노트 RAG</h3>
+      <p>내 오답노트를 기반으로 비슷한 실수와 근거 note_id를 추적합니다.</p>
+    </div>
   </div>
   <div class="feature-card">
-    <h3>맞춤 문제 추천</h3>
-    <p>최근 기록과 취약 유형을 기준으로 다시 풀 문제를 찾습니다.</p>
+    <div class="pixel-titlebar">
+      <span class="pixel-dot"></span><span class="pixel-dot"></span><span class="pixel-dot"></span>
+    </div>
+    <div class="feature-body">
+      <h3>맞춤 문제 추천</h3>
+      <p>최근 기록과 취약 유형을 기준으로 다시 풀 문제를 찾습니다.</p>
+    </div>
   </div>
 </section>
 
@@ -107,4 +132,37 @@
   </section>
 </div>
 {% endif %}
+
+<div class="pixel-journey quest-goal" aria-hidden="true">
+  <div class="pixel-ground"></div>
+
+  <div class="pixel-party">
+    <div class="pixel-avatar">
+      <div class="avatar-head"></div>
+      <div class="avatar-body">&lt;/&gt;</div>
+      <div class="avatar-arm avatar-arm-left"></div>
+      <div class="avatar-arm avatar-arm-right"></div>
+      <div class="avatar-leg avatar-leg-left"></div>
+      <div class="avatar-leg avatar-leg-right"></div>
+    </div>
+
+    <div class="pixel-hand"></div>
+
+    <div class="pixel-ai">
+      <div class="ai-antenna"></div>
+      <div class="ai-head">•‿•</div>
+      <div class="ai-body">AI</div>
+      <div class="ai-arm ai-arm-left"></div>
+      <div class="ai-arm ai-arm-right"></div>
+      <div class="ai-leg ai-leg-left"></div>
+      <div class="ai-leg ai-leg-right"></div>
+    </div>
+  </div>
+
+  <div class="pixel-flag">
+    <div class="flag-pole"></div>
+    <div class="flag-cloth"></div>
+  </div>
+</div>
+</div>
 {% endblock %}
