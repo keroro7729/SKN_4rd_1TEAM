@@ -151,6 +151,17 @@ class WrongNoteCreateView(LoginRequiredMixin, TemplateView):
             .distinct()
             .order_by("-created_at")[:3]
         )
+        # Front UX: show the user's previous submissions for the same problem
+        # so the reflection page can compare current code with past attempts.
+        ctx["submission_history"] = (
+            Submission.objects.filter(
+                user=self.request.user,
+                problem=submission.problem,
+                submission_type="submit",
+            )
+            .exclude(pk=submission.pk)
+            .order_by("-created_at")[:8]
+        )
         return ctx
 
     def post(self, request, *args, **kwargs):
