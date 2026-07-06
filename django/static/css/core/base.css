@@ -1,25 +1,55 @@
-/* WOOK'S CODING - 다크 레트로 RPG / 도트 게임풍 기본 톤 (STEP-01) */
 :root {
-  --bg: #0c0c0f;
-  --panel: #16161b;
-  --panel-2: #1e1e25;
-  --line: #2b2b33;
-  --text: #e8e6f5;
-  --muted: #9a95c2;
-  --accent: #7c5cff;
-  --accent-2: #35d0a5;
-  --danger: #ff6b81;
+  --bg: #050910;
+  --bg-2: #07111b;
+  --panel: rgba(12, 20, 30, 0.88);
+  --panel-2: rgba(18, 28, 40, 0.86);
+  --panel-3: rgba(26, 20, 42, 0.72);
+  --line: rgba(78, 255, 166, 0.20);
+  --line-2: rgba(78, 218, 255, 0.24);
+  --text: #edf7ff;
+  --muted: #8797a8;
+  --green: #35f276;
+  --cyan: #35d8ff;
+  --purple: #b66cff;
+  --amber: #ffd54a;
+  --red: #ff6473;
+  --shadow-green: 0 0 26px rgba(53, 242, 118, 0.12);
+  --shadow-cyan: 0 0 26px rgba(53, 216, 255, 0.12);
+  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --font-ui: "Segoe UI", "Malgun Gothic", system-ui, -apple-system, sans-serif;
+  --font-code: Consolas, Monaco, "D2Coding", monospace;
 }
 
 * { box-sizing: border-box; }
-
-body {
+html { scroll-behavior: smooth; }
+body.app-shell {
   margin: 0;
-  font-family: "Segoe UI", "Malgun Gothic", system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  color: var(--text);
+  font-family: var(--font-ui);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(53, 242, 118, 0.14), transparent 30%),
+    radial-gradient(circle at 92% 12%, rgba(53, 216, 255, 0.12), transparent 28%),
+    linear-gradient(180deg, #050910 0%, #07111b 48%, #050910 100%);
 }
-
+body.app-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.38;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(circle at center, #000 0%, transparent 78%);
+}
+a { color: inherit; }
+button, input, textarea, select { font: inherit; }
+pre { font-family: var(--font-code); }
+::selection { background: rgba(53,242,118,0.28); }
+.hidden, [hidden] { display: none !important; }

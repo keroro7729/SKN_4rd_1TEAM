@@ -151,10 +151,14 @@ class WrongNoteCreateView(LoginRequiredMixin, TemplateView):
             .distinct()
             .order_by("-created_at")[:3]
         )
-        # Front UX: 현재 오답노트 작성 화면에서 같은 문제의 과거 제출 코드를
-        # 탭으로 확인할 수 있게 최근 제출 이력을 함께 넘긴다.
+        # Front UX: show the user's previous submissions for the same problem
+        # so the reflection page can compare current code with past attempts.
         ctx["submission_history"] = (
-            Submission.objects.filter(user=self.request.user, problem=submission.problem)
+            Submission.objects.filter(
+                user=self.request.user,
+                problem=submission.problem,
+                submission_type="submit",
+            )
             .exclude(pk=submission.pk)
             .order_by("-created_at")[:8]
         )

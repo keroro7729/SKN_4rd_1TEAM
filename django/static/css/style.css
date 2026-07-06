@@ -1,12 +1,10 @@
-/* WOOK'S CODING CSS entrypoint
- * CSS를 페이지/역할별로 나누었습니다. 기존 base.html은 이 파일만 불러오고,
- * 실제 수정은 아래 파일에서 진행하면 됩니다.
- */
-@import url("./core/base.css");
-@import url("./core/layout.css");
-@import url("./core/components.css");
-
-@import url("./pages/home.css");
-@import url("./pages/wrongnote_library.css");
-@import url("./pages/mypage.css");
-@import url("./pages/responsive.css");
+@import url("./core/base.css?v=game-design-v8");
+@import url("./core/layout.css?v=game-design-v8");
+@import url("./core/components.css?v=game-design-v8");
+@import url("./pages/home.css?v=game-design-v8");
+@import url("./pages/problem_list.css?v=game-design-v8");
+@import url("./pages/problem_solve.css?v=game-design-v8");
+@import url("./pages/wrongnote_library.css?v=game-design-v8");
+@import url("./pages/wrongnote_tabs.css?v=game-design-v8");
+@import url("./pages/mypage.css?v=game-design-v8");
+@import url("./pages/responsive.css?v=game-design-v8");

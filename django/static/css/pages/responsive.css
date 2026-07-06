@@ -1,47 +1,35 @@
-  }
+@media (max-width: 1180px) {
+  .game-dashboard-grid { grid-template-columns: repeat(6,minmax(0,1fr)); }
+  .game-span-3, .game-span-4, .game-span-5, .game-span-6 { grid-column: span 3; }
+  .game-span-7, .game-span-8, .game-span-12 { grid-column: 1 / -1; }
+  .home-feature-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .solve-layout, .problem-layout, .wrongnote-layout, .mypage-layout, .reflection-grid, .feedback-layout { grid-template-columns: 1fr; }
+  .problem-side-stack, .wrongnote-side-stack, .hint-sidebar { position: static; }
 }
-
-@media (max-width: 720px) {
-  .hero-game,
-  .dashboard-grid,
-  .app-grid,
-  .solve-layout.wide,
-  .note-create-grid,
-  .ask-layout,
-  .profile-panel,
-  .profile-metrics {
-    grid-template-columns: 1fr;
-  }
-  .hero-game,
-  .compact-hero,
-  .profile-panel {
-    display: grid;
-  }
-  .note-analysis-column { border-left: 0; border-top: 1px solid var(--line); }
-  .note-save-bar { flex-direction: column; align-items: stretch; }
-  .ask-input-row { grid-template-columns: 1fr; }
-  .solve-layout { grid-template-columns: 1fr; }
-  .testcase { grid-template-columns: 1fr; }
-
-  .pixel-journey {
-  height: 82px;
+@media (max-width: 760px) {
+  .game-site-header { grid-template-columns: 1fr; align-items:flex-start; }
+  .game-nav { justify-content:flex-start; overflow-x:auto; width:100%; flex-wrap:nowrap; }
+  .game-player-pill { width:100%; justify-content:space-between; }
+  .game-content { padding: 12px; }
+  .game-topbar, .game-hero, .compact-hero { flex-direction:column; align-items:flex-start; }
+  .game-mode-pill { margin-left:0; }
+  .home-hero { grid-template-columns:1fr; }
+  .home-feature-grid { grid-template-columns:1fr; padding:0 14px 14px; }
+  .home-dashboard, .problem-shell, .wrongnote-shell, .mypage-shell, .reflection-workspace, .solve-layout, .ask-layout { padding-left:14px; padding-right:14px; }
+  .game-stat-grid, .stat-row, .reflection-summary { grid-template-columns:1fr 1fr; }
+  .problem-filter-grid, .wrongnote-search-line, .ask-input-row, .reflection-code-compare { grid-template-columns:1fr; }
+  .problem-quest-card, .wrongnote-card { grid-template-columns:1fr; }
+  .game-table { min-width:0; }
+  .game-table thead { display:none; }
+  .game-table, .game-table tbody, .game-table tr, .game-table td { display:block; width:100%; }
+  .game-table tr { padding:12px 0; border-bottom:1px solid rgba(134,149,165,.18); }
+  .game-table td { border:0; display:grid; grid-template-columns:92px minmax(0,1fr); gap:10px; padding:7px 0; }
+  .game-table td::before { content: attr(data-label); color:var(--cyan); font-weight:900; }
 }
-
-.pixel-party {
-  left: 4%;
-}
-
-.pixel-flag {
-  right: 4%;
-  transform: scale(0.56);
-}
-
-@keyframes walk-forward {
-  0% {
-    transform: translateX(0) scale(0.48);
-  }
-  100% {
-    transform: translateX(58vw) scale(0.48);
-  }
-}
+@media (max-width: 480px) {
+  .game-stat-grid, .stat-row, .reflection-summary { grid-template-columns:1fr; }
+  .game-title, .page-title, .hero-title { font-size: clamp(1.75rem, 12vw, 2.4rem); }
+  .game-panel, .panel, .card { padding:16px; }
+  .game-btn, .btn { width:100%; }
+  .reflection-tabs { display:grid; grid-template-columns:1fr; }
 }
