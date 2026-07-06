@@ -63,3 +63,41 @@
   align-items:center;
 }
 .history-table-card { margin-top:18px; }
+
+/* ===== v12 mypage: player dashboard but clear like coding platforms ===== */
+.clean-player-hero { align-items:center; }
+.clean-profile-card { min-width:min(440px,100%); }
+.profile-progress { margin-top:10px; height:8px; }
+.player-stat-grid { margin-bottom:16px; }
+.mypage-next-action {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:18px;
+}
+.mypage-next-action strong { display:block; color:var(--text); font-size:1.15rem; margin-bottom:4px; }
+.mypage-next-action p { margin:0; color:var(--muted); line-height:1.6; }
+.activity-feed-clean { display:grid; gap:8px; }
+.activity-row-clean {
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  border:1px solid rgba(148,163,184,.15);
+  border-radius:14px;
+  background:rgba(255,255,255,.018);
+  color:var(--text);
+  text-decoration:none;
+}
+.activity-row-clean:hover { border-color:rgba(53,216,255,.32); background:rgba(53,216,255,.035); }
+.activity-row-clean strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.activity-row-clean small { display:block; margin-top:4px; color:var(--muted); }
+.activity-dot { width:10px; height:10px; border-radius:999px; background:var(--muted); }
+.activity-dot.badge-status-success, .activity-dot.badge-status-correct, .activity-dot.badge-status-completed { background:var(--green); }
+.activity-dot.badge-status-wrong, .activity-dot.badge-status-error, .activity-dot.badge-status-failed { background:var(--red); }
+.pattern-board-clean { display:grid; gap:9px; }
+.clean-mission-row { background:rgba(255,255,255,.018); }
+.clean-table-card { margin-top:18px; }
+.clean-history-table td strong { color:var(--text); }

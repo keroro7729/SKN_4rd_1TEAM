@@ -1,17 +1,27 @@
 {% extends "base.html" %}
 {% block title %}문제 목록 · WOOK'S CODING{% endblock %}
 {% block content %}
-<section class="game-page problem-page">
-  <div class="game-topbar"><div class="game-window-dots"><span></span><span></span><span></span></div><div class="game-route">/quest-board <b>›</b> problems <b>›</b> list</div><div class="game-mode-pill">P3 · 문제 풀이</div></div>
-  <div class="game-hero compact-hero">
-    <div><p class="game-eyebrow">Problem Quest Board</p><h1 class="game-title">오늘의 <span class="accent">코딩 퀘스트</span></h1><p class="game-sub">리트코드/프로그래머스처럼 빠르게 찾고, 게임처럼 성장 상태를 확인하면서 풀이를 시작합니다.</p></div>
+<section class="game-page problem-page clean-dashboard">
+  <div class="game-topbar">
+    <div class="game-window-dots"><span></span><span></span><span></span></div>
+    <div class="game-route">/quest-board <b>›</b> problems</div>
+    <div class="game-mode-pill">문제 풀이</div>
   </div>
 
-  <div class="problem-shell problem-layout">
-    <section>
-      <form class="game-panel problem-filter" method="get">
+  <section class="game-hero compact-hero">
+    <div>
+      <p class="game-eyebrow">Problem Quest Board</p>
+      <h1 class="game-title">오늘 풀 <span class="accent">코딩 퀘스트</span> 찾기</h1>
+      <p class="game-sub">난이도, 알고리즘, 풀이 상태를 기준으로 빠르게 문제를 고르고 원래 문제풀이 화면으로 이동합니다.</p>
+    </div>
+  </section>
+
+  <div class="problem-shell problem-layout clean-two-col">
+    <section class="problem-main-stack">
+      <form class="game-panel problem-filter clean-filter" method="get">
+        <div class="filter-title-row"><div><strong>문제 검색</strong><p>제목, 번호, 알고리즘 유형을 입력하세요.</p></div></div>
         <div class="problem-filter-grid">
-          <input class="game-input" type="text" name="q" value="{{ q }}" placeholder="문제 제목, 번호, 알고리즘 유형 검색">
+          <input class="game-input" type="text" name="q" value="{{ q }}" placeholder="예: DP, 그래프, 1024">
           <select name="category" class="game-input"><option value="">전체 알고리즘</option>{% for c in categories %}<option value="{{ c.slug }}" {% if c.slug == cur_category %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select>
           <select name="difficulty" class="game-input"><option value="">전체 난이도</option>{% for value, label in difficulties %}<option value="{{ value }}" {% if value == cur_difficulty %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
         </div>
@@ -22,17 +32,17 @@
         </div>
       </form>
 
-      <nav class="problem-menu" aria-label="문제 분류">
+      <nav class="problem-menu clean-problem-menu" aria-label="문제 분류">
         {% for item in menu_items %}<a class="game-mini-btn {% if not item.active %}ghost{% endif %}" href="{% url 'problems:list' %}?{% if item.category %}category={{ item.category }}{% endif %}{% if item.category and item.difficulty %}&{% endif %}{% if item.difficulty %}difficulty={{ item.difficulty }}{% endif %}">{{ item.label }}</a>{% endfor %}
       </nav>
 
-      <section class="game-panel">
-        <div class="game-panel-head"><h2>문제 정보</h2><p>퀘스트를 선택하면 IDE 화면으로 이동합니다.</p></div>
-        <div class="problem-quest-list">
+      <section class="game-panel problem-list-panel">
+        <div class="game-panel-head"><div><h2>문제 목록</h2><p>문제를 선택하면 기존 문제풀이 화면으로 이동합니다.</p></div><span class="game-chip cyan">Quest List</span></div>
+        <div class="problem-quest-list clean-problem-list">
           {% for p in problems %}
-            <a class="problem-quest-card" href="{% url 'problems:detail' p.pk %}">
+            <a class="problem-quest-card clean-problem-card" href="{% url 'problems:detail' p.pk %}">
               <span class="quest-index">{{ forloop.counter }}</span>
-              <span><span class="quest-title">{{ p.id }}번 {{ p.title|truncatechars:72 }}</span><span class="quest-meta"><span class="game-chip cyan">{{ p.category.name }}</span>{% for t in p.tags.all %}<span class="game-chip">{{ t.name }}</span>{% endfor %}</span></span>
+              <span class="quest-info"><span class="quest-title">{{ p.id }}번 {{ p.title|truncatechars:72 }}</span><span class="quest-meta"><span class="game-chip cyan">{{ p.category.name }}</span>{% for t in p.tags.all %}<span class="game-chip">{{ t.name }}</span>{% endfor %}</span></span>
               <span class="badge badge-{{ p.difficulty }}">{{ p.get_difficulty_display }}</span>
             </a>
           {% empty %}<p class="game-empty">조건에 맞는 문제가 없습니다.</p>{% endfor %}
@@ -42,9 +52,9 @@
       {% if pagination.show %}<nav class="pagination">{% if pagination.has_previous %}<a class="page-link" href="{{ pagination.previous_url }}">이전</a>{% endif %}{% for page in pagination.pages %}{% if page.is_gap %}<span class="page-gap">{{ page.label }}</span>{% elif page.is_current %}<span class="page-link page-current">{{ page.label }}</span>{% else %}<a class="page-link" href="{{ page.url }}">{{ page.label }}</a>{% endif %}{% endfor %}{% if pagination.has_next %}<a class="page-link" href="{{ pagination.next_url }}">다음</a>{% endif %}</nav>{% endif %}
     </section>
 
-    <aside class="problem-side-stack">
-      <section class="game-panel accent-cyan"><div class="game-panel-head"><h2>추천 퀘스트</h2></div><div class="game-list">{% for p in recommended_problems %}<a class="game-row" href="{% url 'problems:detail' p.id %}"><span>{{ p.id }}번 {{ p.title|truncatechars:22 }}</span><span class="game-chip">{{ p.category.name }}</span></a>{% empty %}<p class="game-empty">추천할 문제가 없습니다.</p>{% endfor %}</div></section>
-      <section class="game-panel accent-warning"><div class="game-panel-head"><h2>최근 오답노트</h2></div><div class="game-list">{% for note in recent_wrong_notes %}<a class="game-row" href="{% url 'wrongnotes:detail' note.id %}"><span>{{ note.problem.title|truncatechars:24 }}</span><span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span></a>{% empty %}<p class="game-empty">아직 오답노트가 없습니다.</p>{% endfor %}</div></section>
+    <aside class="problem-side-stack clean-side-stack">
+      <section class="game-panel accent-cyan"><div class="game-panel-head"><div><h2>추천 퀘스트</h2><p>바로 시작하기 좋은 문제입니다.</p></div></div><div class="game-list dense-list">{% for p in recommended_problems %}<a class="game-row" href="{% url 'problems:detail' p.id %}"><span>{{ p.id }}번 {{ p.title|truncatechars:24 }}</span><span class="game-chip">{{ p.category.name }}</span></a>{% empty %}<p class="game-empty">추천할 문제가 없습니다.</p>{% endfor %}</div></section>
+      <section class="game-panel accent-warning"><div class="game-panel-head"><div><h2>최근 오답노트</h2><p>복습 후 다시 풀어보세요.</p></div></div><div class="game-list dense-list">{% for note in recent_wrong_notes %}<a class="game-row" href="{% url 'wrongnotes:detail' note.id %}"><span>{{ note.problem.title|truncatechars:26 }}</span><span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span></a>{% empty %}<p class="game-empty">아직 오답노트가 없습니다.</p>{% endfor %}</div></section>
     </aside>
   </div>
 </section>

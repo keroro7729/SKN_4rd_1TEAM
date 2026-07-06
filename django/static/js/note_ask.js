@@ -24,5 +24,6 @@
     finally { askButton.disabled = false; }
   };
   document.querySelectorAll(".question-preset").forEach((button) => button.addEventListener("click", () => { questionInput.value = button.dataset.question; ask(); }));
+  questionInput.addEventListener("keydown", (event) => { if ((event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); ask(); } });
   askButton.addEventListener("click", ask);
 })();

@@ -88,3 +88,67 @@
 .home-guide-step strong { display:block; color:var(--cyan); margin-bottom:4px; }
 .home-notice-row { display:flex; justify-content:space-between; gap:12px; color:var(--muted); }
 .home-notice-row strong { color:var(--text); }
+
+/* ===== v12 home: clean landing/dashboard ===== */
+.home-cockpit {
+  display:grid;
+  grid-template-columns:minmax(0, 1fr) 380px;
+  gap:24px;
+  padding: clamp(26px, 4vw, 54px) var(--safe-x) 20px;
+  align-items:stretch;
+}
+.home-cockpit-copy { display:flex; flex-direction:column; justify-content:center; min-width:0; }
+.home-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
+.home-cockpit-card {
+  position:relative;
+  display:grid;
+  gap:18px;
+  align-content:center;
+  min-height:340px;
+  padding:24px;
+  border:1px solid rgba(53,216,255,.26);
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 50% 16%, rgba(53,216,255,.16), transparent 35%),
+    rgba(255,255,255,.026);
+  overflow:hidden;
+}
+.cockpit-orb {
+  display:grid;
+  place-items:center;
+  width:122px; height:122px;
+  margin:0 auto;
+  border-radius:32px;
+  color:#05120a;
+  background:linear-gradient(135deg,var(--green),var(--cyan));
+  font:950 2.5rem/1 var(--font-code);
+  box-shadow:0 0 50px rgba(53,216,255,.22);
+}
+.cockpit-flow { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.cockpit-flow div {
+  padding:12px;
+  border:1px solid rgba(148,163,184,.16);
+  border-radius:14px;
+  background:rgba(5,10,16,.45);
+}
+.cockpit-flow span { color:var(--cyan); font-family:var(--font-code); font-weight:900; }
+.cockpit-flow strong { display:block; margin-top:6px; color:var(--text); }
+.cockpit-flow small { display:block; margin-top:3px; color:var(--muted); }
+.home-quick-panels {
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap:16px;
+  padding:0 var(--safe-x) 18px;
+}
+.quick-panel { min-height:170px; display:flex; flex-direction:column; align-items:flex-start; }
+.quick-panel h2 { margin:0 0 8px; font-size:1.15rem; }
+.quick-panel p { margin:0 0 18px; color:var(--muted); line-height:1.65; }
+.quick-panel .game-mini-btn { margin-top:auto; }
+.home-guide-strip {
+  margin:0 var(--safe-x) 18px;
+  border-radius:18px;
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(148,163,184,.14);
+}
+.home-guide-step span { display:block; margin-top:5px; color:var(--muted); font-size:.83rem; line-height:1.45; }
+.home-dashboard { padding:0 var(--safe-x) var(--safe-x); }

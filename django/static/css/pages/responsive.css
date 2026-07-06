@@ -104,3 +104,54 @@
   .reflection-tab { border-radius:12px; justify-content:flex-start; }
   .game-table td { grid-template-columns: 84px minmax(0,1fr); font-size:.9rem; }
 }
+
+/* ===== v12 responsive: phone-first reading quality ===== */
+@media (max-width: 1180px) {
+  .home-cockpit { grid-template-columns: 1fr; }
+  .home-cockpit-card { min-height: auto; }
+  .home-quick-panels { grid-template-columns: 1fr; }
+  .clean-two-col, .detail-layout-clean, .ask-clean-layout { grid-template-columns: 1fr; }
+  .clean-side-stack { position: static; }
+  .note-workflow-strip { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+
+@media (max-width: 900px) {
+  .home-cockpit { padding: 24px 14px 16px; }
+  .home-quick-panels, .home-dashboard, .clean-shell { padding-left: 14px; padding-right: 14px; }
+  .cockpit-flow { grid-template-columns: 1fr 1fr; }
+  .problem-filter-grid, .wrongnote-search-line, .history-filter-grid, .ask-input-clean { grid-template-columns: 1fr; }
+  .clean-problem-card { grid-template-columns: 1fr; align-items:flex-start; }
+  .quest-title { white-space: normal; }
+  .clean-note-card { grid-template-columns: 1fr; }
+  .note-status-column { flex-direction: row; justify-content:space-between; }
+  .analysis-grid-clean { grid-template-columns: 1fr; }
+  .mypage-next-action { flex-direction: column; align-items: stretch; }
+  .activity-row-clean { grid-template-columns:auto minmax(0,1fr); }
+  .activity-row-clean .badge { grid-column:2; justify-self:start; }
+}
+
+@media (max-width: 560px) {
+  .game-site-header { position: sticky; }
+  .game-content { padding: 8px; }
+  .game-page.clean-dashboard { border-radius: 16px; }
+  .game-topbar { margin:8px 8px 0; padding:9px; }
+  .home-cockpit, .home-quick-panels, .home-dashboard, .clean-shell { padding-left: 10px; padding-right: 10px; }
+  .home-cockpit { padding-top: 20px; }
+  .home-actions, .hero-action-stack { display:grid; width:100%; grid-template-columns:1fr; }
+  .home-cockpit-card { padding:16px; border-radius:18px; }
+  .cockpit-orb { width:94px; height:94px; border-radius:24px; font-size:2rem; }
+  .cockpit-flow, .note-workflow-strip { grid-template-columns: 1fr; }
+  .note-workflow-strip div { grid-template-columns:auto minmax(0,1fr); }
+  .wrongnote-card-head { flex-direction: column; align-items:flex-start; }
+  .wrongnote-foot { flex-direction: column; gap:6px; }
+  .pattern-rank-row, .similar-note-row { grid-template-columns:1fr; }
+  .rank-num { width:32px; }
+  .ask-console-clean { min-height:auto; }
+  .ask-chat-clean { min-height:220px; }
+  .ask-footnote { text-align:left; }
+  .activity-row-clean { grid-template-columns:1fr; }
+  .activity-dot { display:none; }
+  .activity-row-clean strong { white-space: normal; }
+  .game-stat-card small { font-size:.72rem; }
+  .game-table td { grid-template-columns: 78px minmax(0,1fr); }
+}

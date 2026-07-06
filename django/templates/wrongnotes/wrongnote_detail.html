@@ -4,51 +4,49 @@
 
 {% block content %}
 <form hidden>{% csrf_token %}</form>
-<section class="game-page wrongnote-page">
+<section class="game-page wrongnote-page note-detail-page clean-dashboard">
   <div class="game-topbar">
     <div class="game-window-dots"><span></span><span></span><span></span></div>
     <div class="game-route">/wrong-notes <b>›</b> detail <b>›</b> #{{ note.id }}</div>
     <div class="game-mode-pill">note_id #{{ note.id }}</div>
   </div>
 
-  <div class="game-hero compact-hero">
+  <section class="game-hero compact-hero detail-hero-clean">
     <div>
       <p class="game-eyebrow">WrongNote Detail</p>
       <h1 class="game-title">{{ note.problem.title }}</h1>
-      <p class="game-sub">
+      <p class="game-sub">내가 왜 틀렸는지, AI가 어떻게 분석했는지, RAG에 어떻게 반영됐는지 한 번에 확인합니다.</p>
+      <div class="wrongnote-meta-row hero-meta-row">
         <span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span>
         <span class="badge badge-{{ note.problem.difficulty }}">{{ note.problem.get_difficulty_display }}</span>
         {% for tag in note.tags.all %}<span class="game-chip">{{ tag.name }}</span>{% endfor %}
-      </p>
+      </div>
     </div>
-    <a class="game-btn ghost" href="{% url 'wrongnotes:list' %}">목록으로</a>
-  </div>
+    <div class="hero-action-stack">
+      {% if note.is_reviewed %}
+        <span class="game-chip green">복습완료 {{ note.reviewed_at|date:"m.d H:i" }}</span>
+      {% else %}
+        <button type="button" id="review-note-btn" class="game-btn primary" data-review-url="{% url 'wrongnotes:review' note.id %}">복습완료 +10P</button>
+      {% endif %}
+      <a class="game-btn ghost" href="{% url 'wrongnotes:list' %}">목록으로</a>
+    </div>
+  </section>
 
-  <div class="wrongnote-shell note-detail-layout">
-    <section class="mypage-main-stack">
-      <section class="game-panel">
-        <div class="game-panel-head">
-          <div>
-            <h2>내가 적은 오답 원인</h2>
-            <p>다음에 같은 실수를 줄이기 위한 회고입니다.</p>
-          </div>
-          {% if note.is_reviewed %}
-            <span class="reviewed">복습완료 {{ note.reviewed_at|date:"Y.m.d H:i" }}</span>
-          {% else %}
-            <button type="button" id="review-note-btn" class="game-mini-btn" data-review-url="{% url 'wrongnotes:review' note.id %}">복습완료 +10P</button>
-          {% endif %}
-        </div>
-        <p class="wrongnote-comment">{{ note.comment|linebreaksbr }}</p>
+  <div class="wrongnote-shell note-detail-layout detail-layout-clean">
+    <section class="note-detail-main-stack">
+      <section class="game-panel reflection-summary-card">
+        <div class="game-panel-head"><div><h2>내 회고</h2><p>다음 풀이 전에 가장 먼저 읽을 내용입니다.</p></div></div>
+        <p class="wrongnote-comment note-comment-large">{{ note.comment|default:"회고 내용이 없습니다."|linebreaksbr }}</p>
       </section>
 
-      <section class="game-panel accent-cyan">
-        <div class="game-panel-head"><h2>AI 오답 분석</h2></div>
+      <section class="game-panel accent-cyan ai-analysis-clean">
+        <div class="game-panel-head"><div><h2>AI 오답 분석</h2><p>핵심, 원인, 풀이 흐름, 주의사항으로 나누어 보여줍니다.</p></div></div>
         {% if analysis %}
-          <div class="analysis-grid">
-            <article class="analysis-card"><strong>문제 핵심</strong><p>{{ analysis.problem_core|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
-            <article class="analysis-card"><strong>오답 원인</strong><p>{{ analysis.cause|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
-            <article class="analysis-card"><strong>풀이 과정</strong><p>{{ analysis.solution|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
-            <article class="analysis-card"><strong>주의사항</strong><p>{{ analysis.caution|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
+          <div class="analysis-grid analysis-grid-clean">
+            <article class="analysis-card"><span class="analysis-label">핵심</span><strong>문제 핵심</strong><p>{{ analysis.problem_core|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
+            <article class="analysis-card"><span class="analysis-label danger">원인</span><strong>오답 원인</strong><p>{{ analysis.cause|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
+            <article class="analysis-card"><span class="analysis-label cyan">풀이</span><strong>풀이 과정</strong><p>{{ analysis.solution|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
+            <article class="analysis-card"><span class="analysis-label amber">주의</span><strong>주의사항</strong><p>{{ analysis.caution|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
           </div>
         {% else %}
           <p class="game-empty">AI 분석 결과가 아직 없습니다.</p>
@@ -56,20 +54,18 @@
         {% if analysis_errors %}<pre class="result-pre result-error-text">{% for error in analysis_errors %}{{ error.stage }}: {{ error.message }}{% endfor %}</pre>{% endif %}
       </section>
 
-      <section class="game-panel">
-        <div class="game-panel-head">
-          <div><h2>틀린 제출 코드</h2><p>회고 근거로 보관됩니다.</p></div>
-        </div>
+      <section class="game-panel code-review-card">
+        <div class="game-panel-head"><div><h2>틀린 제출 코드</h2><p>오답 원인을 다시 확인할 때 사용하는 근거 코드입니다.</p></div></div>
         <pre class="code-view">{{ note.submission.code }}</pre>
         {% if note.submission.error_message %}<h3 class="section-title">오류 메시지</h3><pre class="result-pre result-error-text">{{ note.submission.error_message }}</pre>{% endif %}
       </section>
     </section>
 
-    <aside class="wrongnote-side-stack">
+    <aside class="wrongnote-side-stack detail-side-clean">
       <section class="game-panel accent-warning">
-        <div class="game-panel-head"><h2>인덱싱 상태</h2></div>
+        <div class="game-panel-head"><div><h2>RAG 인덱싱</h2><p>내 노트 질의에 사용되는 저장 상태입니다.</p></div></div>
         {% if vector %}
-          <div class="game-list">
+          <div class="game-list dense-list">
             <div class="game-row"><span>embedding_id</span><span>{{ vector.embedding_id }}</span></div>
             <div class="game-row"><span>source</span><span>{{ vector.source }}</span></div>
             <div class="game-row"><span>indexed_at</span><span>{{ vector.indexed_at|date:"Y.m.d H:i" }}</span></div>
@@ -77,15 +73,19 @@
         {% else %}<p class="game-empty">아직 벡터 매핑이 없습니다.</p>{% endif %}
       </section>
       <section class="game-panel">
-        <div class="game-panel-head"><h2>유사 오답노트</h2></div>
-        <div class="game-list">
+        <div class="game-panel-head"><div><h2>유사 오답노트</h2><p>비슷한 실수를 찾는 데 도움이 됩니다.</p></div></div>
+        <div class="game-list dense-list">
           {% for item in similar_notes %}
-            <div class="game-row"><span>note_id {{ item.note_id }}</span><span class="game-chip amber">{{ item.score }}</span></div>
+            <div class="similar-note-row"><span>note_id {{ item.note_id }}</span><span class="game-chip amber">score {{ item.score }}</span></div>
           {% empty %}<p class="game-empty">유사 오답노트 결과가 없습니다.</p>{% endfor %}
         </div>
+      </section>
+      <section class="game-panel accent-green">
+        <div class="game-panel-head"><div><h2>다음 풀이 전 체크</h2></div></div>
+        <ul class="check-list-clean"><li>기저 조건 확인</li><li>인덱스 범위 확인</li><li>출력 형식 확인</li><li>시간 복잡도 확인</li></ul>
       </section>
     </aside>
   </div>
 </section>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/wrongnote_detail.js' %}?v=game-responsive-v11"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/wrongnote_detail.js' %}?v=clean-game-ux-v12"></script>{% endblock %}

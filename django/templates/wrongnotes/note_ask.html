@@ -4,56 +4,62 @@
 
 {% block content %}
 <form hidden>{% csrf_token %}</form>
-<section class="game-page wrongnote-page">
+<section class="game-page wrongnote-page note-ask-page clean-dashboard">
   <div class="game-topbar">
     <div class="game-window-dots"><span></span><span></span><span></span></div>
-    <div class="game-route">/wrong-notes <b>›</b> ask-rag</div>
-    <div class="game-mode-pill">P6 · 내 노트 질의</div>
+    <div class="game-route">/wrong-notes <b>›</b> ask-my-notes</div>
+    <div class="game-mode-pill">내 노트 질의</div>
   </div>
 
-  <div class="game-hero compact-hero">
+  <section class="game-hero compact-hero ask-hero-clean">
     <div>
       <p class="game-eyebrow">Ask My WrongNotes</p>
-      <h1 class="game-title">내 오답노트에 <span class="accent">물어보기</span></h1>
-      <p class="game-sub">내가 작성한 오답노트만 검색하고, 근거 note_id와 score를 함께 보여줍니다.</p>
+      <h1 class="game-title">내가 자주 틀리는 이유를 <span class="accent">근거와 함께</span> 확인하기</h1>
+      <p class="game-sub">내 오답노트만 검색해서 답변하고, 어떤 note_id가 근거였는지 함께 보여줍니다.</p>
     </div>
-  </div>
+    <a class="game-btn ghost" href="{% url 'wrongnotes:list' %}">오답노트 목록</a>
+  </section>
 
-  <div class="ask-layout">
-    <aside class="game-panel ask-sidebar">
-      <div class="game-panel-head"><h2>추천 질문</h2></div>
-      <div class="game-list">
+  <div class="ask-layout ask-clean-layout">
+    <aside class="game-panel ask-sidebar ask-helper-panel">
+      <div class="game-panel-head"><div><h2>바로 써볼 질문</h2><p>클릭하면 바로 질문됩니다.</p></div></div>
+      <div class="game-list preset-list">
         {% for question in suggested_questions %}
           <button type="button" class="game-row question-preset" data-question="{{ question }}">{{ question }}</button>
         {% endfor %}
       </div>
 
-      <div class="game-panel-head" style="margin-top:22px;"><h2>최근 질문</h2></div>
-      <div class="game-list">
+      <div class="game-panel-head recent-question-head"><div><h2>최근 질문</h2></div></div>
+      <div class="game-list preset-list">
         {% for log in recent_logs %}
-          <button type="button" class="game-row question-preset" data-question="{{ log.query }}">{{ log.query|truncatechars:32 }}</button>
+          <button type="button" class="game-row question-preset" data-question="{{ log.query }}">{{ log.query|truncatechars:34 }}</button>
         {% empty %}<p class="game-empty">최근 질문이 없습니다.</p>{% endfor %}
       </div>
     </aside>
 
-    <section class="game-panel ask-main">
+    <section class="game-panel ask-main ask-console-clean">
       <div class="game-panel-head">
         <div>
-          <h2>RAG 답변 콘솔</h2>
-          <p id="note-ask-status">본인 오답노트만 검색합니다.</p>
+          <h2>오답노트 RAG 콘솔</h2>
+          <p id="note-ask-status">본인 오답노트만 검색합니다. 개인정보나 다른 사용자의 노트는 사용하지 않습니다.</p>
+        </div>
+        <span class="game-chip green">evidence_note_ids</span>
+      </div>
+      <div class="chat-box ask-chat-clean">
+        <div id="note-answer" class="answer-card answer-card-clean" hidden></div>
+        <div id="note-evidence" class="evidence-list evidence-clean" hidden></div>
+        <div id="note-empty-guide" class="empty-state-large ask-empty-guide">
+          <strong>이렇게 물어보면 좋아요</strong>
+          <p>“내가 DP에서 자주 틀리는 조건은?”, “최근 반복되는 실수 패턴은?”, “그래프 문제 약점 정리해줘”</p>
         </div>
       </div>
-      <div class="chat-box">
-        <div id="note-answer" class="answer-card" hidden></div>
-        <div id="note-evidence" class="evidence-list" hidden></div>
-        <p id="note-empty-guide" class="game-empty">예: “내가 DP에서 자주 틀리는 이유 알려줘”처럼 질문해보세요.</p>
+      <div class="ask-input-row ask-input-clean">
+        <textarea id="note-question" class="game-textarea ask-input" placeholder="예: 내 오답노트 기준으로 DP에서 자주 틀리는 이유 알려줘">{{ initial_question }}</textarea>
+        <button id="note-ask-btn" type="button" class="game-btn primary">질문하기</button>
       </div>
-      <div class="ask-input-row">
-        <textarea id="note-question" class="game-textarea ask-input" placeholder="내 오답노트에 대해 물어보세요. 예: 최근 반복되는 실수 패턴은?">{{ initial_question }}</textarea>
-        <button id="note-ask-btn" type="button" class="game-btn primary">질문</button>
-      </div>
+      <p class="hint-note ask-footnote">Ctrl + Enter로도 질문할 수 있습니다.</p>
     </section>
   </div>
 </section>
 {% endblock %}
-{% block scripts %}<script src="{% static 'js/note_ask.js' %}?v=game-responsive-v11"></script>{% endblock %}
+{% block scripts %}<script src="{% static 'js/note_ask.js' %}?v=clean-game-ux-v12"></script>{% endblock %}
