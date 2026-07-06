@@ -1,0 +1,124 @@
+/* --- 버튼 --- */
+.btn {
+  display: inline-block;
+  padding: 8px 16px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+.btn:hover { filter: brightness(1.1); }
+.btn-ghost { background: transparent; border: 1px solid var(--line); color: var(--text); }
+.btn-danger-ghost { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+.btn-lg { padding: 12px 26px; font-size: 1.05rem; }
+.btn-sm { padding: 4px 9px; font-size: 0.78rem; border-radius: 6px; }
+.btn-block { width: 100%; margin-top: 8px; }
+
+
+/* --- 메시지 --- */
+.messages { list-style: none; padding: 0; }
+.msg { padding: 10px 14px; border-radius: 8px; background: var(--panel-2); margin-bottom: 8px; }
+
+
+/* 필터 */
+.filter-form { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.filter-input { padding: 8px 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; color: var(--text); }
+.filter-panel { display: flex; flex-direction: column; gap: 12px; }
+.search-input { width: 100%; min-height: 40px; }
+.filter-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.filter-label { min-width: 70px; color: var(--accent-2); font-weight: 700; }
+.segmented-option input { position: absolute; opacity: 0; pointer-events: none; }
+.segmented-option span { display: inline-flex; padding: 7px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--text); cursor: pointer; }
+.segmented-option input:checked + span { border-color: var(--accent-2); color: var(--accent-2); background: rgba(53, 208, 165, 0.1); }
+
+/* 문제 목록 */
+.problem-list { display: flex; flex-direction: column; gap: 8px; }
+.list-row { display: flex; align-items: center; gap: 14px; padding: 12px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; text-decoration: none; color: var(--text); }
+.list-row:hover { border-color: var(--accent); }
+.problem-row { background: rgba(20, 19, 31, 0.55); }
+.note-row { align-items: flex-start; }
+.quest-index { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border: 1px solid var(--accent-2); color: var(--accent-2); border-radius: 6px; flex: 0 0 auto; }
+.list-id { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 48px; }
+.list-main { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.list-title { font-size: 0.98rem; }
+.list-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { font-size: 0.72rem; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 1px 7px; }
+.mini-list { display: flex; flex-direction: column; gap: 8px; }
+.mini-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; color: var(--text); text-decoration: none; }
+button.mini-row { width: 100%; font: inherit; text-align: left; cursor: pointer; }
+.mini-row:hover { border-color: var(--accent); }
+.accent-panel { border-color: #78632a; background: linear-gradient(180deg, rgba(120, 99, 42, 0.18), var(--panel)); }
+.compact { padding: 8px; margin: 0; }
+
+/* 배지 (난이도/상태) */
+.badge { font-size: 0.75rem; padding: 3px 9px; border-radius: 20px; white-space: nowrap; }
+.badge-basic { background: #2b3a4d; color: #8fd0ff; }
+.badge-beginner { background: #24402f; color: #7fe0b0; }
+.badge-intermediate { background: #423a24; color: #e6c86b; }
+.badge-advanced { background: #422430; color: #ff9db0; }
+.badge-status-pending, .badge-status-not_started, .badge-status-draft { background: var(--panel-2); color: var(--muted); }
+.badge-status-running, .badge-status-processing, .badge-status-in_progress { background: #2b3a4d; color: #8fd0ff; }
+.badge-status-success, .badge-status-completed, .badge-status-indexed { background: #24402f; color: #7fe0b0; }
+.badge-status-wrong, .badge-status-failed, .badge-status-error, .badge-status-index_failed { background: #422430; color: #ff9db0; }
+.badge-status-timeout, .badge-status-empty { background: #423a24; color: #e6c86b; }
+
+/* 페이지네이션 */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.page-link {
+  min-width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  color: var(--text);
+  border: 1px solid transparent;
+  border-radius: 2px;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.page-link:hover { border-color: var(--line); color: var(--accent-2); }
+.page-current {
+  color: var(--accent);
+  border-color: var(--line);
+  background: var(--panel);
+}
+.page-edge {
+  min-width: auto;
+  color: var(--muted);
+}
+.page-gap {
+  color: var(--muted);
+  padding: 0 4px;
+}
+.page-info { color: var(--muted); }
+
+
+/* 테이블 */
+.table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.table th, .table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.table th { color: var(--muted); font-weight: 600; }
+
+/* 실행/제출 결과 영역 (solve.js) */
+.result-area .rc-line { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.result-area .rc-ms { color: var(--muted); font-size: 0.82rem; }
+.result-area .rc-io { display: grid; gap: 8px; }
+.result-area .rc-io pre, .result-area .rc-err pre { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; margin: 4px 0 0; overflow-x: auto; font-size: 0.82rem; }
+.result-area .rc-io b, .result-area .rc-err b { font-size: 0.78rem; color: var(--muted); }
+.result-area .rc-err pre { color: var(--danger); }
+.result-area.state-loading { border-style: solid; border-color: var(--line); color: var(--muted); }
+.result-area.state-success { border-style: solid; border-color: var(--accent-2); }
+.result-area.state-failed  { border-style: solid; border-color: var(--danger); }
+.result-area.state-timeout { border-style: solid; border-color: #e6c86b; }
+.result-area.state-empty   { border-style: dashed; border-color: var(--line); color: var(--muted); }
+

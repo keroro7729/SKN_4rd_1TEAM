@@ -1,0 +1,75 @@
+/* --- 홈 히어로 --- */
+.hero { text-align: center; padding: 40px 0; }
+.hero-game {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 24px;
+  align-items: center;
+  text-align: left;
+  min-height: 340px;
+  padding: 42px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(53, 208, 165, 0.12), transparent 45%),
+    var(--panel);
+}
+.eyebrow { margin: 0 0 8px; color: var(--accent-2); font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+.hero-title { font-size: 2.4rem; margin: 0 0 12px; letter-spacing: 2px; }
+.hero-sub { color: var(--muted); margin: 0 0 24px; }
+.hero-welcome { color: var(--accent-2); font-size: 1.1rem; }
+.hero-actions { display: flex; gap: 12px; justify-content: flex-start; flex-wrap: wrap; }
+.hero-stage { display: flex; align-items: center; justify-content: center; min-height: 220px; border: 1px dashed var(--line); border-radius: 12px; }
+.pixel-card { padding: 18px 22px; border: 1px solid var(--accent-2); color: var(--accent-2); background: rgba(20, 19, 31, 0.78); font-weight: 800; line-height: 1.5; text-align: center; }
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 40px;
+}
+.feature-card {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+}
+.feature-card h3 { margin: 0 0 6px; font-size: 1.05rem; }
+.feature-card p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+/* --- 인증 카드 (로그인/회원가입) --- */
+.auth-card {
+  max-width: 380px;
+  margin: 40px auto;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 28px;
+}
+.auth-title { margin: 0 0 20px; text-align: center; }
+.auth-form { display: flex; flex-direction: column; gap: 6px; }
+.auth-form label { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+.auth-form input {
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+.auth-form input:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+.auth-alt { text-align: center; margin-top: 16px; color: var(--muted); font-size: 0.9rem; }
+.auth-alt a { color: var(--accent-2); }
+.auth-error { color: var(--danger); text-align: center; margin: 0 0 12px; }
+.field-error { color: var(--danger); font-size: 0.8rem; }
+.field-help { color: var(--muted); font-size: 0.75rem; }
+
+
+/* 홈 섹션 */
+.home-section { margin-top: 32px; }
+.section-title { font-size: 1.3rem; margin: 0 0 12px; }
+.notice-list, .mission-list { list-style: none; padding: 0; margin: 0; }
+.notice-list li, .mission-list li { display: flex; justify-content: space-between; padding: 10px 14px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; margin-bottom: 6px; }
+.notice-date { color: var(--muted); font-size: 0.85rem; }
+.mission-reward { color: var(--accent-2); }
+

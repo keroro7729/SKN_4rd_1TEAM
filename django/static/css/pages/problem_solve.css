@@ -1,0 +1,430 @@
+
+/* CodeMirror page-local styling */
+.CodeMirror {
+  height: 330px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-family: "Consolas", "D2Coding", monospace;
+  font-size: 0.92rem;
+}
+.CodeMirror-gutters { border-right: 1px solid var(--line); }
+
+/* 문제 풀이 (3단 레이아웃) */
+.solve-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.solve-layout.wide { grid-template-columns: minmax(0, 0.85fr) minmax(380px, 1fr) minmax(260px, 0.7fr); }
+.solve-page-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+.problem-title-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.problem-number { color: var(--muted); font-weight: 700; font-size: 1rem; }
+.problem-title { font-size: 1.6rem; margin: 0; }
+.problem-points { color: var(--accent-2); font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
+.constraints-list { margin: 0; padding-left: 18px; color: var(--text); font-size: 0.92rem; line-height: 1.7; }
+.constraints-list li { margin-bottom: 4px; }
+.editor-toolbar { align-items: center; }
+.editor-toolbar-right { display: flex; align-items: center; gap: 10px; }
+.autosave-note { color: var(--muted); font-size: 0.78rem; white-space: nowrap; }
+.problem-desc { color: var(--text); line-height: 1.6; font-size: 0.92rem; }
+.testcase { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.testcase pre, .code-view { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; overflow-x: auto; font-size: 0.85rem; }
+.code-input { width: 100%; min-height: 260px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; color: var(--text); padding: 12px; font-family: "Consolas", "D2Coding", monospace; font-size: 0.9rem; resize: vertical; }
+.code-editor-large { min-height: 330px; }
+.editor-actions { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+#run-code-btn { border-color: var(--accent-2); color: var(--accent-2); }
+#run-code-btn:hover { background: rgba(53, 208, 165, 0.1); }
+#submit-btn { background: var(--accent-2); }
+#submit-btn:hover { filter: brightness(1.1); }
+.hint-note { color: var(--muted); font-size: 0.78rem; }
+.result-area { margin-top: 12px; padding: 12px; background: var(--bg); border: 1px dashed var(--line); border-radius: 8px; }
+.result-card { margin-top: 12px; padding: 14px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; }
+.result-header { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; color: var(--accent-2); }
+.result-pre { margin: 8px 0 0; padding: 10px; background: #10101a; border: 1px solid var(--line); border-radius: 8px; white-space: pre-wrap; }
+.result-error { border-color: var(--danger); color: var(--danger); }
+.result-error-text { color: var(--danger); }
+.case-list { margin: 10px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.case-list li {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  font-size: 0.85rem;
+  color: var(--text);
+}
+.case-list li.case-pass { border-color: var(--accent-2); background: rgba(53, 208, 165, 0.08); }
+.case-list li.case-fail { border-color: var(--danger); background: rgba(255, 107, 129, 0.08); }
+.case-list li .case-mark { font-weight: 700; margin-right: 6px; }
+.case-list li.case-pass .case-mark { color: var(--accent-2); }
+.case-list li.case-fail .case-mark { color: var(--danger); }
+.case-list li .case-detail { color: var(--muted); margin-left: 4px; }
+
+.result-tabs { display: flex; gap: 4px; margin: 4px 0 10px; border-bottom: 1px solid var(--line); }
+.result-tab { background: none; border: none; color: var(--muted); padding: 6px 10px; cursor: pointer; font-size: 0.85rem; border-bottom: 2px solid transparent; }
+.result-tab.active { color: var(--accent-2); border-bottom-color: var(--accent-2); }
+.result-tab-panel { padding-top: 4px; }
+
+.hint-box { margin-top: 16px; }
+.hint-levels { display: flex; gap: 8px; }
+.hint-area { margin-top: 10px; }
+.hint-panel { margin-top: 16px; }
+.wrong-note-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+/* --- 문제풀이 화면 AI 힌트 사이드바 (와이어프레임 반영) --- */
+.hint-sidebar {
+  position: sticky;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #131c19;
+  border-color: rgba(53, 208, 165, 0.28);
+}
+.hint-sidebar .section-title { font-size: 1.3rem; color: #5aa9ff; }
+.hint-accordion { display: flex; flex-direction: column; gap: 8px; }
+.hint-step { border: 1px solid rgba(53, 208, 165, 0.18); border-radius: 10px; overflow: hidden; background: #0f1715; }
+.hint-step.unlocked { border-color: var(--accent); }
+.hint-step-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #172420;
+  border: none;
+  color: var(--text);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.hint-step-toggle:disabled { color: var(--muted); cursor: not-allowed; }
+.hint-step-toggle .lock-label { color: var(--muted); font-size: 0.78rem; }
+.hint-step-toggle .chevron { color: var(--accent-2); }
+.hint-step-body { padding: 12px; font-size: 0.88rem; line-height: 1.55; color: var(--text); }
+.hint-next-btn { width: 100%; border-color: var(--accent-2); color: var(--accent-2); }
+.hint-next-btn:hover:not(:disabled) { background: rgba(53, 208, 165, 0.1); }
+.hint-next-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.hint-divider { border-top: 1px dashed var(--line); margin: 4px 0; }
+.wrong-note-cta { display: block; text-align: center; }
+.wrong-note-cta.center-note { text-align: center; }
+
+
+/* --- 문제풀이 하단 픽셀 캐릭터 애니메이션 --- */
+.pixel-journey {
+  position: relative;
+  height: 110px;
+  margin: 8px 0 4px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.pixel-ground {
+  position: absolute;
+  left: 3%;
+  right: 3%;
+  bottom: 20px;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(53, 208, 165, 0.35),
+    rgba(53, 208, 165, 0.85),
+    rgba(53, 208, 165, 0.35),
+    transparent
+  );
+  box-shadow: 0 5px 0 rgba(53, 208, 165, 0.1);
+}
+
+.pixel-party {
+  position: absolute;
+  left: 12%;
+  bottom: 24px;
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  transform-origin: left bottom;
+  animation:
+    walk-forward 8s linear infinite,
+    body-bounce 0.55s steps(2) infinite;
+}
+
+.pixel-avatar,
+.pixel-ai {
+  position: relative;
+  width: 46px;
+  height: 64px;
+  image-rendering: pixelated;
+}
+
+/* 사람 */
+.avatar-head {
+  position: absolute;
+  top: 0;
+  left: 13px;
+  width: 22px;
+  height: 22px;
+  background: #ffd0ad;
+  border: 3px solid #08080b;
+  box-shadow:
+    0 -5px 0 #20222b,
+    6px -2px 0 #20222b;
+}
+
+.avatar-body {
+  position: absolute;
+  top: 25px;
+  left: 8px;
+  width: 30px;
+  height: 26px;
+  background: #202733;
+  border: 3px solid #08080b;
+  color: var(--accent-2);
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 20px;
+  text-align: center;
+}
+
+/* AI */
+.ai-antenna {
+  position: absolute;
+  top: -10px;
+  left: 23px;
+  width: 4px;
+  height: 10px;
+  background: var(--accent-2);
+  box-shadow: 0 -4px 0 #9fffe7;
+  animation: antenna-blink 0.8s steps(2) infinite;
+}
+
+.ai-head {
+  position: absolute;
+  top: 4px;
+  left: 5px;
+  width: 40px;
+  height: 26px;
+  background: #eef8ff;
+  border: 3px solid #08080b;
+  color: #24b894;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 20px;
+  text-align: center;
+}
+
+.ai-body {
+  position: absolute;
+  top: 33px;
+  left: 11px;
+  width: 28px;
+  height: 24px;
+  background: #d7f4ff;
+  border: 3px solid #08080b;
+  color: #168f78;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 18px;
+  text-align: center;
+}
+
+/* 손 연결 */
+.pixel-hand {
+  width: 12px;
+  height: 6px;
+  margin-bottom: 29px;
+  background: #ffd0ad;
+  border: 2px solid #08080b;
+  animation: hand-swing 0.55s steps(2) infinite;
+}
+
+/* 팔 */
+.avatar-arm,
+.ai-arm {
+  position: absolute;
+  top: 32px;
+  width: 8px;
+  height: 16px;
+  background: #ffd0ad;
+  border: 2px solid #08080b;
+  transform-origin: top center;
+}
+
+.avatar-arm-left {
+  left: 1px;
+  animation: arm-swing-back 0.55s steps(2) infinite;
+}
+
+.avatar-arm-right {
+  right: 0;
+  animation: arm-swing-front 0.55s steps(2) infinite;
+}
+
+.ai-arm-left {
+  left: 0;
+  background: #d7f4ff;
+  animation: arm-swing-front 0.55s steps(2) infinite;
+}
+
+.ai-arm-right {
+  right: 0;
+  background: #d7f4ff;
+  animation: arm-swing-back 0.55s steps(2) infinite;
+}
+
+/* 다리 */
+.avatar-leg-left,
+.avatar-leg-right,
+.ai-leg-left,
+.ai-leg-right {
+  position: absolute;
+  bottom: 0;
+  width: 8px;
+  height: 15px;
+  border: 2px solid #08080b;
+  transform-origin: top center;
+}
+
+.avatar-leg-left,
+.avatar-leg-right {
+  background: #273449;
+}
+
+.ai-leg-left,
+.ai-leg-right {
+  background: #6edfd0;
+}
+
+.avatar-leg-left,
+.ai-leg-right {
+  left: 13px;
+  animation: leg-step-a 0.55s steps(2) infinite;
+}
+
+.avatar-leg-right,
+.ai-leg-left {
+  right: 13px;
+  animation: leg-step-b 0.55s steps(2) infinite;
+}
+
+/* 깃발 */
+.pixel-flag {
+  position: absolute;
+  right: 8%;
+  bottom: 21px;
+  width: 48px;
+  height: 72px;
+  transform: scale(0.72);
+  transform-origin: right bottom;
+}
+
+.flag-pole {
+  position: absolute;
+  left: 8px;
+  bottom: 0;
+  width: 4px;
+  height: 70px;
+  background: #d8d6e8;
+}
+
+.flag-cloth {
+  position: absolute;
+  left: 12px;
+  top: 8px;
+  width: 32px;
+  height: 24px;
+  background: #e84f65;
+  clip-path: polygon(0 0, 100% 28%, 0 100%);
+  box-shadow: inset -8px 0 rgba(0, 0, 0, 0.2);
+  animation: flag-wave 0.75s steps(2) infinite;
+}
+
+/* 이동 애니메이션 */
+@keyframes walk-forward {
+  0% {
+    transform: translateX(0) scale(0.52);
+  }
+  100% {
+    transform: translateX(46vw) scale(0.52);
+  }
+}
+
+/* 걷는 느낌: 몸이 살짝 통통 */
+@keyframes body-bounce {
+  0%, 100% {
+    margin-bottom: 0;
+  }
+  50% {
+    margin-bottom: 3px;
+  }
+}
+
+/* 다리 교차 움직임 */
+@keyframes leg-step-a {
+  0% {
+    transform: rotate(14deg) translateY(0);
+  }
+  100% {
+    transform: rotate(-14deg) translateY(2px);
+  }
+}
+
+@keyframes leg-step-b {
+  0% {
+    transform: rotate(-14deg) translateY(2px);
+  }
+  100% {
+    transform: rotate(14deg) translateY(0);
+  }
+}
+
+/* 팔 흔들림 */
+@keyframes arm-swing-front {
+  0% {
+    transform: rotate(-14deg);
+  }
+  100% {
+    transform: rotate(12deg);
+  }
+}
+
+@keyframes arm-swing-back {
+  0% {
+    transform: rotate(12deg);
+  }
+  100% {
+    transform: rotate(-14deg);
+  }
+}
+
+/* 잡은 손도 살짝 움직임 */
+@keyframes hand-swing {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-2px);
+  }
+}
+
+/* AI 안테나 반짝임 */
+@keyframes antenna-blink {
+  0% {
+    box-shadow: 0 -4px 0 #9fffe7;
+  }
+  100% {
+    box-shadow:
+      0 -4px 0 #9fffe7,
+      0 -4px 10px rgba(53, 208, 165, 0.9);
+  }
+}
+
+/* 깃발 펄럭임 */
+@keyframes flag-wave {
+  0% {
+    transform: skewY(0deg);
+  }
+  100% {
+    transform: skewY(-8deg);

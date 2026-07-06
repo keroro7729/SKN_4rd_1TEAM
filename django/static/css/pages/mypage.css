@@ -1,0 +1,15 @@
+/* 통계 카드 */
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.stat-card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; padding: 16px; text-align: center; }
+.stat-num { display: block; font-size: 1.8rem; font-weight: 800; color: var(--accent-2); }
+.stat-label { color: var(--muted); font-size: 0.8rem; }
+.profile-panel { display: flex; justify-content: space-between; gap: 24px; align-items: center; }
+.profile-panel h2 { margin: 0 0 6px; font-size: 1.8rem; }
+.profile-metrics { display: grid; grid-template-columns: repeat(4, minmax(90px, 1fr)); gap: 12px; min-width: min(680px, 100%); }
+.profile-metrics div { padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); text-align: center; }
+.profile-metrics strong { display: block; color: var(--accent-2); font-size: 1.4rem; }
+.profile-metrics span { color: var(--muted); font-size: 0.8rem; }
+.progress-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.progress-row strong { color: var(--accent-2); }
+.history-table td { vertical-align: middle; }
+
