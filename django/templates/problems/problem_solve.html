@@ -1,53 +1,211 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}{{ problem.title|truncatechars:30 }} · 문제 풀이{% endblock %}
+
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
 {% endblock %}
+
 {% block content %}
 <form hidden>{% csrf_token %}</form>
-<section class="game-page solve-page">
-  <div class="game-topbar"><div class="game-window-dots"><span></span><span></span><span></span></div><div class="game-route">/quest-board <b>›</b> solve <b>›</b> #{{ problem.id }}</div><div class="game-mode-pill">정답 시 +20P</div></div>
-  <div class="solve-header">
-    <p class="game-eyebrow">Code Battle Stage</p>
-    <h1 class="game-title">#{{ problem.id }} {{ problem.title }}</h1>
-    <p class="game-sub"><span class="badge badge-{{ problem.difficulty }}">{{ problem.get_difficulty_display }}</span> {% for t in problem.tags.all %}<span class="game-chip">{{ t.name }}</span>{% endfor %}</p>
+
+<section class="game-page solve-page solve-stage-page">
+  <div class="game-topbar solve-topbar">
+    <div class="game-window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="game-route">/quest-board <b>›</b> problem <b>›</b> #{{ problem.id }}</div>
+    <div class="game-mode-pill">QUEST REWARD +20P</div>
   </div>
 
-  <div class="solve-layout">
-    <section class="game-panel solve-pane">
-      <div class="game-panel-head"><h2>문제 보기</h2><p>조건과 예제를 확인하고 풀이 전략을 세우세요.</p></div>
-      <div class="problem-desc">{{ problem.description|linebreaksbr }}</div>
-      {% if problem.constraints %}<h3 class="section-title">제한사항</h3><ul class="constraints-list">{% for line in problem.constraints.splitlines %}<li>{{ line }}</li>{% endfor %}</ul>{% endif %}
-      {% if sample_cases %}<h3 class="section-title">예제</h3>{% for tc in sample_cases %}<div class="testcase"><div><strong>입력</strong><pre>{{ tc.input_data }}</pre></div><div><strong>출력</strong><pre>{{ tc.expected_output }}</pre></div></div>{% endfor %}{% endif %}
-    </section>
-
-    <section class="game-panel solve-pane editor-pane" data-problem-id="{{ problem.id }}" data-run-url="{% url 'submissions:run' %}" data-submit-url="{% url 'submissions:submit' %}" data-result-url-template="/submissions/__ID__/result/" data-hint-url="{% url 'ai_proxy:hint' %}" data-wrongnote-list-url="{% url 'wrongnotes:list' %}">
-      <div class="editor-toolbar"><label class="section-title" for="code-editor">코드 작성</label><div class="editor-toolbar-right"><select class="game-input" aria-label="실행 언어"><option>Python</option></select><span class="autosave-note">자동 저장됨</span><button id="reset-code-btn" type="button" class="game-mini-btn ghost">초기화</button></div></div>
-      <textarea id="code-editor" spellcheck="false" placeholder="# 여기에 코드를 작성하세요"></textarea>
-      <div class="editor-actions"><button id="run-code-btn" type="button" class="game-btn ghost">▶ 실행</button><button id="submit-btn" type="button" class="game-btn primary">제출하기</button></div>
-      <div id="run-loading-box" class="result-area" hidden></div><div id="run-error-box" class="result-area result-error" hidden></div><div id="result-status-box" class="result-card" hidden></div>
-    </section>
-
-    <aside class="game-panel hint-sidebar">
-      <div class="game-panel-head"><h2>AI 파트너 힌트</h2></div>
-      <p class="hint-note">정답을 직접 노출하지 않고 사고 과정을 단계적으로 유도합니다.</p>
-      <div class="hint-accordion" id="hint-accordion">
-        {% for level in "123" %}<div class="hint-step" data-level="{{ level }}"><button type="button" class="hint-step-toggle" data-level="{{ level }}" disabled><span>힌트 {{ level }}단계</span><span class="lock-label">잠금 🔒</span></button><div class="hint-step-body" id="hint-body-{{ level }}" hidden></div></div>{% endfor %}
+  <header class="solve-hero">
+    <div class="solve-hero-main">
+      <p class="game-eyebrow">Coding Quest Stage</p>
+      <h1 class="game-title">#{{ problem.id }} {{ problem.title }}</h1>
+      <p class="game-sub">문제를 읽고, 코드를 작성하고, AI 파트너와 함께 실패 원인을 빠르게 회고하세요.</p>
+      <div class="solve-chip-line">
+        <span class="badge badge-{{ problem.difficulty }}">{{ problem.get_difficulty_display }}</span>
+        {% for t in problem.tags.all %}<span class="game-chip cyan">{{ t.name }}</span>{% empty %}<span class="game-chip">태그 없음</span>{% endfor %}
       </div>
-      <button id="hint-next-btn" type="button" class="game-btn ghost">다음 힌트 요청</button>
-      <a id="wrong-note-create-link" href="{% url 'wrongnotes:list' %}" class="game-btn ghost">📕 오답노트 작성</a>
-      <p id="wrong-note-help" class="hint-note">오답 제출 후 회고 워크스페이스로 이동합니다.</p>
+    </div>
+
+    <aside class="solve-hero-card" aria-label="문제 풀이 상태 요약">
+      <div class="solve-companion-mini">
+        <div class="solve-avatar-player">&lt;/&gt;</div>
+        <div class="solve-link-beam"></div>
+        <div class="solve-avatar-ai">AI</div>
+      </div>
+      <div>
+        <strong>AI Buddy Online</strong>
+        <span>힌트 → 실행 → 오답노트까지 연결</span>
+      </div>
+    </aside>
+  </header>
+
+  <nav class="solve-flow" aria-label="문제 풀이 흐름">
+    <span class="active">01 문제 이해</span>
+    <span>02 코드 작성</span>
+    <span>03 실행 검증</span>
+    <span>04 제출</span>
+    <span>05 오답 회고</span>
+  </nav>
+
+  <div class="solve-layout solve-quest-layout">
+    <section class="game-panel solve-problem-panel">
+      <div class="game-panel-head solve-panel-head">
+        <div>
+          <p class="solve-panel-kicker">QUEST BRIEFING</p>
+          <h2>문제 보기</h2>
+          <p>조건, 제한사항, 예제를 먼저 확인하세요.</p>
+        </div>
+        <span class="solve-panel-badge">READ</span>
+      </div>
+
+      <div class="solve-meta-grid">
+        <div><span>난이도</span><strong>{{ problem.get_difficulty_display }}</strong></div>
+        <div><span>보상</span><strong>+20P</strong></div>
+        <div><span>예제</span><strong>{{ sample_cases|length }}개</strong></div>
+      </div>
+
+      <article class="solve-content-block">
+        <h3>문제 설명</h3>
+        <div class="problem-desc">{{ problem.description|linebreaksbr }}</div>
+      </article>
+
+      {% if problem.constraints %}
+      <article class="solve-content-block">
+        <h3>제한사항</h3>
+        <ul class="constraints-list">
+          {% for line in problem.constraints.splitlines %}<li>{{ line }}</li>{% endfor %}
+        </ul>
+      </article>
+      {% endif %}
+
+      {% if sample_cases %}
+      <article class="solve-content-block">
+        <h3>예제 입출력</h3>
+        <div class="solve-sample-stack">
+          {% for tc in sample_cases %}
+          <div class="testcase solve-testcase">
+            <div>
+              <strong>INPUT</strong>
+              <pre>{{ tc.input_data }}</pre>
+            </div>
+            <div>
+              <strong>OUTPUT</strong>
+              <pre>{{ tc.expected_output }}</pre>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </article>
+      {% endif %}
+    </section>
+
+    <section class="game-panel solve-editor-panel editor-pane"
+      data-problem-id="{{ problem.id }}"
+      data-run-url="{% url 'submissions:run' %}"
+      data-submit-url="{% url 'submissions:submit' %}"
+      data-result-url-template="/submissions/__ID__/result/"
+      data-hint-url="{% url 'ai_proxy:hint' %}"
+      data-wrongnote-list-url="{% url 'wrongnotes:list' %}">
+
+      <div class="editor-toolbar solve-editor-toolbar">
+        <div>
+          <p class="solve-panel-kicker">BATTLE CONSOLE</p>
+          <label class="section-title" for="code-editor">코드 작성</label>
+        </div>
+        <div class="editor-toolbar-right">
+          <select class="game-input solve-language-select" aria-label="실행 언어">
+            <option>Python</option>
+          </select>
+          <span class="autosave-note">자동 저장 대기</span>
+          <button id="reset-code-btn" type="button" class="game-mini-btn ghost">초기화</button>
+        </div>
+      </div>
+
+      <div class="solve-editor-shell">
+        <div class="solve-editor-statusbar">
+          <span class="solve-dot green"></span><span>main.py</span>
+          <span class="solve-status-spacer"></span>
+          <span>Python Runner</span>
+        </div>
+        <textarea id="code-editor" spellcheck="false" placeholder="# 여기에 코드를 작성하세요"></textarea>
+      </div>
+
+      <div class="editor-actions solve-editor-actions">
+        <button id="run-code-btn" type="button" class="game-btn ghost">▶ 실행</button>
+        <button id="submit-btn" type="button" class="game-btn primary">제출하기</button>
+      </div>
+
+      <div class="solve-result-zone">
+        <div class="solve-result-title">
+          <strong>실행 / 제출 결과</strong>
+          <span>테스트케이스 결과와 stdout을 여기서 확인합니다.</span>
+        </div>
+        <div id="run-loading-box" class="result-area" hidden></div>
+        <div id="run-error-box" class="result-area result-error" hidden></div>
+        <div id="result-status-box" class="result-card" hidden></div>
+        <div class="solve-result-empty" data-result-empty>
+          아직 실행 결과가 없습니다. 코드를 작성한 뒤 <b>실행</b> 또는 <b>제출하기</b>를 눌러주세요.
+        </div>
+      </div>
+    </section>
+
+    <aside class="game-panel solve-ai-panel hint-sidebar">
+      <div class="game-panel-head solve-panel-head">
+        <div>
+          <p class="solve-panel-kicker">AI SIDEKICK</p>
+          <h2>단계별 힌트</h2>
+          <p>정답을 직접 노출하지 않고 사고 과정을 유도합니다.</p>
+        </div>
+      </div>
+
+      <div class="solve-ai-card">
+        <div class="solve-ai-face">•‿•</div>
+        <div>
+          <strong>WOOK AI</strong>
+          <span>막히는 지점만 단계적으로 열어줘요.</span>
+        </div>
+      </div>
+
+      <div class="hint-accordion" id="hint-accordion">
+        {% for level in "123" %}
+        <div class="hint-step" data-level="{{ level }}">
+          <button type="button" class="hint-step-toggle" data-level="{{ level }}" disabled>
+            <span>힌트 {{ level }}단계</span>
+            <span class="lock-label">잠금 🔒</span>
+          </button>
+          <div class="hint-step-body" id="hint-body-{{ level }}" hidden></div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <button id="hint-next-btn" type="button" class="game-btn ghost solve-full-btn">다음 힌트 요청</button>
+
+      <div class="solve-reflect-card">
+        <strong>틀렸다면 바로 회고</strong>
+        <p id="wrong-note-help">오답 제출 후 회고 워크스페이스로 이동합니다.</p>
+        <a id="wrong-note-create-link" href="{% url 'wrongnotes:list' %}" class="game-btn ghost solve-full-btn">📕 오답노트 작성</a>
+      </div>
     </aside>
   </div>
-  <div class="pixel-journey" aria-hidden="true"></div>
-  <p class="back-link"><a href="{% url 'problems:list' %}">← 목록으로 돌아가기</a></p>
+
+  <div class="solve-companion-track" aria-hidden="true">
+    <div class="track-line"></div>
+    <div class="track-node active">READ</div>
+    <div class="track-node">CODE</div>
+    <div class="track-node">RUN</div>
+    <div class="track-node">CLEAR</div>
+    <div class="track-party"><span class="mini-player">&lt;/&gt;</span><span class="mini-ai">AI</span></div>
+  </div>
+
+  <p class="back-link solve-back-link"><a href="{% url 'problems:list' %}">← 퀘스트 목록으로 돌아가기</a></p>
 </section>
 {% endblock %}
+
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
-<script src="{% static 'js/problem_solve.js' %}?v=game-design-v8"></script>
+<script src="{% static 'js/problem_solve.js' %}?v=problem-solve-game-v9"></script>
 {% endblock %}
