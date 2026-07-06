@@ -27,6 +27,7 @@ SUBMISSION_TYPE_CHOICES = [
 JOB_TYPE_CHOICES = [
     ("code_run", "코드실행"),
     ("code_submit", "코드제출"),
+    ("code_eval", "코드평가"),  # 시스템: 코드+입력을 실행해 출력만 캡처(비교 없음) — TC 생성 에이전트
 ]
 
 JOB_STATUS_CHOICES = [
@@ -43,6 +44,8 @@ LLM_REQUEST_TYPE_CHOICES = [
     ("wrong_note_analyze", "오답분석"),
     ("wrong_note_embed", "오답임베딩"),
     ("note_ask", "내노트질의"),
+    ("testcase_gen", "테스트케이스생성"),
+    ("testcase_fix", "정답코드수정"),
 ]
 
 LLM_STATUS_CHOICES = [

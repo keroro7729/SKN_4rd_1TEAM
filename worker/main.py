@@ -112,15 +112,63 @@ def finish_job(conn, job_id: int, submission_id: int, job_status: str, result: s
         )
 
 
+def _finish_eval(conn, job_id: int, job_status: str, result_payload: dict) -> None:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE submissions_executionjob
+               SET status = %s, result_payload = %s, finished_at = NOW()
+             WHERE id = %s
+            """,
+            (job_status, Json(result_payload), job_id),
+        )
+    conn.commit()
+
+
+def process_eval(conn, job_id: int, input_payload: dict) -> None:
+    """code_eval: input_payload{code, inputs[], timeout?} 를 배치 실행해 출력만 캡처(비교 없음).
+
+    TC 생성 에이전트가 정답코드/제너레이터를 워커 샌드박스에 위임하는 용도.
+    result_payload = {kind, count, results:[{stdout,stderr,returncode,timed_out,elapsed_ms}, ...]}
+    """
+    payload = input_payload or {}
+    code = payload.get("code") or ""
+    inputs = payload.get("inputs")
+    if not inputs:
+        inputs = [""]
+    timeout = payload.get("timeout") or CODE_TIMEOUT_SEC
+    try:
+        results = []
+        for stdin in inputs:
+            r = run_code(code, stdin if stdin is not None else "", timeout=timeout)
+            results.append(
+                {
+                    "stdout": r["stdout"],
+                    "stderr": r["stderr"],
+                    "returncode": r["returncode"],
+                    "timed_out": r["timed_out"],
+                    "elapsed_ms": r["elapsed_ms"],
+                }
+            )
+        _finish_eval(conn, job_id, "success", {"kind": "code_eval", "count": len(results), "results": results})
+        log.info("eval job %s -> %s inputs", job_id, len(results))
+    except Exception as exc:  # noqa: BLE001
+        conn.rollback()
+        with connect() as error_conn:
+            log_system_error(error_conn, None, f"eval job_id={job_id}", exc)
+            _finish_eval(error_conn, job_id, "failed", {"kind": "code_eval", "error_message": str(exc)[:2000], "results": []})
+        log.exception("eval job failed: %s", job_id)
+
+
 def process_one(conn) -> bool:
     """pending Job 1건을 잡아 실행. 처리했으면 True."""
     # FOR UPDATE SKIP LOCKED 로 다중 워커 안전하게 1건 선점
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT id, submission_id, user_id, job_type
+            SELECT id, submission_id, user_id, job_type, input_payload
               FROM submissions_executionjob
-             WHERE status = 'pending' AND job_type IN ('code_run', 'code_submit')
+             WHERE status = 'pending' AND job_type IN ('code_run', 'code_submit', 'code_eval')
              ORDER BY created_at, id
              FOR UPDATE SKIP LOCKED
              LIMIT 1
@@ -130,7 +178,7 @@ def process_one(conn) -> bool:
         if row is None:
             return False
 
-        job_id, submission_id, user_id, job_type = row
+        job_id, submission_id, user_id, job_type, input_payload = row
         cur.execute(
             """
             UPDATE submissions_executionjob
@@ -142,6 +190,11 @@ def process_one(conn) -> bool:
             (WORKER_ID, job_id),
         )
     conn.commit()
+
+    # code_eval: 사용자/제출과 무관한 시스템 잡 (배치 실행)
+    if job_type == "code_eval":
+        process_eval(conn, job_id, input_payload)
+        return True
 
     try:
         with conn.cursor() as cur:
