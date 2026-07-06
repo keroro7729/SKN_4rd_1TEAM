@@ -94,6 +94,15 @@ class WrongNoteCreateTests(TestCase):
             problem=self.problem,
             submission=self.submission,
             comment="경계 조건을 다시 확인해야 한다.",
+            ai_analysis={
+                "analysis": {
+                    "problem_core": "배열 경계 처리",
+                    "cause": "마지막 인덱스를 놓쳤다.",
+                    "solution": "반복 범위를 다시 계산한다.",
+                    "caution": "빈 입력과 끝 인덱스를 확인한다.",
+                },
+                "analysis_status": "success",
+            },
             status="completed",
         )
 
@@ -101,6 +110,8 @@ class WrongNoteCreateTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "경계 조건을 다시 확인해야 한다.")
+        self.assertContains(response, "배열 경계 처리")
+        self.assertContains(response, "마지막 인덱스를 놓쳤다.")
 
     def test_wrong_note_detail_is_user_scoped(self):
         other_user = get_user_model().objects.create_user(

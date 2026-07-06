@@ -46,6 +46,55 @@
     </section>
 
     <section class="panel">
+      <div class="section-head">
+        <h2 class="section-title">AI 오답 분석</h2>
+        {% if note.ai_analysis.analysis_status %}
+          <span class="badge badge-status-{{ note.ai_analysis.analysis_status }}">{{ note.ai_analysis.analysis_status }}</span>
+        {% endif %}
+      </div>
+      {% if analysis %}
+        <div class="analysis-grid">
+          <article class="analysis-card">
+            <strong>문제 핵심</strong>
+            <p>{{ analysis.problem_core|default:"분석 결과가 없습니다."|linebreaksbr }}</p>
+          </article>
+          <article class="analysis-card">
+            <strong>오답 원인</strong>
+            <p>{{ analysis.cause|default:"분석 결과가 없습니다."|linebreaksbr }}</p>
+          </article>
+          <article class="analysis-card">
+            <strong>풀이 과정</strong>
+            <p>{{ analysis.solution|default:"분석 결과가 없습니다."|linebreaksbr }}</p>
+          </article>
+          <article class="analysis-card">
+            <strong>주의사항</strong>
+            <p>{{ analysis.caution|default:"분석 결과가 없습니다."|linebreaksbr }}</p>
+          </article>
+        </div>
+        {% if analysis.evidence %}
+          <h3 class="sub-title">분석 근거</h3>
+          <div class="evidence-list">
+            {% for item in analysis.evidence %}
+              <span class="evidence-pill">{{ item }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% else %}
+        <p class="hint-note">AI 분석 결과가 아직 없습니다. 오답노트 저장, 상세 조회, 복습은 정상 사용할 수 있습니다.</p>
+      {% endif %}
+      {% if note.ai_analysis.analysis_request_id or note.ai_analysis.search_request_id %}
+        <p class="hint-note">
+          analysis_request_id: {{ note.ai_analysis.analysis_request_id|default:"-" }}
+          · search_request_id: {{ note.ai_analysis.search_request_id|default:"-" }}
+        </p>
+      {% endif %}
+      {% if analysis_errors %}
+        <pre class="result-pre result-error-text">{% for error in analysis_errors %}{{ error.stage }}: {{ error.message }}
+{% endfor %}</pre>
+      {% endif %}
+    </section>
+
+    <section class="panel">
       <h2 class="section-title">틀린 제출 코드</h2>
       <pre class="code-view">{{ note.submission.code }}</pre>
       {% if note.submission.error_message %}
@@ -67,24 +116,6 @@
         </div>
       {% else %}
         <p class="hint-note">아직 벡터 매핑이 없습니다. 저장은 완료됐고 인덱싱만 확인이 필요합니다.</p>
-      {% endif %}
-    </section>
-
-    <section class="panel">
-      <h2 class="section-title">분석 메모</h2>
-      {% if analysis %}
-        <div class="mini-list">
-          <div class="mini-row"><span>문제 핵심</span><span>{{ analysis.problem_core|default:"-"|truncatechars:30 }}</span></div>
-          <div class="mini-row"><span>오답 원인</span><span>{{ analysis.cause|default:"-"|truncatechars:30 }}</span></div>
-          <div class="mini-row"><span>풀이 과정</span><span>{{ analysis.solution|default:"-"|truncatechars:30 }}</span></div>
-          <div class="mini-row"><span>주의사항</span><span>{{ analysis.caution|default:"-"|truncatechars:30 }}</span></div>
-        </div>
-      {% else %}
-        <p class="hint-note">AI 분석이 없어도 오답노트 저장, 조회, 복습은 정상 동작합니다.</p>
-      {% endif %}
-      {% if analysis_errors %}
-        <pre class="result-pre result-error-text">{% for error in analysis_errors %}{{ error.stage }}: {{ error.message }}
-{% endfor %}</pre>
       {% endif %}
     </section>
 

@@ -14,7 +14,7 @@
       <span class="badge badge-{{ problem.difficulty }}">{{ problem.get_difficulty_display }}</span>
       {% for t in problem.tags.all %}<span class="tag">{{ t.name }}</span>{% endfor %}
     </div>
-    <h1 class="problem-title">{{ problem.id }}번 {{ problem.title }}</h1>
+    <h1 class="problem-title">{{ problem.title }}</h1>
 
     <h3 class="sub-title">문제</h3>
     <div class="problem-desc">{{ problem.description|linebreaksbr }}</div>
@@ -108,6 +108,16 @@
 
   const hide = (...elements) => elements.forEach((element) => { element.hidden = true; });
 
+  const updateWrongNoteLink = (data) => {
+    if (data.wrong_note_create_url) {
+      wrongNoteLink.href = data.wrong_note_create_url;
+      wrongNoteHelp.textContent = "현재 제출 결과로 오답노트를 작성할 수 있습니다.";
+    } else {
+      wrongNoteLink.href = "{% url 'wrongnotes:list' %}";
+      wrongNoteHelp.textContent = "오답 제출 결과가 있을 때 작성 화면으로 이동합니다.";
+    }
+  };
+
   const renderResult = (data) => {
     const resultLabel = data.submission_result || "pending";
     const passed = data.total ? `${data.passed}/${data.total}` : "-";
@@ -139,13 +149,7 @@
       }
       const data = await response.json();
       if (data.is_finished) {
-        if (data.wrong_note_create_url) {
-          wrongNoteLink.href = data.wrong_note_create_url;
-          wrongNoteHelp.textContent = "현재 제출 결과로 오답노트를 작성할 수 있습니다.";
-        } else {
-          wrongNoteLink.href = "{% url 'wrongnotes:list' %}";
-          wrongNoteHelp.textContent = "오답 제출 결과가 있을 때 작성 화면으로 이동합니다.";
-        }
+        updateWrongNoteLink(data);
         renderResult(data);
         hide(loadingBox);
         return;
@@ -156,7 +160,7 @@
     throw new Error("결과 대기 시간이 초과되었습니다. Worker 상태를 확인하세요.");
   };
 
-  const createJob = async (url, queuedMessage, runningMessage) => {
+  const createJob = async (url, queuedMessage) => {
     hide(errorBox, statusBox);
     wrongNoteLink.href = "{% url 'wrongnotes:list' %}";
     wrongNoteHelp.textContent = "오답 제출 후에는 바로 작성 화면으로 이동합니다.";
@@ -180,8 +184,14 @@
       if (!response.ok) {
         throw new Error(data.error_message || "요청에 실패했습니다.");
       }
-      showText(loadingBox, runningMessage);
-      await pollResult(data.submission_id);
+      if (data.is_finished) {
+        updateWrongNoteLink(data);
+        renderResult(data);
+        hide(loadingBox);
+      } else {
+        showText(loadingBox, "결과 확인 중입니다. 응답이 없으면 잠시 후 다시 확인합니다.");
+        await pollResult(data.submission_id);
+      }
     } catch (error) {
       hide(loadingBox);
       showText(errorBox, error.message);
@@ -223,10 +233,10 @@
   };
 
   runButton.addEventListener("click", () => {
-    createJob("{% url 'submissions:run' %}", "실행 대기열에 등록 중입니다.", "실행 중입니다.");
+    createJob("{% url 'submissions:run' %}", "실행 대기열에 등록 중입니다.");
   });
   submitButton.addEventListener("click", () => {
-    createJob("{% url 'submissions:submit' %}", "제출 대기열에 등록 중입니다.", "채점 중입니다.");
+    createJob("{% url 'submissions:submit' %}", "제출 대기열에 등록 중입니다.");
   });
   resetButton.addEventListener("click", () => {
     editor.value = "";
