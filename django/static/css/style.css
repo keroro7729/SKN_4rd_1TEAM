@@ -214,6 +214,19 @@ body {
 .table th, .table td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
 .table th { color: var(--muted); font-weight: 600; }
 
+/* 실행/제출 결과 영역 (solve.js) */
+.result-area .rc-line { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.result-area .rc-ms { color: var(--muted); font-size: 0.82rem; }
+.result-area .rc-io { display: grid; gap: 8px; }
+.result-area .rc-io pre, .result-area .rc-err pre { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px; margin: 4px 0 0; overflow-x: auto; font-size: 0.82rem; }
+.result-area .rc-io b, .result-area .rc-err b { font-size: 0.78rem; color: var(--muted); }
+.result-area .rc-err pre { color: var(--danger); }
+.result-area.state-loading { border-style: solid; border-color: var(--line); color: var(--muted); }
+.result-area.state-success { border-style: solid; border-color: var(--accent-2); }
+.result-area.state-failed  { border-style: solid; border-color: var(--danger); }
+.result-area.state-timeout { border-style: solid; border-color: #e6c86b; }
+.result-area.state-empty   { border-style: dashed; border-color: var(--line); color: var(--muted); }
+
 @media (max-width: 720px) {
   .solve-layout { grid-template-columns: 1fr; }
   .testcase { grid-template-columns: 1fr; }

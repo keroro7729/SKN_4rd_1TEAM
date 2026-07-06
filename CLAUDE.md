@@ -6,10 +6,10 @@ WOOK'S CODING — AI 기반 코딩 학습 웹앱 (SKN 4차 프로젝트). 문제
 
 1. **STEP 단위 순차 빌드 — 전체를 한 번에 생성하지 말 것.**
    코드생성 지시문 v0.7 규칙상 STEP-01~STEP-10을 순서대로 구현한다.
-   - STEP-01(Django 골격 + `accounts.CustomUser`) · STEP-02(전체 데이터 모델 §7) · STEP-03(화면/URL/View/권한) **완료**
-   - fastapi_app / worker 는 **스캐폴딩(동작 스텁)만** 존재
-   - 다음: STEP-04(코드 실행 Job/Worker) → STEP-05~(FastAPI AI/RAG)
-   - 새 기능은 해당 STEP 범위 안에서만 구현하고, 앞선 STEP을 건너뛰지 않는다. (STEP-03에서 코드실행/Fetch/AI는 화면 DOM만 두고 STEP-04/06/07로 미룸)
+   - STEP-01(골격) · STEP-02(데이터 모델 §7) · STEP-03(화면/URL/View/권한) · STEP-04(코드실행 Job/Worker + 채점) **완료**
+   - fastapi_app 은 **스캐폴딩(동작 스텁)만** 존재
+   - 다음: STEP-05(FastAPI 기본 구조) → STEP-06(AI/RAG) → STEP-07(Fetch 연동)
+   - 새 기능은 해당 STEP 범위 안에서만 구현하고, 앞선 STEP을 건너뛰지 않는다. (Fetch/AI 연결은 STEP-07/06, 포인트 지급은 STEP-08)
 
 2. **로컬 Python은 3.13 (miniconda) → `psycopg2` 금지, `psycopg[binary]`(psycopg3) 사용.**
    psycopg2-binary는 3.13 휠이 없어 소스빌드 실패한다. 바이너리 휠은 psycopg 3.2.2+ 부터 존재.
