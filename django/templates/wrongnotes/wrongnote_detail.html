@@ -1,179 +1,124 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}오답노트 상세 · WOOK'S CODING{% endblock %}
 
 {% block content %}
 <form hidden>{% csrf_token %}</form>
-<div class="page-hero compact-hero">
-  <div>
-    <p class="eyebrow">WrongNote DetailView</p>
-    <h1 class="page-title">오답노트 상세</h1>
-    <p class="page-sub">틀린 제출, 내가 남긴 코멘트, 복습 상태를 한 번에 확인합니다.</p>
+<section class="game-page wrongnote-detail-page">
+  <div class="game-topbar">
+    <div class="game-window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="game-route">/home/wook's-coding <b>›</b> wrong-notes <b>›</b> detail <b>›</b> #{{ note.id }}</div>
+    <div class="game-mode-pill">P5 · 상세 분석</div>
   </div>
-  <div class="editor-actions">
-    <a href="{% url 'problems:detail' note.problem_id %}" class="btn btn-ghost">문제 다시 보기</a>
-    <a href="{% url 'wrongnotes:list' %}" class="btn btn-ghost">목록</a>
-  </div>
-</div>
 
-<div class="app-grid">
-  <section class="main-column">
-    <section class="panel">
-      <div class="section-head">
-        <div>
-          <p class="eyebrow">#{{ note.id }} · {{ note.created_at|date:"Y-m-d H:i" }}</p>
-          <h2 class="section-title">{{ note.problem.title }}</h2>
+  <header class="game-hero compact">
+    <div>
+      <p class="game-eyebrow">WrongNote DetailView · note_id #{{ note.id }}</p>
+      <h1>{{ note.problem.title }}</h1>
+      <p>{{ note.created_at|date:"Y-m-d H:i" }} · 제출 결과 {{ note.submission.get_result_display }} · elapsed {{ note.submission.elapsed_ms|default:0 }}ms</p>
+    </div>
+    <div class="game-hero-actions">
+      <a href="{% url 'problems:detail' note.problem_id %}" class="game-btn ghost">문제 다시 보기</a>
+      <a href="{% url 'wrongnotes:list' %}" class="game-btn ghost">목록</a>
+    </div>
+  </header>
+
+  <div class="game-layout">
+    <main class="game-main">
+      <section class="game-panel">
+        <div class="game-panel-head">
+          <div>
+            <p class="game-eyebrow">comment · tags · review</p>
+            <h2>내가 적은 오답 원인</h2>
+          </div>
+          <span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span>
         </div>
-        <span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span>
-      </div>
-      <div class="note-tags">
-        <span class="badge badge-{{ note.problem.difficulty }}">{{ note.problem.get_difficulty_display }}</span>
-        {% for tag in note.tags.all %}<span class="tag">{{ tag.name }}</span>{% endfor %}
-      </div>
-      <div class="note-meta">
-        <span>제출 결과: {{ note.submission.get_result_display }}</span>
-        <span>실행 시간: {{ note.submission.elapsed_ms|default:0 }}ms</span>
-        {% if note.is_reviewed %}
-          <span class="reviewed">복습완료 {{ note.reviewed_at|date:"Y-m-d H:i" }}</span>
+        <div class="game-chip-row">
+          <span class="badge badge-{{ note.problem.difficulty }}">{{ note.problem.get_difficulty_display }}</span>
+          {% for tag in note.tags.all %}<span class="game-chip">{{ tag.name }}</span>{% endfor %}
+        </div>
+        <p class="game-comment-box">{{ note.comment|linebreaksbr }}</p>
+        <div class="game-note-foot">
+          {% if note.is_reviewed %}
+            <span class="game-state success">✓ 복습완료 {{ note.reviewed_at|date:"Y-m-d H:i" }}</span>
+          {% else %}
+            <button type="button" id="review-note-btn" class="game-mini-btn" data-review-url="{% url 'wrongnotes:review' note.id %}">복습완료 +10P</button>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="game-panel">
+        <div class="game-panel-head">
+          <div>
+            <p class="game-eyebrow">AI wrong-note analysis</p>
+            <h2>AI 오답 분석</h2>
+          </div>
+          {% if note.ai_analysis.analysis_status %}<span class="game-chip cyan">{{ note.ai_analysis.analysis_status }}</span>{% endif %}
+        </div>
+        {% if analysis %}
+          <div class="game-analysis-grid">
+            <article class="game-analysis-card core"><span>◎</span><strong>문제 핵심</strong><p>{{ analysis.problem_core|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
+            <article class="game-analysis-card cause"><span>!</span><strong>오답 원인</strong><p>{{ analysis.cause|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
+            <article class="game-analysis-card solution"><span>&lt;/&gt;</span><strong>풀이 과정</strong><p>{{ analysis.solution|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
+            <article class="game-analysis-card caution"><span>△</span><strong>주의사항</strong><p>{{ analysis.caution|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
+          </div>
+          {% if analysis.evidence %}
+            <div class="ask-evidence-row detail-evidence">
+              {% for item in analysis.evidence %}<span class="evidence-pill">{{ item }}</span>{% endfor %}
+            </div>
+          {% endif %}
         {% else %}
-          <button type="button" id="review-note-btn" class="btn btn-ghost btn-sm" data-review-url="{% url 'wrongnotes:review' note.id %}">복습완료</button>
+          <p class="game-muted">AI 분석 결과가 아직 없습니다. 오답노트 저장, 상세 조회, 복습은 정상 사용할 수 있습니다.</p>
         {% endif %}
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2 class="section-title">내가 적은 오답 원인</h2>
-      <p class="note-comment">{{ note.comment|linebreaksbr }}</p>
-    </section>
-
-    <section class="panel">
-      <div class="section-head">
-        <h2 class="section-title">AI 오답 분석</h2>
-        {% if note.ai_analysis.analysis_status %}
-          <span class="badge badge-status-{{ note.ai_analysis.analysis_status }}">{{ note.ai_analysis.analysis_status }}</span>
+        {% if note.ai_analysis.analysis_request_id or note.ai_analysis.search_request_id %}
+          <p class="game-muted request-line">analysis_request_id: {{ note.ai_analysis.analysis_request_id|default:"-" }} · search_request_id: {{ note.ai_analysis.search_request_id|default:"-" }}</p>
         {% endif %}
-      </div>
-      {% if analysis %}
-        <div class="analysis-grid">
-          <article class="analysis-card">
-            <strong>문제 핵심</strong>
-            <p>{{ analysis.problem_core|default:"분석 결과가 없습니다."|linebreaksbr }}</p>
-          </article>
-          <article class="analysis-card">
-            <strong>오답 원인</strong>
-            <p>{{ analysis.cause|default:"분석 결과가 없습니다."|linebreaksbr }}</p>
-          </article>
-          <article class="analysis-card">
-            <strong>풀이 과정</strong>
-            <p>{{ analysis.solution|default:"분석 결과가 없습니다."|linebreaksbr }}</p>
-          </article>
-          <article class="analysis-card">
-            <strong>주의사항</strong>
-            <p>{{ analysis.caution|default:"분석 결과가 없습니다."|linebreaksbr }}</p>
-          </article>
-        </div>
-        {% if analysis.evidence %}
-          <h3 class="sub-title">분석 근거</h3>
-          <div class="evidence-list">
-            {% for item in analysis.evidence %}
-              <span class="evidence-pill">{{ item }}</span>
-            {% endfor %}
-          </div>
-        {% endif %}
-      {% else %}
-        <p class="hint-note">AI 분석 결과가 아직 없습니다. 오답노트 저장, 상세 조회, 복습은 정상 사용할 수 있습니다.</p>
-      {% endif %}
-      {% if note.ai_analysis.analysis_request_id or note.ai_analysis.search_request_id %}
-        <p class="hint-note">
-          analysis_request_id: {{ note.ai_analysis.analysis_request_id|default:"-" }}
-          · search_request_id: {{ note.ai_analysis.search_request_id|default:"-" }}
-        </p>
-      {% endif %}
-      {% if analysis_errors %}
-        <pre class="result-pre result-error-text">{% for error in analysis_errors %}{{ error.stage }}: {{ error.message }}
+        {% if analysis_errors %}
+          <pre class="result-pre result-error-text">{% for error in analysis_errors %}{{ error.stage }}: {{ error.message }}
 {% endfor %}</pre>
-      {% endif %}
-    </section>
+        {% endif %}
+      </section>
 
-    <section class="panel">
-      <h2 class="section-title">틀린 제출 코드</h2>
-      <pre class="code-view">{{ note.submission.code }}</pre>
-      {% if note.submission.error_message %}
-        <h3 class="sub-title">오류 메시지</h3>
-        <pre class="result-pre result-error-text">{{ note.submission.error_message }}</pre>
-      {% endif %}
-    </section>
-  </section>
+      <section class="game-panel">
+        <div class="game-panel-head"><h2>틀린 제출 코드</h2></div>
+        <pre class="game-code-view">{{ note.submission.code }}</pre>
+        {% if note.submission.error_message %}
+          <h3 class="sub-title">오류 메시지</h3>
+          <pre class="result-pre result-error-text">{{ note.submission.error_message }}</pre>
+        {% endif %}
+      </section>
+    </main>
 
-  <aside class="side-column">
-    <section class="panel">
-      <h2 class="section-title">인덱싱 상태</h2>
-      {% if vector %}
-        <p class="hint-note">ChromaDB 매핑이 생성되었습니다.</p>
-        <div class="mini-list">
-          <div class="mini-row"><span>embedding_id</span><span>{{ vector.embedding_id }}</span></div>
-          <div class="mini-row"><span>source</span><span>{{ vector.source }}</span></div>
-          <div class="mini-row"><span>indexed_at</span><span>{{ vector.indexed_at|date:"Y-m-d H:i" }}</span></div>
-        </div>
-      {% else %}
-        <p class="hint-note">아직 벡터 매핑이 없습니다. 저장은 완료됐고 인덱싱만 확인이 필요합니다.</p>
-      {% endif %}
-    </section>
-
-    <section class="panel">
-      <h2 class="section-title">유사 오답노트</h2>
-      <div class="mini-list">
-        {% for item in similar_notes %}
-          <div class="mini-row">
-            <span>note_id {{ item.note_id }}</span>
-            <span>{{ item.score }}</span>
+    <aside class="game-side">
+      <section class="game-panel accent-cyan">
+        <div class="game-panel-head"><h2>인덱싱 상태</h2></div>
+        {% if vector %}
+          <p class="game-muted">ChromaDB 매핑이 생성되었습니다.</p>
+          <div class="game-mini-list">
+            <div class="game-mini-row"><span>embedding_id</span><span>{{ vector.embedding_id }}</span></div>
+            <div class="game-mini-row"><span>source</span><span>{{ vector.source }}</span></div>
+            <div class="game-mini-row"><span>indexed_at</span><span>{{ vector.indexed_at|date:"Y-m-d H:i" }}</span></div>
           </div>
-        {% empty %}
-          <p class="empty compact">유사 오답노트 결과가 없습니다.</p>
-        {% endfor %}
-      </div>
-    </section>
-  </aside>
-</div>
+        {% else %}
+          <p class="game-muted">아직 벡터 매핑이 없습니다. 저장은 완료됐고 인덱싱만 확인이 필요합니다.</p>
+        {% endif %}
+      </section>
 
-<script>
-(() => {
-  const button = document.getElementById("review-note-btn");
-  if (!button) return;
+      <section class="game-panel accent-purple">
+        <div class="game-panel-head"><h2>유사 오답노트</h2></div>
+        <div class="game-mini-list">
+          {% for item in similar_notes %}
+            <div class="game-mini-row"><span>note_id {{ item.note_id }}</span><span>{{ item.score }}</span></div>
+          {% empty %}
+            <p class="game-empty compact">유사 오답노트 결과가 없습니다.</p>
+          {% endfor %}
+        </div>
+      </section>
+    </aside>
+  </div>
+</section>
+{% endblock %}
 
-  const getCookie = (name) => {
-    const cookies = document.cookie ? document.cookie.split(";") : [];
-    for (const rawCookie of cookies) {
-      const cookie = rawCookie.trim();
-      if (cookie.startsWith(`${name}=`)) {
-        return decodeURIComponent(cookie.slice(name.length + 1));
-      }
-    }
-    return "";
-  };
-
-  button.addEventListener("click", async () => {
-    button.disabled = true;
-    try {
-      const response = await fetch(button.dataset.reviewUrl, {
-        method: "POST",
-        headers: {
-          "X-CSRFToken": getCookie("csrftoken"),
-          "Accept": "application/json",
-        },
-      });
-      const data = await response.json();
-      if (!response.ok || !data.ok) {
-        throw new Error(data.error_message || "복습 완료 처리에 실패했습니다.");
-      }
-      const label = document.createElement("span");
-      label.className = "reviewed";
-      label.textContent = "복습완료";
-      button.replaceWith(label);
-    } catch (error) {
-      button.disabled = false;
-      button.textContent = error.message;
-    }
-  });
-})();
-</script>
+{% block scripts %}
+<script src="{% static 'js/wrongnote_detail.js' %}"></script>
 {% endblock %}

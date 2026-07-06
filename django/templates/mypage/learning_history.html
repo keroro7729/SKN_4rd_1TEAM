@@ -1,99 +1,109 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}학습 기록 · WOOK'S CODING{% endblock %}
 
 {% block content %}
-<div class="page-hero compact-hero">
-  <div>
-    <p class="eyebrow">Learning History</p>
-    <h1 class="page-title">학습 기록</h1>
-    <p class="page-sub">풀이 이력과 제출 결과를 확인하고 다시 복습할 문제를 찾아보세요.</p>
+<section class="game-page history-game-page">
+  <div class="game-topbar">
+    <div class="game-window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="game-route">/home/wook's-coding <b>›</b> mypage <b>›</b> history</div>
+    <div class="game-mode-pill cyan">학습 기록</div>
   </div>
-</div>
 
-<div class="stat-row">
-  <div class="stat-card"><span class="stat-num">{{ summary.total }}</span><span class="stat-label">총 풀이 수</span></div>
-  <div class="stat-card"><span class="stat-num">{{ summary.success }}</span><span class="stat-label">정답 제출 수</span></div>
-  <div class="stat-card"><span class="stat-num">{{ summary.wrong }}</span><span class="stat-label">오답 제출 수</span></div>
-  <div class="stat-card"><span class="stat-num">{{ summary.notes }}</span><span class="stat-label">오답노트 연결 수</span></div>
-</div>
+  <header class="game-hero compact">
+    <div>
+      <p class="game-eyebrow">Learning History · Submission Timeline</p>
+      <h1>학습 기록</h1>
+      <p>풀이 이력과 제출 결과를 확인하고 다시 복습할 문제를 찾아보세요.</p>
+    </div>
+    <div class="game-hero-actions">
+      <a href="{% url 'mypage:index' %}" class="game-btn ghost">마이페이지</a>
+      <a href="{% url 'wrongnotes:list' %}" class="game-btn primary">오답노트</a>
+    </div>
+  </header>
 
-<div class="app-grid">
-  <section class="main-column">
-    <form class="panel filter-panel" method="get">
-      <input type="text" name="q" value="{{ q }}" placeholder="문제 제목, 번호, 알고리즘 유형으로 검색하세요." class="filter-input search-input">
-      <div class="filter-row">
-        <span class="filter-label">결과 필터</span>
-        {% for value, label in result_filters %}
-          <label class="segmented-option">
-            <input type="radio" name="result" value="{{ value }}" {% if value == cur_result %}checked{% endif %}>
-            <span>{{ label }}</span>
-          </label>
-        {% endfor %}
-      </div>
-      <div class="editor-actions">
-        <button type="submit" class="btn">검색</button>
-        <a href="{% url 'mypage:history' %}" class="btn btn-ghost">초기화</a>
-      </div>
-    </form>
+  <div class="game-stat-grid four">
+    <article class="game-stat-card"><span>총 풀이 수</span><strong>{{ summary.total }}</strong><em>total</em></article>
+    <article class="game-stat-card success"><span>정답 제출</span><strong>{{ summary.success }}</strong><em>accepted</em></article>
+    <article class="game-stat-card warning"><span>오답 제출</span><strong>{{ summary.wrong }}</strong><em>wrong</em></article>
+    <article class="game-stat-card cyan"><span>오답노트 연결</span><strong>{{ summary.notes }}</strong><em>notes</em></article>
+  </div>
 
-    <section class="panel">
-      <h2 class="section-title">학습 기록 목록</h2>
-      <table class="table history-table">
-        <thead>
-          <tr>
-            <th>날짜</th>
-            <th>문제 정보</th>
-            <th>알고리즘</th>
-            <th>결과</th>
-            <th>실행 시간</th>
-            <th>작업</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for record in records %}
-            <tr>
-              <td>{{ record.created_at|date:"Y.m.d H:i" }}</td>
-              <td>{{ record.problem.id }}번 {{ record.problem.title|truncatechars:28 }}</td>
-              <td>
-                {% for tag in record.problem.tags.all %}<span class="tag">{{ tag.name }}</span>{% empty %}<span class="hint-note">-</span>{% endfor %}
-              </td>
-              <td><span class="badge badge-status-{{ record.result }}">{{ record.get_result_display }}</span></td>
-              <td>{{ record.elapsed_ms|default:0 }}ms</td>
-              <td>
-                <a class="btn btn-sm btn-ghost" href="{% url 'problems:detail' record.problem_id %}">다시 풀기</a>
-                {% if record.result == "wrong" or record.result == "error" or record.result == "timeout" %}
-                  <a class="btn btn-sm" href="{% url 'wrongnotes:create' record.id %}">오답노트</a>
-                {% endif %}
-              </td>
-            </tr>
-          {% empty %}
-            <tr><td colspan="6" class="empty">학습 기록이 없습니다.</td></tr>
+  <div class="game-layout">
+    <main class="game-main">
+      <form class="game-panel game-filter" method="get">
+        <div class="game-search-line">
+          <input type="text" name="q" value="{{ q }}" placeholder="문제 제목, 번호, 알고리즘 유형으로 검색하세요." class="game-input">
+          <button type="submit" class="game-btn primary">검색</button>
+          <a href="{% url 'mypage:history' %}" class="game-btn ghost">초기화</a>
+        </div>
+        <div class="game-segment-row">
+          <span class="game-filter-label">결과</span>
+          {% for value, label in result_filters %}
+            <label class="game-segment">
+              <input type="radio" name="result" value="{{ value }}" {% if value == cur_result %}checked{% endif %}>
+              <span>{{ label }}</span>
+            </label>
           {% endfor %}
-        </tbody>
-      </table>
-    </section>
-  </section>
+        </div>
+      </form>
 
-  <aside class="side-column">
-    <section class="panel">
-      <h2 class="section-title">최근 복습 필요 기록</h2>
-      <div class="mini-list">
-        {% for note in review_needed %}
-          <a class="mini-row" href="{% url 'wrongnotes:list' %}">
-            <span>{{ note.problem.title|truncatechars:24 }}</span>
-            <span>오답노트 작성됨</span>
-          </a>
-        {% empty %}
-          <p class="empty compact">복습할 기록이 없습니다.</p>
-        {% endfor %}
-      </div>
-      <a class="btn btn-block" href="{% url 'wrongnotes:list' %}">오답노트 작성하기</a>
-    </section>
+      <section class="game-panel">
+        <div class="game-panel-head"><h2>학습 기록 목록</h2><span class="game-chip cyan">최근 50개</span></div>
+        <div class="game-table-wrap">
+          <table class="table game-table history-table">
+            <thead>
+              <tr><th>날짜</th><th>문제 정보</th><th>알고리즘</th><th>결과</th><th>실행 시간</th><th>작업</th></tr>
+            </thead>
+            <tbody>
+              {% for record in records %}
+                <tr>
+                  <td data-label="날짜">{{ record.created_at|date:"Y.m.d H:i" }}</td>
+                  <td data-label="문제">{{ record.problem.id }}번 {{ record.problem.title|truncatechars:28 }}</td>
+                  <td data-label="알고리즘">
+                    {% for tag in record.problem.tags.all %}<span class="game-chip small">{{ tag.name }}</span>{% empty %}<span class="game-muted">-</span>{% endfor %}
+                  </td>
+                  <td data-label="결과"><span class="badge badge-status-{{ record.result }}">{{ record.get_result_display }}</span></td>
+                  <td data-label="실행 시간">{{ record.elapsed_ms|default:0 }}ms</td>
+                  <td data-label="작업">
+                    <div class="table-actions">
+                      <a class="game-mini-btn ghost" href="{% url 'problems:detail' record.problem_id %}">다시 풀기</a>
+                      {% if record.result == "wrong" or record.result == "error" or record.result == "timeout" %}
+                        <a class="game-mini-btn" href="{% url 'wrongnotes:create' record.id %}">오답노트</a>
+                      {% endif %}
+                    </div>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr><td colspan="6" class="game-empty">학습 기록이 없습니다.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
 
-    <section class="panel">
-      <h2 class="section-title">학습 기록 활용 팁</h2>
-      <p class="hint-note">오답 기록을 남기면 이후 RAG가 비슷한 실수를 찾아줍니다.</p>
-    </section>
-  </aside>
-</div>
+    <aside class="game-side">
+      <section class="game-panel accent-purple">
+        <div class="game-panel-head"><h2>최근 복습 필요 기록</h2></div>
+        <div class="game-mini-list">
+          {% for note in review_needed %}
+            <a class="game-mini-row" href="{% url 'wrongnotes:detail' note.id %}">
+              <span>{{ note.problem.title|truncatechars:24 }}</span>
+              <span>오답노트 작성됨</span>
+            </a>
+          {% empty %}
+            <p class="game-empty compact">복습할 기록이 없습니다.</p>
+          {% endfor %}
+        </div>
+        <a class="game-btn primary full" href="{% url 'wrongnotes:list' %}">오답노트 보기</a>
+      </section>
+
+      <section class="game-panel accent-cyan">
+        <div class="game-panel-head"><h2>학습 기록 활용 팁</h2></div>
+        <p class="game-muted">오답 기록을 남기면 이후 RAG가 비슷한 실수를 찾아 note_id/source/score 근거로 보여줍니다.</p>
+      </section>
+    </aside>
+  </div>
+</section>
 {% endblock %}

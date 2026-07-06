@@ -1,106 +1,146 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}마이페이지 · WOOK'S CODING{% endblock %}
 
 {% block content %}
-<div class="page-hero compact-hero">
-  <div>
-    <p class="eyebrow">My Page</p>
-    <h1 class="page-title">마이페이지</h1>
-    <p class="page-sub">나의 학습 성장과 취약점을 한눈에 확인해보세요.</p>
+<section class="game-page mypage-game-page">
+  <div class="game-topbar">
+    <div class="game-window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="game-route">/home/wook's-coding <b>›</b> mypage <b>›</b> dashboard</div>
+    <div class="game-mode-pill cyan">PLAYER · {{ user.username }}</div>
   </div>
-</div>
 
-<section class="panel profile-panel">
-  <div>
-    <h2>{{ user.username }}</h2>
-    <p class="hint-note">현재 포인트 {{ user.point }}P</p>
+  <header class="game-hero mypage-hero">
+    <div>
+      <p class="game-eyebrow">MyPage Dashboard · Learning Status</p>
+      <h1>{{ user.username }}님의 성장 현황</h1>
+      <p>풀이 이력, 오답노트, 미션, 포인트를 한 화면에서 확인합니다.</p>
+      <div class="game-hero-actions">
+        <a href="{% url 'problems:list' %}" class="game-btn primary">문제 풀러 가기</a>
+        <a href="{% url 'mypage:history' %}" class="game-btn ghost">학습 기록 보기</a>
+      </div>
+    </div>
+    <div class="player-card">
+      <div class="player-avatar">{{ user.username|first|upper }}</div>
+      <div>
+        <span class="game-muted">현재 포인트</span>
+        <strong>{{ user.point }}P</strong>
+        <em>AI Coding Learner</em>
+      </div>
+    </div>
+  </header>
+
+  <div class="game-stat-grid four">
+    <article class="game-stat-card"><span>총 풀이</span><strong>{{ summary.total_submissions }}</strong><em>submissions</em></article>
+    <article class="game-stat-card success"><span>정답률</span><strong>{{ summary.accuracy }}%</strong><em>AC rate</em></article>
+    <article class="game-stat-card warning"><span>오답노트</span><strong>{{ summary.wrong_note_count }}</strong><em>wrong notes</em></article>
+    <article class="game-stat-card cyan"><span>복습 완료</span><strong>{{ summary.reviewed_count }}</strong><em>reviewed</em></article>
   </div>
-  <div class="profile-metrics">
-    <div><strong>{{ summary.total_submissions }}</strong><span>총 풀이 문제</span></div>
-    <div><strong>{{ summary.accuracy }}%</strong><span>정답률</span></div>
-    <div><strong>{{ summary.wrong_note_count }}</strong><span>오답노트</span></div>
-    <div><strong>{{ summary.reviewed_count }}</strong><span>복습 완료</span></div>
+
+  <div class="game-layout mypage-layout">
+    <main class="game-main">
+      <section class="game-panel">
+        <div class="game-panel-head">
+          <div>
+            <p class="game-eyebrow">growth summary</p>
+            <h2>나의 성장 현황</h2>
+          </div>
+          <span class="game-chip cyan">정답 {{ summary.success_count }} · 오답 {{ summary.wrong_count }}</span>
+        </div>
+        <div class="mp-progress-visual">
+          <div class="mp-progress-ring" data-progress="{{ summary.accuracy }}"><span>{{ summary.accuracy }}%</span></div>
+          <div class="mp-progress-copy">
+            <strong>현재 정답률</strong>
+            <p>오답노트를 작성하고 복습 완료하면 RAG 근거가 쌓여 다음 피드백 품질이 좋아집니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="game-panel">
+        <div class="game-panel-head"><h2>이번 주 미션</h2><span class="game-chip">point reward</span></div>
+        <div class="game-mini-list mission-list-game">
+          {% for um in user_missions|slice:":4" %}
+            <div class="game-mission-row">
+              <div>
+                <strong>{{ um.mission.title }}</strong>
+                <span>{{ um.progress_count }} / {{ um.mission.target_count }} · +{{ um.mission.reward_point }}P</span>
+              </div>
+              <div class="game-progress" data-current="{{ um.progress_count }}" data-target="{{ um.mission.target_count }}"><span></span></div>
+            </div>
+          {% empty %}
+            <p class="game-empty compact">진행 중인 미션이 없습니다.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="game-panel">
+        <div class="game-panel-head"><h2>최근 학습 활동</h2><a href="{% url 'mypage:history' %}" class="game-text-link">전체 보기 →</a></div>
+        <div class="game-mini-list">
+          {% for s in submissions|slice:":6" %}
+            <a class="game-mini-row" href="{% url 'problems:detail' s.problem_id %}">
+              <span>{{ s.problem.title|truncatechars:30 }}</span>
+              <span class="badge badge-status-{{ s.result }}">{{ s.get_result_display }}</span>
+            </a>
+          {% empty %}
+            <p class="game-empty compact">최근 제출이 없습니다.</p>
+          {% endfor %}
+        </div>
+      </section>
+    </main>
+
+    <aside class="game-side">
+      <section class="game-panel accent-warning">
+        <div class="game-panel-head"><h2>자주 틀리는 유형</h2></div>
+        {% if weak_patterns %}
+          <div class="game-mini-list">
+            {% for row in weak_patterns %}
+              <div class="game-meter-row"><span>{{ row.error_pattern }}</span><strong>{{ row.count }}</strong></div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="game-muted">오답노트에 오류 유형이 쌓이면 표시됩니다.</p>
+        {% endif %}
+        <a class="game-btn ghost full" href="{% url 'wrongnotes:list' %}">오답노트에서 보기</a>
+      </section>
+
+      <section class="game-panel accent-purple">
+        <div class="game-panel-head"><h2>복습 필요 기록</h2></div>
+        <div class="game-mini-list">
+          {% for note in review_needed %}
+            <a class="game-mini-row" href="{% url 'wrongnotes:detail' note.id %}">
+              <span>{{ note.problem.title|truncatechars:26 }}</span>
+              <span>복습 필요</span>
+            </a>
+          {% empty %}
+            <p class="game-empty compact">복습할 오답노트가 없습니다.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="game-panel">
+        <div class="game-panel-head"><h2>최근 포인트 로그</h2></div>
+        <div class="game-mini-list">
+          {% for log in point_logs|slice:":5" %}
+            <div class="game-mini-row"><span>{{ log.get_action_type_display }}</span><span>{{ log.point }}P</span></div>
+          {% empty %}
+            <p class="game-empty compact">포인트 로그가 없습니다.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="game-panel">
+        <div class="game-panel-head"><h2>계정 설정</h2></div>
+        <div class="game-mini-list">
+          <div class="game-mini-row"><span>표시명</span><span>{{ user.username }}</span></div>
+          <div class="game-mini-row"><span>알림 설정</span><span>추후 구현</span></div>
+          <div class="game-mini-row"><span>비밀번호 변경</span><span>추후 구현</span></div>
+        </div>
+      </section>
+    </aside>
   </div>
 </section>
+{% endblock %}
 
-<div class="dashboard-grid">
-  <section class="panel">
-    <h2 class="section-title">나의 성장 현황</h2>
-    <div class="stat-row">
-      <div class="stat-card"><span class="stat-num">{{ summary.total_submissions }}</span><span class="stat-label">총 풀이</span></div>
-      <div class="stat-card"><span class="stat-num">{{ summary.success_count }}</span><span class="stat-label">정답</span></div>
-      <div class="stat-card"><span class="stat-num">{{ summary.wrong_count }}</span><span class="stat-label">오답</span></div>
-    </div>
-  </section>
-
-  <section class="panel">
-    <h2 class="section-title">이번 주 목표</h2>
-    <div class="mini-list">
-      {% for um in user_missions|slice:":3" %}
-        <div class="mini-row">
-          <span>{{ um.mission.title }}</span>
-          <span>{{ um.progress_count }} / {{ um.mission.target_count }}</span>
-        </div>
-      {% empty %}
-        <p class="empty compact">진행 중인 미션이 없습니다.</p>
-      {% endfor %}
-    </div>
-  </section>
-</div>
-
-<div class="dashboard-grid">
-  <section class="panel">
-    <h2 class="section-title">자주 틀리는 유형</h2>
-    {% if weak_patterns %}
-      {% for row in weak_patterns %}
-        <div class="progress-row">
-          <span>{{ row.error_pattern }}</span>
-          <strong>{{ row.count }}</strong>
-        </div>
-      {% endfor %}
-    {% else %}
-      <p class="hint-note">오답노트에 오류 유형이 쌓이면 표시됩니다.</p>
-    {% endif %}
-    <a class="btn btn-ghost btn-block" href="{% url 'wrongnotes:list' %}">오답노트에서 자세히 보기</a>
-  </section>
-
-  <section class="panel">
-    <h2 class="section-title">최근 학습 활동</h2>
-    <div class="mini-list">
-      {% for s in submissions|slice:":5" %}
-        <a class="mini-row" href="{% url 'problems:detail' s.problem_id %}">
-          <span>{{ s.problem.title|truncatechars:28 }}</span>
-          <span class="badge badge-status-{{ s.result }}">{{ s.get_result_display }}</span>
-        </a>
-      {% empty %}
-        <p class="empty compact">최근 제출이 없습니다.</p>
-      {% endfor %}
-    </div>
-  </section>
-</div>
-
-<div class="dashboard-grid">
-  <section class="panel">
-    <h2 class="section-title">최근 복습 필요 기록</h2>
-    <div class="mini-list">
-      {% for note in review_needed %}
-        <a class="mini-row" href="{% url 'wrongnotes:list' %}">
-          <span>{{ note.problem.title|truncatechars:28 }}</span>
-          <span>복습 필요</span>
-        </a>
-      {% empty %}
-        <p class="empty compact">복습할 오답노트가 없습니다.</p>
-      {% endfor %}
-    </div>
-  </section>
-
-  <section class="panel">
-    <h2 class="section-title">계정 설정</h2>
-    <div class="mini-list">
-      <div class="mini-row"><span>표시명</span><span>{{ user.username }}</span></div>
-      <div class="mini-row"><span>알림 설정</span><span>추후 구현</span></div>
-      <div class="mini-row"><span>비밀번호 변경</span><span>추후 구현</span></div>
-    </div>
-  </section>
-</div>
+{% block scripts %}
+<script src="{% static 'js/mypage.js' %}"></script>
 {% endblock %}

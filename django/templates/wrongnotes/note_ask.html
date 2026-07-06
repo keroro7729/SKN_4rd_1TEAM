@@ -1,126 +1,64 @@
 {% extends "base.html" %}
-{% block title %}내 노트에 물어보기 · WOOK'S CODING{% endblock %}
+{% load static %}
+{% block title %}내 노트 질의 · WOOK'S CODING{% endblock %}
 
 {% block content %}
 <form hidden>{% csrf_token %}</form>
-<div class="ask-layout">
-  <aside class="panel ask-sidebar">
-    <h2 class="section-title">추천 질문</h2>
-    <div class="mini-list">
-      {% for question in suggested_questions %}
-        <button type="button" class="mini-row question-preset" data-question="{{ question }}">{{ question }}</button>
-      {% endfor %}
-    </div>
+<section class="game-page ask-game-page">
+  <div class="game-topbar">
+    <div class="game-window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="game-route">/home/wook's-coding <b>›</b> wrong-notes <b>›</b> ask</div>
+    <div class="game-mode-pill cyan">P6 · 내 노트 질의</div>
+  </div>
 
-    <h2 class="section-title">최근 질문</h2>
-    <div class="mini-list">
-      {% for log in recent_logs %}
-        <button type="button" class="mini-row question-preset" data-question="{{ log.query }}">{{ log.query|truncatechars:32 }}</button>
-      {% empty %}
-        <p class="empty compact">최근 질문이 없습니다.</p>
-      {% endfor %}
-    </div>
-  </aside>
+  <div class="ask-game-layout">
+    <aside class="game-panel ask-game-sidebar">
+      <div class="game-panel-head"><h2>추천 질문</h2></div>
+      <div class="game-mini-list">
+        {% for question in suggested_questions %}
+          <button type="button" class="game-mini-row question-preset" data-question="{{ question }}">{{ question }}</button>
+        {% endfor %}
+      </div>
 
-  <section class="panel ask-main">
-    <div class="section-head">
-      <h1 class="page-title">내 노트 질의</h1>
-      <span id="note-ask-status" class="hint-note">본인 오답노트만 검색합니다.</span>
-    </div>
+      <div class="game-panel-head space-top"><h2>최근 질문</h2></div>
+      <div class="game-mini-list">
+        {% for log in recent_logs %}
+          <button type="button" class="game-mini-row question-preset" data-question="{{ log.query }}">{{ log.query|truncatechars:32 }}</button>
+        {% empty %}
+          <p class="game-empty compact">최근 질문이 없습니다.</p>
+        {% endfor %}
+      </div>
+    </aside>
 
-    <div class="chat-box">
-      <div id="note-answer" class="answer-card" hidden></div>
-      <div id="note-evidence" class="evidence-list" hidden></div>
-    </div>
+    <main class="game-panel ask-game-main">
+      <div class="game-panel-head ask-head">
+        <div>
+          <p class="game-eyebrow">WrongNote SearchView · /ai/wrong-note/ask</p>
+          <h1>내 노트 질의</h1>
+          <p>본인 오답노트만 검색하고, 근거 노트 ID와 score를 함께 표시합니다.</p>
+        </div>
+        <span id="note-ask-status" class="game-chip cyan">대기 중</span>
+      </div>
 
-    <div class="ask-input-row">
-      <textarea id="note-question" class="code-input ask-input" placeholder="내 오답노트에 대해 물어보세요.">{{ initial_question }}</textarea>
-      <button id="note-ask-btn" type="button" class="btn">질문</button>
-    </div>
-  </section>
-</div>
+      <div class="ask-chat-zone">
+        <div class="ask-user-bubble" id="ask-preview" {% if not initial_question %}hidden{% endif %}>{{ initial_question }}</div>
+        <div id="note-answer" class="ask-answer-card" hidden></div>
+        <div id="note-evidence" class="ask-evidence-row" hidden></div>
+        <div id="ask-empty" class="ask-empty-state">
+          <strong>오답노트 RAG 답변 대기</strong>
+          <p>예: “나 DP에서 뭘 자주 틀렸지?”처럼 질문하면 근거 note_id와 함께 답변합니다.</p>
+        </div>
+      </div>
 
-<script>
-(() => {
-  const questionInput = document.getElementById("note-question");
-  const askButton = document.getElementById("note-ask-btn");
-  const statusText = document.getElementById("note-ask-status");
-  const answerBox = document.getElementById("note-answer");
-  const evidenceBox = document.getElementById("note-evidence");
+      <div class="ask-input-bar">
+        <textarea id="note-question" class="game-textarea ask-input" placeholder="내 오답노트에 대해 물어보세요...">{{ initial_question }}</textarea>
+        <button id="note-ask-btn" type="button" class="game-btn primary">질문</button>
+      </div>
+    </main>
+  </div>
+</section>
+{% endblock %}
 
-  const getCookie = (name) => {
-    const cookies = document.cookie ? document.cookie.split(";") : [];
-    for (const rawCookie of cookies) {
-      const cookie = rawCookie.trim();
-      if (cookie.startsWith(`${name}=`)) {
-        return decodeURIComponent(cookie.slice(name.length + 1));
-      }
-    }
-    return "";
-  };
-
-  const escapeHtml = (value) => String(value || "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;",
-  }[char]));
-
-  const ask = async () => {
-    const question = questionInput.value.trim();
-    if (!question) {
-      statusText.textContent = "질문을 입력하세요.";
-      return;
-    }
-
-    answerBox.hidden = true;
-    evidenceBox.hidden = true;
-    askButton.disabled = true;
-    statusText.textContent = "오답노트 검색 중입니다.";
-
-    try {
-      const response = await fetch(window.location.pathname, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": getCookie("csrftoken"),
-          "Accept": "application/json",
-        },
-        body: JSON.stringify({ question }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error_message || "질문 처리에 실패했습니다.");
-      }
-
-      statusText.textContent = `처리 완료 · ${data.status}`;
-      answerBox.innerHTML = `
-        <strong>오답노트 RAG 답변</strong>
-        <p>${escapeHtml(data.answer || "근거가 부족하거나 AI 답변 생성이 아직 구현되지 않았습니다.")}</p>
-      `;
-      answerBox.hidden = false;
-
-      const ids = data.evidence_note_ids || [];
-      const scores = data.scores || [];
-      evidenceBox.innerHTML = ids.length
-        ? ids.map((id, index) => `<span class="evidence-pill">note_id ${escapeHtml(id)} · ${escapeHtml(scores[index] ?? "")}</span>`).join("")
-        : `<span class="hint-note">검색된 근거 오답노트가 없습니다.</span>`;
-      evidenceBox.hidden = false;
-    } catch (error) {
-      statusText.textContent = error.message;
-    } finally {
-      askButton.disabled = false;
-    }
-  };
-
-  document.querySelectorAll(".question-preset").forEach((button) => {
-    button.addEventListener("click", () => {
-      questionInput.value = button.dataset.question;
-      ask();
-    });
-  });
-  askButton.addEventListener("click", ask);
-})();
-</script>
+{% block scripts %}
+<script src="{% static 'js/note_ask.js' %}"></script>
 {% endblock %}
