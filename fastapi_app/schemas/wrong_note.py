@@ -64,3 +64,61 @@ class NoteAskResponse(InternalResponse):
     answer: str = ""
     evidence_note_ids: List[int] = Field(default_factory=list)
     scores: List[float] = Field(default_factory=list)
+
+
+
+# --- /wrongnotes/* compatibility endpoints ---
+class WrongNotesIndexRequest(BaseModel):
+    wrongnote_id: int
+    user_id: int
+    problem_id: Optional[int] = None
+    problem_title: str = ""
+    algorithm_keywords: List[str] = Field(default_factory=list)
+    wrong_code: str = ""
+    error_message: str = ""
+    user_comment: str = ""
+    created_at: Optional[str] = None
+
+
+class WrongNotesIndexResponse(BaseModel):
+    ok: bool = True
+    wrongnote_id: int
+    indexed: bool = False
+    error: Optional[str] = None
+
+
+class WrongNotesSimilarRequest(BaseModel):
+    user_id: int
+    wrongnote_id: Optional[int] = None
+    query: str = ""
+    limit: int = 3
+
+
+class WrongNotesSimilarItem(BaseModel):
+    wrongnote_id: int
+    problem_title: str = ""
+    algorithm_keywords: List[str] = Field(default_factory=list)
+    similarity_reason: str = ""
+    score: float = 0.0
+
+
+class WrongNotesSimilarResponse(BaseModel):
+    ok: bool = True
+    items: List[WrongNotesSimilarItem] = Field(default_factory=list)
+    error: Optional[str] = None
+
+
+class WrongNotesAnalyzeRequest(BaseModel):
+    user_id: int
+    wrongnote_id: int
+    problem_title: str = ""
+    algorithm_keywords: List[str] = Field(default_factory=list)
+    wrong_code: str = ""
+    error_message: str = ""
+    user_comment: str = ""
+
+
+class WrongNotesAnalyzeResponse(BaseModel):
+    ok: bool = True
+    analysis: dict = Field(default_factory=dict)
+    error: Optional[str] = None

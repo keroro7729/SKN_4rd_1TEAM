@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{{ notice.title }} ? 공지사항{% endblock %}
+
+{% block content %}
+<div class="page-hero compact-hero">
+  <div>
+    <p class="eyebrow">Notice</p>
+    <h1 class="page-title">{{ notice.title }}</h1>
+    <p class="page-sub">{{ notice.created_at|date:"Y.m.d H:i" }}</p>
+  </div>
+</div>
+
+<section class="panel">
+  <div class="problem-desc">{{ notice.content|linebreaksbr }}</div>
+</section>
+
+<p class="back-link"><a href="{% url 'notices:list' %}">공지사항 목록으로 돌아가기</a></p>
+{% endblock %}

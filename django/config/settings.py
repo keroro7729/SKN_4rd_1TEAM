@@ -31,7 +31,8 @@ DEFAULT_ALLOWED_HOSTS = ",".join(
     [
         "localhost",
         "127.0.0.1",
-        "3.36.123.126",
+        "54.180.243.153",
+        "43.203.216.32",
     ]
 )
 ALLOWED_HOSTS = [

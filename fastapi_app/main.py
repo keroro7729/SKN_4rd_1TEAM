@@ -21,4 +21,5 @@ app = FastAPI(
 app.include_router(health.router)
 app.include_router(hint.router)
 app.include_router(wrong_note.router)
+app.include_router(wrong_note.compat_router)
 app.include_router(diagnostics.router)

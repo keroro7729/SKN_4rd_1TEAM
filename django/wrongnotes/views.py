@@ -15,7 +15,7 @@ from gamification.services import record_user_action
 from submissions.models import Submission
 
 from .models import WrongNote, WrongNoteQueryLog
-from .services import FastAPIClientError, analyze_wrong_note, call_fastapi, embed_wrong_note
+from .services import FastAPIClientError, analyze_wrong_note, call_fastapi, embed_wrong_note, refresh_wrong_note_analysis
 
 
 class WrongNoteListView(LoginRequiredMixin, ListView):
@@ -120,6 +120,12 @@ class WrongNoteDetailView(LoginRequiredMixin, DetailView):
             ctx["vector"] = note.vector
         except WrongNote.vector.RelatedObjectDoesNotExist:
             ctx["vector"] = None
+        ctx["recent_notes"] = (
+            WrongNote.objects.filter(user=self.request.user)
+            .exclude(id=note.id)
+            .select_related("problem")
+            .order_by("-created_at")[:5]
+        )
         return ctx
 
 
@@ -324,5 +330,34 @@ def review_wrong_note(request, note_id):
             "reviewed_at": note.reviewed_at.isoformat() if note.reviewed_at else None,
             "point_created": point_created,
             "user_point": request.user.point,
+        }
+    )
+
+
+@login_required
+@require_POST
+def analyze_wrong_note_review(request, note_id):
+    """Re-run AI/RAG analysis for a wrong note without breaking the page."""
+    note = get_object_or_404(
+        WrongNote.objects.select_related("problem", "submission").prefetch_related("tags"),
+        pk=note_id,
+        user=request.user,
+    )
+    try:
+        result = refresh_wrong_note_analysis(note)
+    except Exception as exc:  # noqa: BLE001
+        return JsonResponse(
+            {
+                "ok": False,
+                "error_message": "AI ??? ???? ?????. ?? ? ?? ??? ???.",
+                "detail": str(exc),
+            },
+            status=502,
+        )
+    return JsonResponse(
+        {
+            "ok": True,
+            "wrong_note_id": note.id,
+            "ai_analysis": result,
         }
     )

@@ -1,6 +1,9 @@
 """마이페이지 화면 (STEP-03). 본인 데이터만 조회(§6.1). 포인트/미션 보완은 STEP-08."""
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import PasswordChangeView
 from django.db.models import Count, Q
+from django.urls import reverse_lazy
 from django.views.generic import TemplateView
 
 from gamification.models import PointLog, UserMission
@@ -124,3 +127,16 @@ class LearningHistoryView(LoginRequiredMixin, TemplateView):
             .order_by("-created_at")[:5]
         )
         return ctx
+
+
+class MyPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
+    template_name = "mypage/password_change.html"
+    success_url = reverse_lazy("mypage:index")
+
+    def form_valid(self, form):
+        messages.success(self.request, "????? ???????.")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "???? ??? ??? ???.")
+        return super().form_invalid(form)

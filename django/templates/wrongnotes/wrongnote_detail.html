@@ -7,7 +7,7 @@
   <div>
     <p class="eyebrow">WrongNote DetailView</p>
     <h1 class="page-title">오답노트 상세</h1>
-    <p class="page-sub">틀린 제출, 내가 남긴 코멘트, 복습 상태를 한 번에 확인합니다.</p>
+    <p class="page-sub">틀린 제출, 작성 코멘트, 복습 상태를 한 번에 확인합니다.</p>
   </div>
   <div class="editor-actions">
     <a href="{% url 'problems:detail' note.problem_id %}" class="btn btn-ghost">문제 다시 보기</a>
@@ -47,41 +47,45 @@
 
     <section class="panel">
       <div class="section-head">
-        <h2 class="section-title">AI 오답 분석</h2>
-        {% if note.ai_analysis.analysis_status %}
-          <span class="badge badge-status-{{ note.ai_analysis.analysis_status }}">{{ note.ai_analysis.analysis_status }}</span>
+        <div>
+          <h2 class="section-title">AI 오답 분석</h2>
+          <p class="hint-note">저장된 오답노트와 RAG 인덱스를 기반으로 복습 분석을 요청합니다.</p>
+        </div>
+        <button type="button" id="ai-review-btn" class="btn btn-primary btn-sm" data-analyze-url="{% url 'wrongnotes:analyze' note.id %}">AI 복습 분석</button>
+      </div>
+      <div id="ai-analysis-status" class="hint-note"></div>
+      <div id="ai-analysis-result">
+        {% if analysis %}
+          <div class="analysis-grid">
+            <article class="analysis-card">
+              <strong>문제 핵심</strong>
+              <p>{{ analysis.problem_core|default:"분석 결과가 없습니다."|linebreaksbr }}</p>
+            </article>
+            <article class="analysis-card">
+              <strong>오답 원인</strong>
+              <p>{{ analysis.cause|default:"분석 결과가 없습니다."|linebreaksbr }}</p>
+            </article>
+            <article class="analysis-card">
+              <strong>풀이 과정</strong>
+              <p>{{ analysis.solution|default:"분석 결과가 없습니다."|linebreaksbr }}</p>
+            </article>
+            <article class="analysis-card">
+              <strong>주의사항</strong>
+              <p>{{ analysis.caution|default:"분석 결과가 없습니다."|linebreaksbr }}</p>
+            </article>
+          </div>
+          {% if analysis.evidence %}
+            <h3 class="sub-title">분석 근거</h3>
+            <div class="evidence-list">
+              {% for item in analysis.evidence %}
+                <span class="evidence-pill">{{ item }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% else %}
+          <p class="hint-note">아직 AI 분석 결과가 없습니다. AI 복습 분석을 실행해 주세요.</p>
         {% endif %}
       </div>
-      {% if analysis %}
-        <div class="analysis-grid">
-          <article class="analysis-card">
-            <strong>문제 핵심</strong>
-            <p>{{ analysis.problem_core|default:"분석 결과가 없습니다."|linebreaksbr }}</p>
-          </article>
-          <article class="analysis-card">
-            <strong>오답 원인</strong>
-            <p>{{ analysis.cause|default:"분석 결과가 없습니다."|linebreaksbr }}</p>
-          </article>
-          <article class="analysis-card">
-            <strong>풀이 과정</strong>
-            <p>{{ analysis.solution|default:"분석 결과가 없습니다."|linebreaksbr }}</p>
-          </article>
-          <article class="analysis-card">
-            <strong>주의사항</strong>
-            <p>{{ analysis.caution|default:"분석 결과가 없습니다."|linebreaksbr }}</p>
-          </article>
-        </div>
-        {% if analysis.evidence %}
-          <h3 class="sub-title">분석 근거</h3>
-          <div class="evidence-list">
-            {% for item in analysis.evidence %}
-              <span class="evidence-pill">{{ item }}</span>
-            {% endfor %}
-          </div>
-        {% endif %}
-      {% else %}
-        <p class="hint-note">AI 분석 결과가 아직 없습니다. 오답노트 저장, 상세 조회, 복습은 정상 사용할 수 있습니다.</p>
-      {% endif %}
       {% if note.ai_analysis.analysis_request_id or note.ai_analysis.search_request_id %}
         <p class="hint-note">
           analysis_request_id: {{ note.ai_analysis.analysis_request_id|default:"-" }}
@@ -115,12 +119,12 @@
           <div class="mini-row"><span>indexed_at</span><span>{{ vector.indexed_at|date:"Y-m-d H:i" }}</span></div>
         </div>
       {% else %}
-        <p class="hint-note">아직 벡터 매핑이 없습니다. 저장은 완료됐고 인덱싱만 확인이 필요합니다.</p>
+        <p class="hint-note">아직 벡터 매핑이 없습니다. 저장 완료와 인덱싱 상태를 확인해야 합니다.</p>
       {% endif %}
     </section>
 
     <section class="panel">
-      <h2 class="section-title">유사 오답노트</h2>
+      <h2 class="section-title">과거 유사 오답노트</h2>
       <div class="mini-list">
         {% for item in similar_notes %}
           <div class="mini-row">
@@ -132,13 +136,29 @@
         {% endfor %}
       </div>
     </section>
+
+    <section class="panel recent-notes-panel">
+      <h2 class="section-title">최근 오답노트</h2>
+      <div class="mini-list">
+        {% for recent in recent_notes %}
+          <a class="mini-row" href="{% url 'wrongnotes:detail' recent.id %}">
+            <span>{{ recent.problem.title|truncatechars:24 }}</span>
+            <span>{% if recent.is_reviewed %}O{% else %}X{% endif %}</span>
+          </a>
+        {% empty %}
+          <p class="empty compact">최근 오답노트가 없습니다.</p>
+        {% endfor %}
+      </div>
+    </section>
   </aside>
 </div>
 
 <script>
 (() => {
-  const button = document.getElementById("review-note-btn");
-  if (!button) return;
+  const reviewButton = document.getElementById("review-note-btn");
+  const aiButton = document.getElementById("ai-review-btn");
+  const aiStatus = document.getElementById("ai-analysis-status");
+  const aiResult = document.getElementById("ai-analysis-result");
 
   const getCookie = (name) => {
     const cookies = document.cookie ? document.cookie.split(";") : [];
@@ -151,10 +171,10 @@
     return "";
   };
 
-  button.addEventListener("click", async () => {
-    button.disabled = true;
+  if (reviewButton) reviewButton.addEventListener("click", async () => {
+    reviewButton.disabled = true;
     try {
-      const response = await fetch(button.dataset.reviewUrl, {
+      const response = await fetch(reviewButton.dataset.reviewUrl, {
         method: "POST",
         headers: {
           "X-CSRFToken": getCookie("csrftoken"),
@@ -165,13 +185,43 @@
       if (!response.ok || !data.ok) {
         throw new Error(data.error_message || "복습 완료 처리에 실패했습니다.");
       }
-      const label = document.createElement("span");
-      label.className = "reviewed";
-      label.textContent = "복습완료";
-      button.replaceWith(label);
+      window.location.reload();
     } catch (error) {
-      button.disabled = false;
-      button.textContent = error.message;
+      reviewButton.disabled = false;
+      alert(error.message || "복습 완료 처리에 실패했습니다.");
+    }
+  });
+
+  if (aiButton) aiButton.addEventListener("click", async () => {
+    aiButton.disabled = true;
+    if (aiStatus) aiStatus.textContent = "AI 복습 분석을 요청하는 중입니다.";
+    try {
+      const response = await fetch(aiButton.dataset.analyzeUrl, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+          "Accept": "application/json",
+        },
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error_message || "AI 분석을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      }
+      const analysis = data.analysis || {};
+      if (aiResult) {
+        aiResult.innerHTML = `
+          <div class="analysis-grid">
+            <article class="analysis-card"><strong>문제 핵심</strong><p>${analysis.problem_core || analysis.core_concept || "분석 결과가 없습니다."}</p></article>
+            <article class="analysis-card"><strong>오답 원인</strong><p>${analysis.cause || analysis.mistake_type || "분석 결과가 없습니다."}</p></article>
+            <article class="analysis-card"><strong>풀이 과정</strong><p>${analysis.solution || analysis.review_hint || "분석 결과가 없습니다."}</p></article>
+            <article class="analysis-card"><strong>주의사항</strong><p>${analysis.caution || analysis.similar_note_summary || "분석 결과가 없습니다."}</p></article>
+          </div>`;
+      }
+      if (aiStatus) aiStatus.textContent = "AI 복습 분석이 완료되었습니다.";
+    } catch (error) {
+      if (aiStatus) aiStatus.textContent = error.message || "AI 분석을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.";
+    } finally {
+      aiButton.disabled = false;
     }
   });
 })();

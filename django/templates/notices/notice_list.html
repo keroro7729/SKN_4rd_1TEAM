@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}공지사항 - WOOK'S CODING{% endblock %}
+
+{% block content %}
+<div class="page-hero compact-hero">
+  <div>
+    <p class="eyebrow">Notice</p>
+    <h1 class="page-title">공지사항</h1>
+    <p class="page-sub">서비스 운영 안내와 업데이트 내용을 확인하세요.</p>
+  </div>
+</div>
+
+<section class="panel">
+  <div class="notice-list">
+    {% for notice in notices %}
+      <a class="mini-row" href="{% url 'notices:detail' notice.pk %}">
+        <span>{{ notice.title }}</span>
+        <span class="notice-date">{{ notice.created_at|date:"Y.m.d" }}</span>
+      </a>
+    {% empty %}
+      <p class="empty compact">등록된 공지사항이 없습니다.</p>
+    {% endfor %}
+  </div>
+</section>
+
+{% if is_paginated %}
+<nav class="pagination">
+  {% if page_obj.has_previous %}<a class="page-link page-edge" href="?page={{ page_obj.previous_page_number }}">이전</a>{% endif %}
+  <span class="page-link page-current">{{ page_obj.number }}</span>
+  {% if page_obj.has_next %}<a class="page-link page-edge" href="?page={{ page_obj.next_page_number }}">다음</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}

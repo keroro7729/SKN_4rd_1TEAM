@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}마이페이지 · WOOK'S CODING{% endblock %}
+{% block title %}마이페이지 - WOOK'S CODING{% endblock %}
 
 {% block content %}
 <div class="page-hero compact-hero">
   <div>
     <p class="eyebrow">My Page</p>
     <h1 class="page-title">마이페이지</h1>
-    <p class="page-sub">나의 학습 성장과 취약점을 한눈에 확인해보세요.</p>
+    <p class="page-sub">나의 학습 현황과 오답 패턴을 확인하세요.</p>
   </div>
 </div>
 
@@ -16,37 +16,14 @@
     <p class="hint-note">현재 포인트 {{ user.point }}P</p>
   </div>
   <div class="profile-metrics">
-    <div><strong>{{ summary.total_submissions }}</strong><span>총 풀이 문제</span></div>
+    <div><strong>{{ summary.total_submissions }}</strong><span>전체 풀이 수</span></div>
+    <div><strong>{{ summary.success_count }}</strong><span>정답 수</span></div>
+    <div><strong>{{ summary.wrong_count }}</strong><span>오답 수</span></div>
     <div><strong>{{ summary.accuracy }}%</strong><span>정답률</span></div>
-    <div><strong>{{ summary.wrong_note_count }}</strong><span>오답노트</span></div>
-    <div><strong>{{ summary.reviewed_count }}</strong><span>복습 완료</span></div>
+    <div><strong>{{ summary.wrong_note_count }}</strong><span>오답노트 수</span></div>
+    <div><strong>{{ summary.reviewed_count }}</strong><span>복습 완료 수</span></div>
   </div>
 </section>
-
-<div class="dashboard-grid">
-  <section class="panel">
-    <h2 class="section-title">나의 성장 현황</h2>
-    <div class="stat-row">
-      <div class="stat-card"><span class="stat-num">{{ summary.total_submissions }}</span><span class="stat-label">총 풀이</span></div>
-      <div class="stat-card"><span class="stat-num">{{ summary.success_count }}</span><span class="stat-label">정답</span></div>
-      <div class="stat-card"><span class="stat-num">{{ summary.wrong_count }}</span><span class="stat-label">오답</span></div>
-    </div>
-  </section>
-
-  <section class="panel">
-    <h2 class="section-title">이번 주 목표</h2>
-    <div class="mini-list">
-      {% for um in user_missions|slice:":3" %}
-        <div class="mini-row">
-          <span>{{ um.mission.title }}</span>
-          <span>{{ um.progress_count }} / {{ um.mission.target_count }}</span>
-        </div>
-      {% empty %}
-        <p class="empty compact">진행 중인 미션이 없습니다.</p>
-      {% endfor %}
-    </div>
-  </section>
-</div>
 
 <div class="dashboard-grid">
   <section class="panel">
@@ -76,15 +53,16 @@
         <p class="empty compact">최근 제출이 없습니다.</p>
       {% endfor %}
     </div>
+    <a class="btn btn-ghost btn-block" href="{% url 'mypage:history' %}">학습기록 전체 보기</a>
   </section>
 </div>
 
 <div class="dashboard-grid">
   <section class="panel">
-    <h2 class="section-title">최근 복습 필요 기록</h2>
+    <h2 class="section-title">복습 필요 오답노트</h2>
     <div class="mini-list">
       {% for note in review_needed %}
-        <a class="mini-row" href="{% url 'wrongnotes:list' %}">
+        <a class="mini-row" href="{% url 'wrongnotes:detail' note.id %}">
           <span>{{ note.problem.title|truncatechars:28 }}</span>
           <span>복습 필요</span>
         </a>
@@ -95,11 +73,10 @@
   </section>
 
   <section class="panel">
-    <h2 class="section-title">계정 설정</h2>
+    <h2 class="section-title">계정 정보</h2>
     <div class="mini-list">
-      <div class="mini-row"><span>표시명</span><span>{{ user.username }}</span></div>
-      <div class="mini-row"><span>알림 설정</span><span>추후 구현</span></div>
-      <div class="mini-row"><span>비밀번호 변경</span><span>추후 구현</span></div>
+      <div class="mini-row"><span>유저명</span><span>{{ user.username }}</span></div>
+      <a class="mini-row" href="{% url 'mypage:password_change' %}"><span>비밀번호 변경</span><span>이동</span></a>
     </div>
   </section>
 </div>

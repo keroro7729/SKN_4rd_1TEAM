@@ -39,10 +39,14 @@ def build_wrong_note_payload(note) -> dict:
         "submission_id": note.submission_id,
         "problem_title": note.problem.title,
         "tags": tags,
+        "algorithm_keywords": tags,
         "user_comment": note.comment,
+        "wrong_code": note.submission.code,
         "submitted_code": note.submission.code,
         "code": note.submission.code,
         "comment": note.comment,
+        "error_message": note.submission.error_message or "",
+        "created_at": note.created_at.isoformat() if note.created_at else "",
     }
 
 
@@ -140,3 +144,12 @@ def analyze_wrong_note(note) -> dict:
         result["errors"].append({"stage": "analyze", "message": str(exc)})
 
     return result
+
+
+
+def refresh_wrong_note_analysis(note) -> dict:
+    """Re-run wrong-note search and analysis, then persist the result."""
+    ai_result = analyze_wrong_note(note)
+    note.ai_analysis = ai_result
+    note.save(update_fields=["ai_analysis"])
+    return ai_result

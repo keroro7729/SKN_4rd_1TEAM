@@ -49,6 +49,18 @@
       <button id="submit-btn" type="button" class="btn">제출</button>
       <button id="reset-code-btn" type="button" class="btn btn-ghost">초기화</button>
     </div>
+    {% if visible_test_cases %}
+      <section class="sub-panel testcase-preview">
+        <h2 class="section-title">테스트케이스</h2>
+        <p class="hint-note">최대 3개를 표시합니다. 추후 RAG 기반 테스트케이스 추천과 연계할 수 있습니다.</p>
+        {% for tc in visible_test_cases %}
+          <div class="testcase">
+            <div><strong>테스트케이스 {{ forloop.counter }} 입력</strong><pre>{{ tc.input_data }}</pre></div>
+            <div><strong>예상 출력</strong><pre>{{ tc.expected_output }}</pre></div>
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
 
     <div id="run-loading-box" class="result-area" hidden></div>
     <div id="run-error-box" class="result-area result-error" hidden></div>

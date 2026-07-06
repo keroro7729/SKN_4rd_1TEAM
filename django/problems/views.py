@@ -9,6 +9,7 @@ from config.choices import DIFFICULTY_CHOICES
 from config.pagination import build_pagination_context
 from submissions.models import Submission
 from wrongnotes.models import WrongNote
+from problems.services.recommendation import get_today_recommended_problems
 
 from .models import Problem, ProblemCategory
 
@@ -114,24 +115,13 @@ class ProblemListView(LoginRequiredMixin, ListView):
             ("wrong", "오답 제출"),
             ("has_note", "오답노트 있음"),
         ]
-        ctx["recommended_problems"] = (
-            Problem.objects.filter(is_active=True)
-            .select_related("category")
-            .prefetch_related("tags")
-            .order_by("id")[:3]
-        )
+        ctx["recommended_problems"] = get_today_recommended_problems(self.request.user, limit=3)
         ctx["recent_wrong_notes"] = (
             WrongNote.objects.filter(user=self.request.user)
             .select_related("problem")
             .order_by("-created_at")[:3]
         )
-        ctx["today_problem"] = (
-            Problem.objects.filter(is_active=True)
-            .select_related("category")
-            .prefetch_related("tags")
-            .order_by("?")
-            .first()
-        )
+        ctx["today_problem"] = ctx["recommended_problems"][0] if ctx["recommended_problems"] else None
         if ctx.get("page_obj"):
             ctx["pagination"] = build_pagination_context(
                 self.request,
@@ -149,5 +139,13 @@ class ProblemDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx["sample_cases"] = self.object.test_cases.filter(is_sample=True)
+        sample_cases = list(self.object.test_cases.filter(is_sample=True).order_by("id")[:3])
+        if len(sample_cases) < 3:
+            extra_cases = list(
+                self.object.test_cases.filter(is_sample=False)
+                .order_by("id")[: 3 - len(sample_cases)]
+            )
+            sample_cases.extend(extra_cases)
+        ctx["sample_cases"] = self.object.test_cases.filter(is_sample=True).order_by("id")
+        ctx["visible_test_cases"] = sample_cases
         return ctx

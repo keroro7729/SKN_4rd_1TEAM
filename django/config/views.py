@@ -1,17 +1,15 @@
-"""최상위 화면 뷰."""
+"""Top-level page views."""
 from django.http import JsonResponse
 from django.views import View
 from django.views.generic import TemplateView
 
 from gamification.models import Mission
 from notices.models import Notice
-from problems.models import Problem
-from submissions.models import Submission
-from wrongnotes.models import WrongNote
+from problems.services.recommendation import get_today_recommended_problems
 
 
 class HomeView(TemplateView):
-    """홈: 공지 + 진행 가능한 미션 노출 (비로그인 접근 허용)."""
+    """Home page with notices, missions, and daily-random recommendations."""
 
     template_name = "home.html"
 
@@ -19,31 +17,15 @@ class HomeView(TemplateView):
         ctx = super().get_context_data(**kwargs)
         ctx["notices"] = Notice.objects.filter(is_published=True)[:5]
         ctx["missions"] = Mission.objects.filter(is_active=True)[:5]
-        ctx["recommended_problems"] = (
-            Problem.objects.filter(is_active=True)
-            .select_related("category")
-            .prefetch_related("tags")
-            .order_by("id")[:3]
+        ctx["recommended_problems"] = get_today_recommended_problems(
+            self.request.user,
+            limit=3,
         )
-        if self.request.user.is_authenticated:
-            ctx["recent_wrong_notes"] = (
-                WrongNote.objects.filter(user=self.request.user)
-                .select_related("problem")
-                .order_by("-created_at")[:3]
-            )
-            ctx["recent_submissions"] = (
-                Submission.objects.filter(
-                    user=self.request.user,
-                    submission_type="submit",
-                )
-                .select_related("problem")
-                .order_by("-created_at")[:3]
-            )
         return ctx
 
 
 class HealthCheckView(View):
-    """컨테이너 준비 상태 확인용 경량 엔드포인트."""
+    """Lightweight container readiness endpoint."""
 
     def get(self, request, *args, **kwargs):
         return JsonResponse({"status": "ok"})

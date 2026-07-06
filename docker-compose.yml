@@ -1,6 +1,6 @@
-# WOOK'S CODING - App server orchestration for RDS deployment.
-# Runs only the web/API stack. The code execution worker runs on a separate EC2
-# instance through docker-compose.worker.yml.
+# WOOK'S CODING - Single EC2 orchestration for the current development phase.
+# PostgreSQL stays on RDS. The worker runs on this EC2 for now and can be split
+# later with docker-compose.worker.yml.
 
 services:
   chromadb:
@@ -39,6 +39,18 @@ services:
       - ./volumes/logs:/logs
     depends_on:
       - chromadb
+
+  worker:
+    build: ./worker
+    env_file: .env
+    environment:
+      LOG_DIR: /logs
+    volumes:
+      - ./volumes/logs:/logs
+    depends_on:
+      django:
+        condition: service_healthy
+    restart: unless-stopped
 
   nginx:
     image: nginx:1.27-alpine

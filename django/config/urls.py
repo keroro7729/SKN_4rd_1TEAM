@@ -17,6 +17,7 @@ urlpatterns = [
     path("problems/", include("problems.urls")),
     path("submissions/", include("submissions.urls")),
     path("wrongnotes/", include("wrongnotes.urls")),
+    path("notices/", include("notices.urls")),
     path("mypage/", include("mypage.urls")),
     path("adminpanel/", include("adminpanel.urls")),
     # /ai/* 는 FastAPI(STEP-05~) 담당.

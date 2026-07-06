@@ -374,3 +374,8 @@ button.mini-row { width: 100%; font: inherit; text-align: left; cursor: pointer;
   .solve-layout { grid-template-columns: 1fr; }
   .testcase { grid-template-columns: 1fr; }
 }
+
+.fold-panel { margin-top: 10px; }
+.fold-panel summary { display: inline-flex; cursor: pointer; list-style: none; }
+.fold-panel summary::-webkit-details-marker { display: none; }
+.testcase-preview { margin-top: 14px; }

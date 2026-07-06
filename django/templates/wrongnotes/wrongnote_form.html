@@ -25,14 +25,20 @@
       </section>
 
       <section class="sub-panel">
-        <h2 class="section-title">오답 화면 / 실행 결과</h2>
-        <pre class="code-view">{{ submission.code }}</pre>
+        <h2 class="section-title">실행 결과 요약</h2>
         <div class="result-summary">
           <span class="badge badge-status-{{ submission.result }}">{{ submission.get_result_display }}</span>
           <span>실행 시간 {{ submission.elapsed_ms|default:0 }}ms</span>
         </div>
+        <details class="fold-panel">
+          <summary class="btn btn-ghost btn-sm">틀린 코드 보기</summary>
+          <pre class="code-view">{{ submission.code }}</pre>
+        </details>
         {% if submission.error_message %}
-          <pre class="result-pre result-error-text">{{ submission.error_message }}</pre>
+          <details class="fold-panel">
+            <summary class="btn btn-ghost btn-sm">오류 메시지 보기</summary>
+            <pre class="result-pre result-error-text">{{ submission.error_message }}</pre>
+          </details>
         {% endif %}
       </section>
 

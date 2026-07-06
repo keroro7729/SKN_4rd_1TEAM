@@ -66,7 +66,7 @@
           <a class="list-row problem-row" href="{% url 'problems:detail' p.pk %}">
             <span class="quest-index">{{ forloop.counter }}</span>
             <span class="list-main">
-              <span class="list-title">{{ p.id }}번 {{ p.title|truncatechars:70 }}</span>
+              <span class="list-title">{{ p.title|truncatechars:70 }}</span>
               <span class="list-tags">
                 <span class="tag">{{ p.category.name }}</span>
                 {% for t in p.tags.all %}<span class="tag">{{ t.name }}</span>{% endfor %}
@@ -108,7 +108,7 @@
       <div class="mini-list">
         {% for p in recommended_problems %}
           <a class="mini-row" href="{% url 'problems:detail' p.id %}">
-            <span>{{ p.id }}번 {{ p.title|truncatechars:22 }}</span>
+            <span>{{ p.title|truncatechars:22 }}</span>
             <span class="tag">{{ p.category.name }}</span>
           </a>
         {% empty %}
@@ -120,7 +120,7 @@
     <section class="panel accent-panel">
       <h2 class="section-title">오늘의 추천 문제</h2>
       {% if today_problem %}
-        <p class="note-problem">{{ today_problem.id }}번 {{ today_problem.title }}</p>
+        <p class="note-problem">{{ today_problem.title }}</p>
         <p class="hint-note">완료 시 포인트 지급 대상입니다.</p>
         <a class="btn btn-block" href="{% url 'problems:detail' today_problem.id %}">오늘의 문제 풀기</a>
       {% else %}
