@@ -1,6 +1,6 @@
 """마이페이지 화면 (STEP-03). 본인 데이터만 조회(§6.1). 포인트/미션 보완은 STEP-08."""
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.views.generic import TemplateView
 
 from gamification.models import PointLog, UserMission
@@ -54,72 +54,6 @@ class MyPageView(LoginRequiredMixin, TemplateView):
         )
         ctx["review_needed"] = (
             wrong_notes_qs.filter(is_reviewed=False)
-            .select_related("problem")
-            .order_by("-created_at")[:5]
-        )
-        return ctx
-
-
-class LearningHistoryView(LoginRequiredMixin, TemplateView):
-    template_name = "mypage/learning_history.html"
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        user = self.request.user
-        qs = (
-            Submission.objects.filter(user=user, submission_type="submit")
-            .select_related("problem", "problem__category")
-            .prefetch_related("problem__tags")
-            .order_by("-created_at")
-        )
-
-        self.f_result = self.request.GET.get("result") or ""
-        self.f_q = (self.request.GET.get("q") or "").strip()
-        self.f_category = self.request.GET.get("category") or ""
-
-        if self.f_result:
-            if self.f_result == "wrong_group":
-                qs = qs.filter(result__in=["wrong", "error", "timeout"])
-            elif self.f_result == "has_note":
-                note_problem_ids = WrongNote.objects.filter(user=user).values_list(
-                    "problem_id", flat=True
-                )
-                qs = qs.filter(problem_id__in=note_problem_ids)
-            else:
-                qs = qs.filter(result=self.f_result)
-        if self.f_q:
-            search_filter = (
-                Q(problem__title__icontains=self.f_q)
-                | Q(problem__tags__name__icontains=self.f_q)
-            )
-            if self.f_q.isdigit():
-                search_filter |= Q(problem__id=int(self.f_q))
-            qs = qs.filter(search_filter)
-        if self.f_category:
-            qs = qs.filter(problem__category__slug=self.f_category)
-
-        all_submissions = Submission.objects.filter(
-            user=user,
-            submission_type="submit",
-        )
-        ctx["records"] = qs.distinct()[:50]
-        ctx["q"] = self.f_q
-        ctx["cur_result"] = self.f_result
-        ctx["cur_category"] = self.f_category
-        ctx["result_filters"] = [
-            ("", "전체"),
-            ("success", "정답"),
-            ("wrong_group", "오답"),
-            ("has_note", "오답노트 있음"),
-        ]
-        ctx["summary"] = {
-            "total": all_submissions.count(),
-            "success": all_submissions.filter(result="success").count(),
-            "wrong": all_submissions.filter(result__in=["wrong", "error", "timeout"]).count(),
-            "notes": WrongNote.objects.filter(user=user).count(),
-        }
-        ctx["review_needed"] = (
-            WrongNote.objects.filter(user=user, is_reviewed=False)
             .select_related("problem")
             .order_by("-created_at")[:5]
         )

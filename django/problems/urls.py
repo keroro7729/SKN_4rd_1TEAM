@@ -8,4 +8,5 @@ app_name = "problems"
 urlpatterns = [
     path("", views.ProblemListView.as_view(), name="list"),
     path("<int:pk>/", views.ProblemDetailView.as_view(), name="detail"),
+    path("<int:pk>/favorite/", views.ToggleFavoriteView.as_view(), name="toggle_favorite"),
 ]

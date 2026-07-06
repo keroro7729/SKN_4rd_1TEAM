@@ -2,6 +2,7 @@
 
 설계 상세: llm_wiki/6. WOOKS_CODING_데이터모델_문제_제출_Job_오답노트_v0.1.md §1
 """
+from django.conf import settings
 from django.db import models
 
 from config.choices import DIFFICULTY_CHOICES, TEST_COMPARE_MODE_CHOICES
@@ -60,6 +61,35 @@ class Problem(models.Model):
 
     def __str__(self):
         return f"[{self.get_difficulty_display()}] {self.title}"
+
+
+class ProblemFavorite(models.Model):
+    """사용자별 즐겨찾기(북마크). 목록 화면의 ☆ 토글과 '즐겨찾기' 상태 필터가 이 모델을 사용한다."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="favorite_problems",
+        verbose_name="사용자",
+    )
+    problem = models.ForeignKey(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="favorited_by",
+        verbose_name="문제",
+    )
+    created_at = models.DateTimeField("등록일", auto_now_add=True)
+
+    class Meta:
+        verbose_name = "즐겨찾기"
+        verbose_name_plural = "즐겨찾기"
+        constraints = [
+            models.UniqueConstraint(fields=["user", "problem"], name="unique_user_problem_favorite")
+        ]
+        indexes = [models.Index(fields=["user", "problem"])]
+
+    def __str__(self):
+        return f"{self.user_id} ★ {self.problem_id}"
 
 
 class TestCase(models.Model):
