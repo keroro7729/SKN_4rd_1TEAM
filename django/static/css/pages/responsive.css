@@ -1,35 +1,106 @@
 @media (max-width: 1180px) {
-  .game-dashboard-grid { grid-template-columns: repeat(6,minmax(0,1fr)); }
-  .game-span-3, .game-span-4, .game-span-5, .game-span-6 { grid-column: span 3; }
-  .game-span-7, .game-span-8, .game-span-12 { grid-column: 1 / -1; }
-  .home-feature-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-  .solve-layout, .problem-layout, .wrongnote-layout, .mypage-layout, .reflection-grid, .feedback-layout { grid-template-columns: 1fr; }
-  .problem-side-stack, .wrongnote-side-stack, .hint-sidebar { position: static; }
+  .home-feature-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .home-guide-strip { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .game-span-3, .game-span-4, .game-span-5, .game-span-6, .game-span-7, .game-span-8 { grid-column: span 6; }
+  .wrongnote-layout, .note-detail-layout, .mypage-layout { grid-template-columns: 1fr; }
+  .wrongnote-side-stack, .mypage-side-stack, .problem-side-stack { position: static; }
+  .ask-layout { grid-template-columns: 260px minmax(0, 1fr); }
+  .feedback-layout { grid-template-columns: 1fr; }
 }
-@media (max-width: 760px) {
-  .game-site-header { grid-template-columns: 1fr; align-items:flex-start; }
-  .game-nav { justify-content:flex-start; overflow-x:auto; width:100%; flex-wrap:nowrap; }
-  .game-player-pill { width:100%; justify-content:space-between; }
+
+@media (max-width: 900px) {
+  .game-site-header {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 10px;
+    min-height: auto;
+  }
+  .game-logo { justify-content: center; }
+  .game-nav {
+    justify-content: flex-start;
+    overflow-x: auto;
+    width: 100%;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+  .game-nav a, .game-nav-cta { flex: 0 0 auto; }
+  .game-player-pill { width: 100%; justify-content: space-between; border-radius: 14px; }
   .game-content { padding: 12px; }
-  .game-topbar, .game-hero, .compact-hero { flex-direction:column; align-items:flex-start; }
-  .game-mode-pill { margin-left:0; }
-  .home-hero { grid-template-columns:1fr; }
-  .home-feature-grid { grid-template-columns:1fr; padding:0 14px 14px; }
-  .home-dashboard, .problem-shell, .wrongnote-shell, .mypage-shell, .reflection-workspace, .solve-layout, .ask-layout { padding-left:14px; padding-right:14px; }
-  .game-stat-grid, .stat-row, .reflection-summary { grid-template-columns:1fr 1fr; }
-  .problem-filter-grid, .wrongnote-search-line, .ask-input-row, .reflection-code-compare { grid-template-columns:1fr; }
-  .problem-quest-card, .wrongnote-card { grid-template-columns:1fr; }
-  .game-table { min-width:0; }
+  .game-page { border-radius: 22px; }
+  .game-topbar { gap: 8px; border-radius: 16px; }
+  .game-route { font-size: .76rem; }
+  .game-hero, .compact-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 22px;
+  }
+  .game-mode-pill { margin-left: 0; }
+  .home-hero { grid-template-columns: 1fr; padding: 22px; }
+  .home-hero-card { min-height: 230px; }
+  .home-ai-core { width: 142px; height: 142px; border-radius: 32px; font-size: 2.4rem; }
+  .home-feature-grid, .home-dashboard, .wrongnote-shell, .ask-layout, .mypage-shell, .history-shell, .reflection-workspace, .problem-shell {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .game-dashboard-grid { grid-template-columns: 1fr; }
+  .game-span-3, .game-span-4, .game-span-5, .game-span-6, .game-span-7, .game-span-8, .game-span-12 { grid-column: auto; }
+  .game-stat-grid, .stat-row, .reflection-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ask-layout { grid-template-columns: 1fr; }
+  .ask-sidebar, .ask-main { min-height: auto; }
+  .chat-box { min-height: 260px; align-content: start; }
+  .analysis-grid, .reflection-grid, .reflection-code-compare { grid-template-columns: 1fr; }
+  .history-filter-grid, .problem-filter-grid, .wrongnote-search-line, .ask-input-row { grid-template-columns: 1fr; }
+  .problem-quest-card { grid-template-columns: 1fr; }
+  .wrongnote-card { grid-template-columns: 1fr; }
+  .wrongnote-index { width: auto; min-height: 36px; }
+  .wrongnote-card-head { flex-direction: column; align-items: flex-start; }
+  .player-profile-mini { width: 100%; }
+  .game-table { min-width: 0; }
   .game-table thead { display:none; }
   .game-table, .game-table tbody, .game-table tr, .game-table td { display:block; width:100%; }
   .game-table tr { padding:12px 0; border-bottom:1px solid rgba(134,149,165,.18); }
   .game-table td { border:0; display:grid; grid-template-columns:92px minmax(0,1fr); gap:10px; padding:7px 0; }
   .game-table td::before { content: attr(data-label); color:var(--cyan); font-weight:900; }
 }
-@media (max-width: 480px) {
-  .game-stat-grid, .stat-row, .reflection-summary { grid-template-columns:1fr; }
-  .game-title, .page-title, .hero-title { font-size: clamp(1.75rem, 12vw, 2.4rem); }
-  .game-panel, .panel, .card { padding:16px; }
-  .game-btn, .btn { width:100%; }
-  .reflection-tabs { display:grid; grid-template-columns:1fr; }
+
+@media (max-width: 560px) {
+  body.app-shell { word-break: keep-all; }
+  .game-content { padding: 10px; }
+  .game-site-header { padding: 10px; }
+  .game-logo { justify-content: flex-start; }
+  .game-logo-mark { width: 34px; height: 34px; border-radius: 10px; }
+  .game-logo-text { font-size: .95rem; }
+  .game-nav a, .game-nav-cta { padding: 7px 10px; font-size: .82rem; }
+  .game-player-pill { font-size:.82rem; gap:6px; flex-wrap: wrap; }
+  .game-player-pill .game-mini-btn { margin-left:auto; }
+  .game-topbar { margin-bottom: 12px; padding: 10px; }
+  .game-window-dots span { width: 9px; height: 9px; }
+  .game-route { display:none; }
+  .game-mode-pill { font-size:.76rem; padding:5px 9px; }
+  .game-page { border-radius: 18px; }
+  .game-title, .page-title, .hero-title { font-size: clamp(1.72rem, 10vw, 2.35rem); line-height: 1.14; }
+  .game-sub, .page-sub, .hero-sub { font-size: .92rem; line-height: 1.7; }
+  .game-panel, .panel, .card { padding: 15px; border-radius: 16px; }
+  .game-panel-head { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .game-stat-grid, .stat-row, .reflection-summary, .home-feature-grid, .home-guide-strip { grid-template-columns: 1fr; }
+  .home-actions, .wn-action-zone, .quick-template-row { display:grid; grid-template-columns: 1fr; }
+  .game-btn, .btn { width:100%; min-height:44px; }
+  .game-mini-btn { min-height:34px; }
+  .home-hero-card { display:none; }
+  .home-feature-grid, .home-dashboard, .wrongnote-shell, .ask-layout, .mypage-shell, .history-shell, .reflection-workspace, .problem-shell {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 10px;
+  }
+  .wrongnote-help-card { grid-template-columns:1fr; }
+  .ask-input-row { gap:10px; }
+  .answer-card { padding:16px; }
+  .game-row { align-items:flex-start; flex-direction:column; }
+  .game-row .badge, .game-row .game-chip { align-self:flex-start; }
+  .pattern-row { grid-template-columns:1fr; }
+  .player-profile-mini { align-items:flex-start; }
+  .player-avatar { width:58px; height:58px; border-radius:18px; }
+  .reflection-tabs { display:grid; grid-template-columns:1fr; border-radius:16px; }
+  .reflection-tab { border-radius:12px; justify-content:flex-start; }
+  .game-table td { grid-template-columns: 84px minmax(0,1fr); font-size:.9rem; }
 }

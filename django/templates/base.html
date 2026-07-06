@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}WOOK'S CODING{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=game-design-v8">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=game-responsive-v11">
   {% block extra_head %}{% endblock %}
 </head>
 <body class="app-shell">
@@ -14,6 +14,7 @@
       <span class="game-logo-mark">&lt;/&gt;</span>
       <span class="game-logo-text">WOOK'S CODING</span>
     </a>
+
     <nav class="game-nav" aria-label="주요 메뉴">
       <a href="{% url 'home' %}">홈</a>
       {% if user.is_authenticated %}
@@ -27,9 +28,10 @@
         <a class="game-nav-cta" href="{% url 'accounts:signup' %}">회원가입</a>
       {% endif %}
     </nav>
+
     {% if user.is_authenticated %}
-      <div class="game-player-pill">
-        <span class="game-player-level">Lv</span>
+      <div class="game-player-pill" aria-label="사용자 정보">
+        <span class="game-player-level">P</span>
         <strong>{{ user.username }}</strong>
         <span>{{ user.point }}P</span>
         <form action="{% url 'accounts:logout' %}" method="post" class="logout-form">

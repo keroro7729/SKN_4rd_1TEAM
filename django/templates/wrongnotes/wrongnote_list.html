@@ -1,18 +1,116 @@
 {% extends "base.html" %}
 {% block title %}오답노트 · WOOK'S CODING{% endblock %}
+
 {% block content %}
 <section class="game-page wrongnote-page">
-  <div class="game-topbar"><div class="game-window-dots"><span></span><span></span><span></span></div><div class="game-route">/wrong-notes <b>›</b> rag-library</div><div class="game-mode-pill">P5 · 오답노트</div></div>
-  <div class="game-hero compact-hero"><div><p class="game-eyebrow">WrongNote RAG Library</p><h1 class="game-title">오답을 <span class="accent">학습 데이터</span>로 바꾸기</h1><p class="game-sub">내가 틀린 코드와 회고가 쌓이면 AI가 반복 실수와 취약 개념을 근거 기반으로 찾아줍니다.</p></div><a href="{% url 'wrongnotes:ask' %}" class="game-btn ghost">내 노트에 물어보기</a></div>
+  <div class="game-topbar">
+    <div class="game-window-dots"><span></span><span></span><span></span></div>
+    <div class="game-route">/wrong-notes <b>›</b> rag-library</div>
+    <div class="game-mode-pill">P5 · 오답노트</div>
+  </div>
+
+  <div class="game-hero compact-hero">
+    <div>
+      <p class="game-eyebrow">WrongNote RAG Library</p>
+      <h1 class="game-title">오답을 <span class="accent">학습 데이터</span>로 바꾸기</h1>
+      <p class="game-sub">틀린 코드와 회고가 쌓이면 AI가 반복 실수와 취약 개념을 근거 기반으로 찾아줍니다.</p>
+    </div>
+    <a href="{% url 'wrongnotes:ask' %}" class="game-btn ghost">내 노트에 물어보기</a>
+  </div>
+
   <div class="wrongnote-shell">
-    <div class="game-stat-grid" style="margin-bottom:18px;"><div class="game-stat-card"><span>전체 노트</span><strong>{{ note_stats.total }}</strong></div><div class="game-stat-card"><span>미해결</span><strong>{{ note_stats.unreviewed }}</strong></div><div class="game-stat-card"><span>복습 완료</span><strong>{{ note_stats.reviewed }}</strong></div><div class="game-stat-card"><span>인덱싱 완료</span><strong>{{ note_stats.indexed }}</strong></div></div>
-    <div class="wrongnote-layout">
+    <div class="game-stat-grid">
+      <div class="game-stat-card"><span>전체 노트</span><strong>{{ note_stats.total }}</strong></div>
+      <div class="game-stat-card"><span>미해결</span><strong>{{ note_stats.unreviewed }}</strong></div>
+      <div class="game-stat-card"><span>복습 완료</span><strong>{{ note_stats.reviewed }}</strong></div>
+      <div class="game-stat-card"><span>인덱싱 완료</span><strong>{{ note_stats.indexed }}</strong></div>
+    </div>
+
+    <div class="wrongnote-layout" style="margin-top:18px;">
       <section>
-        <form class="game-panel wrongnote-filter" method="get"><div class="wrongnote-search-line"><input class="game-input" type="text" name="q" value="{{ q }}" placeholder="문제 제목으로 검색"><button type="submit" class="game-mini-btn">검색</button><a href="{% url 'wrongnotes:list' %}" class="game-mini-btn ghost">초기화</a></div><div class="segment-row">{% for value, label in status_filters %}<label class="segmented-option"><input type="radio" name="status" value="{{ value }}" {% if value == cur_status %}checked{% endif %}><span>{{ label }}</span></label>{% endfor %}</div></form>
-        <section class="game-panel"><div class="game-panel-head"><h2>오답노트 목록</h2><p>복습할 노트를 선택하세요.</p></div><div class="wrongnote-card-list">{% for note in notes %}<article class="wrongnote-card"><div class="wrongnote-index">#{{ note.id }}</div><div><div class="wrongnote-card-head"><a class="wrongnote-card-title" href="{% url 'wrongnotes:detail' note.id %}">{{ note.problem.title|truncatechars:46 }}</a><span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;"><span class="badge badge-{{ note.problem.difficulty }}">{{ note.problem.get_difficulty_display }}</span>{% for tag in note.tags.all %}<span class="game-chip">{{ tag.name }}</span>{% endfor %}</div><p class="wrongnote-comment">{{ note.comment|default:"아직 회고 내용이 없습니다."|truncatechars:120 }}</p><div class="wrongnote-foot"><span>{{ note.created_at|date:"Y.m.d H:i" }}</span>{% if note.is_reviewed %}<span class="reviewed">복습 완료</span>{% else %}<span>복습 필요</span>{% endif %}</div></div></article>{% empty %}<p class="game-empty">아직 오답노트가 없습니다.</p>{% endfor %}</div></section>
-        {% if pagination.show %}<nav class="pagination">{% if pagination.has_previous %}<a class="page-link" href="{{ pagination.previous_url }}">이전</a>{% endif %}{% for page in pagination.pages %}{% if page.is_gap %}<span>{{ page.label }}</span>{% elif page.is_current %}<span class="page-link page-current">{{ page.label }}</span>{% else %}<a class="page-link" href="{{ page.url }}">{{ page.label }}</a>{% endif %}{% endfor %}{% if pagination.has_next %}<a class="page-link" href="{{ pagination.next_url }}">다음</a>{% endif %}</nav>{% endif %}
+        <div class="wrongnote-help-card">
+          <div class="wrongnote-help-icon">📕</div>
+          <div>
+            <strong>어떻게 쓰면 좋나요?</strong>
+            <p>틀린 이유를 짧게 적고 복습하면, 다음 검색과 AI 피드백에서 내 실수 패턴을 더 정확하게 찾을 수 있습니다.</p>
+          </div>
+        </div>
+
+        <form class="game-panel wrongnote-filter" method="get">
+          <div class="wrongnote-search-line">
+            <input class="game-input" type="text" name="q" value="{{ q }}" placeholder="문제 제목으로 검색">
+            <button type="submit" class="game-mini-btn">검색</button>
+            <a href="{% url 'wrongnotes:list' %}" class="game-mini-btn ghost">초기화</a>
+          </div>
+          <div class="segment-row">
+            {% for value, label in status_filters %}
+              <label class="segmented-option"><input type="radio" name="status" value="{{ value }}" {% if value == cur_status %}checked{% endif %}><span>{{ label }}</span></label>
+            {% endfor %}
+          </div>
+        </form>
+
+        <section class="game-panel">
+          <div class="game-panel-head">
+            <div>
+              <h2>오답노트 목록</h2>
+              <p>복습할 노트를 선택하세요.</p>
+            </div>
+          </div>
+          <div class="wrongnote-card-list">
+            {% for note in notes %}
+              <article class="wrongnote-card">
+                <div class="wrongnote-index">#{{ note.id }}</div>
+                <div>
+                  <div class="wrongnote-card-head">
+                    <a class="wrongnote-card-title" href="{% url 'wrongnotes:detail' note.id %}">{{ note.problem.title|truncatechars:46 }}</a>
+                    <span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span>
+                  </div>
+                  <div class="wrongnote-meta-row">
+                    <span class="badge badge-{{ note.problem.difficulty }}">{{ note.problem.get_difficulty_display }}</span>
+                    {% for tag in note.tags.all %}<span class="game-chip">{{ tag.name }}</span>{% endfor %}
+                  </div>
+                  <p class="wrongnote-comment">{{ note.comment|default:"아직 회고 내용이 없습니다."|truncatechars:120 }}</p>
+                  <div class="wrongnote-foot">
+                    <span>{{ note.created_at|date:"Y.m.d H:i" }}</span>
+                    {% if note.is_reviewed %}<span class="reviewed">복습 완료</span>{% else %}<span>복습 필요</span>{% endif %}
+                  </div>
+                </div>
+              </article>
+            {% empty %}
+              <p class="game-empty">아직 오답노트가 없습니다. 문제를 제출한 뒤 오답노트를 작성해보세요.</p>
+            {% endfor %}
+          </div>
+        </section>
+
+        {% if pagination.show %}
+          <nav class="pagination" aria-label="오답노트 페이지">
+            {% if pagination.has_previous %}<a class="page-link" href="{{ pagination.previous_url }}">이전</a>{% endif %}
+            {% for page in pagination.pages %}
+              {% if page.is_gap %}<span class="page-gap">{{ page.label }}</span>{% elif page.is_current %}<span class="page-link page-current">{{ page.label }}</span>{% else %}<a class="page-link" href="{{ page.url }}">{{ page.label }}</a>{% endif %}
+            {% endfor %}
+            {% if pagination.has_next %}<a class="page-link" href="{{ pagination.next_url }}">다음</a>{% endif %}
+          </nav>
+        {% endif %}
       </section>
-      <aside class="wrongnote-side-stack"><section class="game-panel accent-cyan"><div class="game-panel-head"><h2>반복 실수 패턴</h2></div><div class="game-list">{% for row in pattern_rows %}<div class="game-row"><span>{{ row.error_pattern }}</span><span class="game-chip amber">{{ row.count }}회</span></div>{% empty %}<p class="game-empty">오류 유형이 쌓이면 표시됩니다.</p>{% endfor %}</div></section><section class="game-panel accent-warning"><div class="game-panel-head"><h2>작성 가능한 오답 제출</h2></div><div class="game-list">{% for s in recent_wrong_submissions %}<a class="game-row" href="{% url 'wrongnotes:create' s.id %}"><span>{{ s.problem.title|truncatechars:24 }}</span><span class="badge badge-status-{{ s.result }}">{{ s.get_result_display }}</span></a>{% empty %}<p class="game-empty">작성 가능한 제출이 없습니다.</p>{% endfor %}</div></section></aside>
+
+      <aside class="wrongnote-side-stack">
+        <section class="game-panel accent-cyan">
+          <div class="game-panel-head"><h2>반복 실수 패턴</h2></div>
+          <div class="game-list">
+            {% for row in pattern_rows %}
+              <div class="game-row"><span>{{ row.error_pattern }}</span><span class="game-chip amber">{{ row.count }}회</span></div>
+            {% empty %}<p class="game-empty">오류 유형이 쌓이면 표시됩니다.</p>{% endfor %}
+          </div>
+        </section>
+        <section class="game-panel accent-warning">
+          <div class="game-panel-head"><h2>작성 가능한 오답 제출</h2></div>
+          <div class="game-list">
+            {% for s in recent_wrong_submissions %}
+              <a class="game-row" href="{% url 'wrongnotes:create' s.id %}"><span>{{ s.problem.title|truncatechars:24 }}</span><span class="badge badge-status-{{ s.result }}">{{ s.get_result_display }}</span></a>
+            {% empty %}<p class="game-empty">작성 가능한 제출이 없습니다.</p>{% endfor %}
+          </div>
+        </section>
+      </aside>
     </div>
   </div>
 </section>
