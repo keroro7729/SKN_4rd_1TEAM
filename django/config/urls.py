@@ -14,9 +14,10 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
     path("problems/", include("problems.urls")),
+    path("submissions/", include("submissions.urls")),
     path("wrongnotes/", include("wrongnotes.urls")),
     path("mypage/", include("mypage.urls")),
     path("adminpanel/", include("adminpanel.urls")),
-    # submissions(run/result) 은 STEP-04, /ai/* 는 FastAPI(STEP-05~) 담당.
+    # /ai/* 는 FastAPI(STEP-05~) 담당.
     path("", HomeView.as_view(), name="home"),
 ]

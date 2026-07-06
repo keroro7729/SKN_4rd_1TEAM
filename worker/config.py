@@ -17,8 +17,12 @@ DB_CONFIG = {
     "port": os.environ.get("POSTGRES_PORT", "5432"),
 }
 
-# --- 실행 제한 (지시문 §3 확정 기준) ---
+# --- 실행 제한 / 샌드박스 (지시문 §3 + 하드닝) ---
 CODE_TIMEOUT_SEC = int(os.environ.get("CODE_TIMEOUT_SEC", "5"))
+CODE_MEM_LIMIT_MB = int(os.environ.get("CODE_MEM_LIMIT_MB") or "256")
+CODE_DISABLE_NETWORK = (os.environ.get("CODE_DISABLE_NETWORK") or "true").lower() in (
+    "1", "true", "yes", "on",
+)
 POLL_INTERVAL_SEC = float(os.environ.get("WORKER_POLL_INTERVAL_SEC", "2"))
 
 # --- 로깅 (개발/디버깅) ---
