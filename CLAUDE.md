@@ -146,5 +146,8 @@ docker compose down                # (down -v : DB까지 삭제)
 - `4. ...데이터_소유권_및_의존구조_v0.1.md` — 볼륨/영속성·RDB/VDB 접근·의존 방향 규칙
 - `5. ...로깅_시스템_v0.1.md` — logs/ 레이아웃·AI 연구용 JSONL·환경변수
 - `6. ...데이터모델_문제_제출_Job_오답노트_v0.1.md` — STEP-02 모델 설계(§7 정합). **제출이력=Submission ≠ ExecutionJob 분리** 근거, `job_type=code_run`(worker의 `code_execution`은 STEP-04에서 정합)
+- `7. ...STEP05-07_AI_RAG_FE_연계_가이드_v0.1.md` — FastAPI/RAG/프론트 연계
+- `8. ...테스트케이스_생성_에이전트_v0.1.md` — 정답코드/제너레이터 기반 TC 생성 에이전트(worker code_eval 위임, dry-run)
+- `9. ...오답노트_AI리포트_useflow_및_RAG설계_v0.1.md` — 오답노트 작성/AI리포트 분리, **2단계 RAG 에이전트**, WrongNoteReport 모델·RAG 문서구조 초안
 - 지시문 v0.7 §5는 Django 앱을 레포 루트에 두는 구조였으나, **venv 분리 위해 `django/` 하위로 승격**함.
   app 이름·endpoint path 등 내부 규칙은 지시문을 그대로 따른다.
