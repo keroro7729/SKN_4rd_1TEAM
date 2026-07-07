@@ -2,6 +2,11 @@
 {% load static %}
 {% block title %}오답노트 작성 · WOOK'S CODING{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/wrongnote_tabs.css' %}?v=wrongnote-two-column-v21">
+{% endblock %}
+
+
 {% block content %}
 <form hidden>{% csrf_token %}</form>
 
@@ -270,5 +275,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'js/wrongnote_form.js' %}?v=wrongnote-two-column-v20"></script>
+<script src="{% static 'js/wrongnote_form.js' %}?v=wrongnote-two-column-v21"></script>
 {% endblock %}

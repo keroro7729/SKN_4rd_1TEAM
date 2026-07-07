@@ -1,4 +1,4 @@
-/* WrongNote create page v20
+/* WrongNote create page v21
    Desktop: 2-column layout exactly as requested
    Left: problem/code/history/result tabs
    Right: reflection writer
@@ -478,4 +478,27 @@
   .reflection-tab { flex: 0 0 auto; font-size: .82rem; }
   .wn2-scroll-reader { max-height: 52vh; }
   .wn2-reflection-textarea { min-height: 230px; }
+}
+
+
+/* v21 hard override: prevent reflection writer from dropping below on desktop */
+@media (min-width: 861px) {
+  .wn2-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1.08fr) minmax(420px, .92fr) !important;
+    align-items: stretch !important;
+  }
+  .wn2-context-panel {
+    border-right: 1px solid rgba(148,163,184,.16) !important;
+    border-bottom: 0 !important;
+  }
+  .wn2-reflection-panel {
+    min-height: 0 !important;
+  }
+  .wn2-tab-body,
+  .reflection-panel.is-active,
+  .wn2-inner-card,
+  .wn2-problem-reader {
+    max-width: 100% !important;
+  }
 }
