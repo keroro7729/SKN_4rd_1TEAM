@@ -5,251 +5,268 @@
 {% block content %}
 <form hidden>{% csrf_token %}</form>
 
-<section class="game-page wrongnote-page" data-submission-id="{{ submission.id }}" data-problem-id="{{ problem.id }}">
+<section class="game-page wrongnote-page wrongnote-modal-page" data-submission-id="{{ submission.id }}" data-problem-id="{{ problem.id }}">
   <div class="game-topbar">
     <div class="game-window-dots"><span></span><span></span><span></span></div>
-    <div class="game-route">/wrong-notes <b>›</b> reflection <b>›</b> #{{ submission.id }}</div>
-    <div class="game-mode-pill">오답 회고 작성</div>
+    <div class="game-route">WrongNote CreateView <b>·</b> /ai/wrong-note/analyze <b>·</b> ChromaDB</div>
+    <div class="game-mode-pill">P5 · 오답노트 작성</div>
   </div>
 
-  <div class="game-hero compact-hero wrongnote-hero-slim">
-    <div>
-      <p class="game-eyebrow">WrongNote Reflection</p>
-      <h1 class="game-title">문제와 코드를 보면서 <span class="accent">회고 작성</span></h1>
-      <p class="game-sub">왼쪽에서 문제·현재 코드·과거 코드·실행 결과를 탭으로 확인하고, 오른쪽에서 바로 오답 회고를 작성합니다.</p>
-    </div>
-    <a class="game-btn ghost" href="{% url 'wrongnotes:list' %}">오답노트 목록</a>
-  </div>
-
-  <div class="wrongnote-two-split">
-    <section class="game-panel wrongnote-context-panel">
-      <div class="game-panel-head wrongnote-context-head">
+  <div class="wrongnote-modal-shell">
+    <header class="wrongnote-modal-header">
+      <div class="wrongnote-title-wrap">
+        <span class="wrongnote-title-icon">📓</span>
         <div>
-          <span class="panel-kicker">Context Viewer</span>
-          <h2>문제 정보 확인</h2>
-          <p>필요한 정보만 탭으로 바꿔 보면서 회고를 작성하세요.</p>
+          <h1>오답노트 작성</h1>
+          <p>#{{ problem.id }} · {{ problem.title }}</p>
         </div>
-        <span class="badge badge-status-{{ submission.result }}">{{ submission.get_result_display }}</span>
       </div>
+      <a class="wrongnote-close" href="{% url 'wrongnotes:list' %}" aria-label="오답노트 목록으로 이동">×</a>
+    </header>
 
-      <div class="reflection-tabs compact-tabs" role="tablist" aria-label="오답 회고 정보 탭">
-        <button class="reflection-tab is-active" type="button" data-tab="problem">문제 보기</button>
-        <button class="reflection-tab" type="button" data-tab="current-code">현재 코드</button>
-        <button class="reflection-tab" type="button" data-tab="history-code">과거 코드 기록</button>
-        <button class="reflection-tab" type="button" data-tab="run-result">실행 결과</button>
-      </div>
+    <div class="wrongnote-two-column">
+      <section class="wrongnote-context-card">
+        <div class="wrongnote-card-head">
+          <div>
+            <span class="panel-kicker">Problem Context</span>
+            <h2>문제 정보 확인</h2>
+          </div>
+          <span class="badge badge-status-{{ submission.result }}">{{ submission.get_result_display }}</span>
+        </div>
 
-      <div class="wrongnote-context-body">
-        <section class="reflection-panel is-active" data-panel="problem">
-          <article class="wrongnote-problem-reader">
-            <div class="problem-reader-titlebar">
-              <div>
-                <span class="problem-number">#{{ problem.id }}</span>
-                <h2>{{ problem.title }}</h2>
+        <div class="reflection-tabs compact-tabs" role="tablist" aria-label="오답노트 작성 정보 탭">
+          <button class="reflection-tab is-active" type="button" data-tab="problem">문제 보기</button>
+          <button class="reflection-tab" type="button" data-tab="current-code">현재 코드</button>
+          <button class="reflection-tab" type="button" data-tab="history-code">과거 코드 기록</button>
+          <button class="reflection-tab" type="button" data-tab="run-result">실행 결과</button>
+        </div>
+
+        <div class="wrongnote-context-body">
+          <section class="reflection-panel is-active" data-panel="problem">
+            <article class="wrongnote-problem-reader">
+              <div class="problem-reader-titlebar">
+                <div>
+                  <span class="problem-number">#{{ problem.id }}</span>
+                  <h2>{{ problem.title }}</h2>
+                </div>
+                <div class="problem-reader-tags">
+                  <span class="badge badge-{{ problem.difficulty }}">{{ problem.get_difficulty_display }}</span>
+                  {% for tag in problem.tags.all %}<span class="game-chip cyan">{{ tag.name }}</span>{% endfor %}
+                </div>
               </div>
-              <div class="problem-reader-tags">
-                <span class="badge badge-{{ problem.difficulty }}">{{ problem.get_difficulty_display }}</span>
-                {% for tag in problem.tags.all %}<span class="game-chip cyan">{{ tag.name }}</span>{% endfor %}
+
+              <div class="problem-reader-nav" aria-label="문제 섹션 이동">
+                <a href="#wn-problem-desc">문제</a>
+                {% if problem.constraints %}<a href="#wn-problem-constraints">제약</a>{% endif %}
+                <a href="#wn-problem-samples">예제</a>
+                <a href="#wn-problem-check">풀이 체크</a>
               </div>
-            </div>
 
-            <div class="problem-reader-nav" aria-label="문제 섹션 이동">
-              <a href="#wn-problem-desc">문제</a>
-              {% if problem.constraints %}<a href="#wn-problem-constraints">제약</a>{% endif %}
-              <a href="#wn-problem-samples">예제</a>
-              <a href="#wn-problem-check">풀이 체크</a>
-            </div>
+              <div class="problem-reader-scroll">
+                <section id="wn-problem-desc" class="problem-reader-section">
+                  <h3>문제 설명</h3>
+                  <div class="problem-desc-text">{{ problem.description|linebreaksbr }}</div>
+                </section>
 
-            <div class="problem-reader-scroll">
-              <section id="wn-problem-desc" class="problem-reader-section">
-                <h3>문제 설명</h3>
-                <div class="problem-desc-text">{{ problem.description|linebreaksbr }}</div>
-              </section>
+                {% if problem.constraints %}
+                  <section id="wn-problem-constraints" class="problem-reader-section">
+                    <h3>제한사항</h3>
+                    <ul class="constraints-list compact-list">
+                      {% for line in problem.constraints.splitlines %}
+                        <li>{{ line }}</li>
+                      {% endfor %}
+                    </ul>
+                  </section>
+                {% endif %}
 
-              {% if problem.constraints %}
-                <section id="wn-problem-constraints" class="problem-reader-section">
-                  <h3>제한사항</h3>
-                  <ul class="constraints-list compact-list">
-                    {% for line in problem.constraints.splitlines %}
-                      <li>{{ line }}</li>
-                    {% endfor %}
+                <section id="wn-problem-samples" class="problem-reader-section">
+                  <h3>예제 입출력</h3>
+                  <div class="sample-case-list">
+                    {% if sample_cases %}
+                      {% for tc in sample_cases %}
+                        <div class="sample-case-card">
+                          <div>
+                            <strong>입력</strong>
+                            <pre>{{ tc.input_data }}</pre>
+                          </div>
+                          <div>
+                            <strong>출력</strong>
+                            <pre>{{ tc.expected_output }}</pre>
+                          </div>
+                        </div>
+                      {% empty %}
+                        <p class="game-empty">등록된 예제 테스트케이스가 없습니다.</p>
+                      {% endfor %}
+                    {% else %}
+                      {% for tc in problem.test_cases.all %}
+                        {% if tc.is_sample %}
+                          <div class="sample-case-card">
+                            <div>
+                              <strong>입력</strong>
+                              <pre>{{ tc.input_data }}</pre>
+                            </div>
+                            <div>
+                              <strong>출력</strong>
+                              <pre>{{ tc.expected_output }}</pre>
+                            </div>
+                          </div>
+                        {% endif %}
+                      {% empty %}
+                        <p class="game-empty">등록된 예제 테스트케이스가 없습니다.</p>
+                      {% endfor %}
+                    {% endif %}
+                  </div>
+                </section>
+
+                <section id="wn-problem-check" class="problem-reader-section">
+                  <h3>풀이 전 확인</h3>
+                  <ul class="check-list-clean">
+                    <li>입력 범위와 예외 케이스를 확인했나요?</li>
+                    <li>예제 출력 형식과 내 출력 형식이 같은가요?</li>
+                    <li>기저 조건이나 초기값을 빠뜨리지 않았나요?</li>
+                    <li>시간 복잡도가 입력 크기를 버틸 수 있나요?</li>
                   </ul>
                 </section>
-              {% endif %}
-
-              <section id="wn-problem-samples" class="problem-reader-section">
-                <h3>예제 입출력</h3>
-                <div class="sample-case-list">
-                  {% for tc in problem.test_cases.all %}
-                    {% if tc.is_sample %}
-                      <div class="sample-case-card">
-                        <div>
-                          <strong>입력</strong>
-                          <pre>{{ tc.input_data }}</pre>
-                        </div>
-                        <div>
-                          <strong>출력</strong>
-                          <pre>{{ tc.expected_output }}</pre>
-                        </div>
-                      </div>
-                    {% endif %}
-                  {% empty %}
-                    <p class="game-empty">등록된 예제 테스트케이스가 없습니다.</p>
-                  {% endfor %}
-                </div>
-              </section>
-
-              <section id="wn-problem-check" class="problem-reader-section">
-                <h3>풀이 전 확인</h3>
-                <ul class="check-list-clean">
-                  <li>입력 범위와 예외 케이스를 확인했나요?</li>
-                  <li>예제 출력 형식과 내 출력 형식이 같은가요?</li>
-                  <li>기저 조건이나 초기값을 빠뜨리지 않았나요?</li>
-                  <li>시간 복잡도가 입력 크기를 버틸 수 있나요?</li>
-                </ul>
-              </section>
-            </div>
-          </article>
-        </section>
-
-        <section class="reflection-panel" data-panel="current-code">
-          <article class="tab-content-card">
-            <div class="game-panel-head">
-              <div>
-                <span class="panel-kicker">Current Submission</span>
-                <h2>현재 제출 코드</h2>
-              </div>
-              <button type="button" class="game-mini-btn copy-code-btn" data-target="current-code-block">복사</button>
-            </div>
-            <pre id="current-code-block" class="code-view code-view-tall">{{ submission.code }}</pre>
-          </article>
-        </section>
-
-        <section class="reflection-panel" data-panel="history-code">
-          <div class="history-split">
-            <article class="history-list-panel">
-              <div class="game-panel-head">
-                <div>
-                  <span class="panel-kicker">Past Attempts</span>
-                  <h2>같은 문제 과거 제출</h2>
-                  <p>이전 제출을 선택하면 오른쪽에서 코드를 확인할 수 있습니다.</p>
-                </div>
-              </div>
-              <div class="history-list compact-history-list">
-                {% for old in submission_history %}
-                  <button type="button" class="game-row history-item" data-code-template="history-code-{{ forloop.counter }}">
-                    <span>{{ old.created_at|date:"Y.m.d H:i" }} · {{ old.get_result_display }}</span>
-                    <span class="badge badge-status-{{ old.result }}">{{ old.elapsed_ms|default:0 }}ms</span>
-                  </button>
-                  <template id="history-code-{{ forloop.counter }}">{{ old.code }}</template>
-                {% empty %}
-                  <p class="game-empty">같은 문제의 과거 제출이 없습니다.</p>
-                {% endfor %}
               </div>
             </article>
+          </section>
 
-            <article class="history-code-panel">
-              <div class="game-panel-head">
+          <section class="reflection-panel" data-panel="current-code">
+            <article class="tab-content-card">
+              <div class="wrongnote-card-head inner-head">
                 <div>
-                  <span class="panel-kicker">Selected Code</span>
-                  <h2>선택한 과거 코드</h2>
+                  <span class="panel-kicker">Current Code</span>
+                  <h2>현재 제출 코드</h2>
                 </div>
+                <button type="button" class="game-mini-btn copy-code-btn" data-target="current-code-block">복사</button>
               </div>
-              <pre id="history-code-view" class="code-view code-view-tall">왼쪽에서 과거 제출을 선택하세요.</pre>
+              <pre id="current-code-block" class="code-view code-view-tall">{{ submission.code }}</pre>
+            </article>
+          </section>
+
+          <section class="reflection-panel" data-panel="history-code">
+            <div class="history-split">
+              <article class="history-list-panel">
+                <div class="wrongnote-card-head inner-head">
+                  <div>
+                    <span class="panel-kicker">Past Attempts</span>
+                    <h2>같은 문제 과거 제출</h2>
+                  </div>
+                </div>
+                <div class="history-list compact-history-list">
+                  {% for old in submission_history %}
+                    <button type="button" class="game-row history-item" data-code-template="history-code-{{ forloop.counter }}">
+                      <span>{{ old.created_at|date:"Y.m.d H:i" }} · {{ old.get_result_display }}</span>
+                      <span class="badge badge-status-{{ old.result }}">{{ old.elapsed_ms|default:0 }}ms</span>
+                    </button>
+                    <template id="history-code-{{ forloop.counter }}">{{ old.code }}</template>
+                  {% empty %}
+                    <p class="game-empty">같은 문제의 과거 제출이 없습니다.</p>
+                  {% endfor %}
+                </div>
+              </article>
+
+              <article class="history-code-panel">
+                <div class="wrongnote-card-head inner-head">
+                  <div>
+                    <span class="panel-kicker">Selected Code</span>
+                    <h2>선택한 과거 코드</h2>
+                  </div>
+                </div>
+                <pre id="history-code-view" class="code-view code-view-tall">왼쪽에서 과거 제출을 선택하세요.</pre>
+              </article>
+            </div>
+          </section>
+
+          <section class="reflection-panel" data-panel="run-result">
+            <article class="tab-content-card">
+              <div class="wrongnote-card-head inner-head">
+                <div>
+                  <span class="panel-kicker">Execution Result</span>
+                  <h2>실행 결과</h2>
+                </div>
+                <span class="badge badge-status-{{ submission.result }}">{{ submission.get_result_display }}</span>
+              </div>
+              <div class="result-summary-row">
+                <div class="game-row"><span>제출 ID</span><strong>#{{ submission.id }}</strong></div>
+                <div class="game-row"><span>실행 시간</span><strong>{{ submission.elapsed_ms|default:0 }}ms</strong></div>
+                <div class="game-row"><span>제출 시각</span><strong>{{ submission.created_at|date:"Y.m.d H:i" }}</strong></div>
+              </div>
+              {% if submission.output %}
+                <h3 class="small-section-title">stdout</h3>
+                <pre class="result-pre">{{ submission.output }}</pre>
+              {% endif %}
+              {% if submission.error_message %}
+                <h3 class="small-section-title">오류 메시지</h3>
+                <pre class="result-pre result-error-text">{{ submission.error_message }}</pre>
+              {% endif %}
+              {% if not submission.output and not submission.error_message %}
+                <p class="game-empty">표시할 실행 출력이 없습니다.</p>
+              {% endif %}
+            </article>
+          </section>
+        </div>
+      </section>
+
+      <aside class="wrongnote-reflection-card">
+        <div class="wrongnote-card-head">
+          <div>
+            <span class="panel-kicker">Reflection Writer</span>
+            <h2>회고 작성</h2>
+          </div>
+          <span class="hint-note"><span id="comment-count">0</span> / 1000</span>
+        </div>
+
+        <div class="quick-template-row">
+          <button type="button" class="game-mini-btn ghost template-btn" data-template="기저 조건/초기값을 놓쳐서 특정 입력에서 값이 어긋났습니다.">기저 조건</button>
+          <button type="button" class="game-mini-btn ghost template-btn" data-template="배열 인덱스 범위를 잘못 생각해 런타임 오류 또는 잘못된 결과가 발생했습니다.">인덱스 범위</button>
+          <button type="button" class="game-mini-btn ghost template-btn" data-template="문제에서 요구한 출력 형식과 다르게 출력했습니다.">출력 형식</button>
+          <button type="button" class="game-mini-btn ghost template-btn" data-template="입력 크기에 비해 시간 복잡도가 커서 시간초과가 발생했습니다.">시간 복잡도</button>
+        </div>
+
+        <textarea id="wrongnote-comment" class="game-textarea reflection-textarea" maxlength="1000" placeholder="틀린 이유를 적어주세요. 예: dp[2] 초기화를 빼먹어서 3번째 계단부터 값이 틀렸습니다. 다음에는 점화식보다 먼저 기저 조건을 표로 확인하겠습니다."></textarea>
+
+        <div class="reflection-guide-box">
+          <strong>회고 작성 포인트</strong>
+          <ul>
+            <li>무엇을 잘못 생각했는지 한 문장으로 정리하기</li>
+            <li>현재 코드와 과거 코드를 비교해서 반복 실수인지 확인하기</li>
+            <li>다음 풀이 전에 확인할 체크포인트를 적기</li>
+          </ul>
+        </div>
+
+        <div class="wn-action-zone sticky-action-zone">
+          <a class="game-btn ghost" href="{% url 'wrongnotes:list' %}">돌아가기</a>
+          <button id="wrongnote-save-btn" type="button" class="game-btn primary">저장하고 AI 피드백 보기</button>
+        </div>
+        <p id="wrongnote-status" class="hint-note status-line">회고를 작성하면 AI 분석과 유사 오답노트 근거를 확인할 수 있습니다.</p>
+
+        <section id="feedback-result" class="feedback-result" hidden>
+          <div class="feedback-result-head">
+            <span class="panel-kicker">AI Feedback</span>
+            <h2>AI 오답 피드백</h2>
+            <p id="saved-reflection" class="wrongnote-comment"></p>
+          </div>
+
+          <div class="feedback-stack">
+            <article class="feedback-card">
+              <h3>유사 오답노트 RAG</h3>
+              <div id="similar-notes" class="evidence-list" hidden></div>
+              <div id="similar-empty" class="game-empty">유사 노트가 있으면 표시됩니다.</div>
+            </article>
+            <article class="feedback-card">
+              <h3>AI 분석</h3>
+              <div id="ai-analysis" class="analysis-grid" hidden></div>
+              <div id="analysis-empty" class="game-empty">AI 분석 결과를 기다리는 중입니다.</div>
             </article>
           </div>
         </section>
-
-        <section class="reflection-panel" data-panel="run-result">
-          <article class="tab-content-card">
-            <div class="game-panel-head">
-              <div>
-                <span class="panel-kicker">Execution Result</span>
-                <h2>실행 결과</h2>
-                <p>제출 결과와 stdout/error를 확인한 뒤 회고에 원인을 적어보세요.</p>
-              </div>
-              <span class="badge badge-status-{{ submission.result }}">{{ submission.get_result_display }}</span>
-            </div>
-            <div class="result-summary-row">
-              <div class="game-row"><span>제출 ID</span><strong>#{{ submission.id }}</strong></div>
-              <div class="game-row"><span>실행 시간</span><strong>{{ submission.elapsed_ms|default:0 }}ms</strong></div>
-              <div class="game-row"><span>제출 시각</span><strong>{{ submission.created_at|date:"Y.m.d H:i" }}</strong></div>
-            </div>
-            {% if submission.output %}
-              <h3 class="small-section-title">stdout</h3>
-              <pre class="result-pre">{{ submission.output }}</pre>
-            {% endif %}
-            {% if submission.error_message %}
-              <h3 class="small-section-title">오류 메시지</h3>
-              <pre class="result-pre result-error-text">{{ submission.error_message }}</pre>
-            {% endif %}
-            {% if not submission.output and not submission.error_message %}
-              <p class="game-empty">표시할 실행 출력이 없습니다.</p>
-            {% endif %}
-          </article>
-        </section>
-      </div>
-    </section>
-
-    <aside class="game-panel reflection-write-panel accent-green">
-      <div class="game-panel-head">
-        <div>
-          <span class="panel-kicker">Reflection Writer</span>
-          <h2>회고 작성</h2>
-          <p>왼쪽 탭을 보면서 틀린 이유와 다음에 확인할 점을 정리하세요.</p>
-        </div>
-        <span class="hint-note"><span id="comment-count">0</span> / 1000</span>
-      </div>
-
-      <div class="quick-template-row">
-        <button type="button" class="game-mini-btn ghost template-btn" data-template="기저 조건/초기값을 놓쳐서 특정 입력에서 값이 어긋났습니다.">기저 조건</button>
-        <button type="button" class="game-mini-btn ghost template-btn" data-template="배열 인덱스 범위를 잘못 생각해 런타임 오류 또는 잘못된 결과가 발생했습니다.">인덱스 범위</button>
-        <button type="button" class="game-mini-btn ghost template-btn" data-template="문제에서 요구한 출력 형식과 다르게 출력했습니다.">출력 형식</button>
-        <button type="button" class="game-mini-btn ghost template-btn" data-template="입력 크기에 비해 시간 복잡도가 커서 시간초과가 발생했습니다.">시간 복잡도</button>
-      </div>
-
-      <textarea id="wrongnote-comment" class="game-textarea reflection-textarea" maxlength="1000" placeholder="예: dp[2] 초기화를 빼먹어서 3번째 계단부터 값이 틀렸습니다. 다음에는 점화식보다 먼저 기저 조건을 표로 확인하겠습니다."></textarea>
-
-      <div class="reflection-guide-box">
-        <strong>좋은 회고 작성법</strong>
-        <ul>
-          <li>틀린 원인을 한 문장으로 먼저 적기</li>
-          <li>다음 풀이 전에 확인할 체크포인트 적기</li>
-          <li>과거 코드 기록과 비교해 반복 실수인지 확인하기</li>
-        </ul>
-      </div>
-
-      <div class="wn-action-zone sticky-action-zone">
-        <a class="game-btn ghost" href="{% url 'wrongnotes:list' %}">돌아가기</a>
-        <button id="wrongnote-save-btn" type="button" class="game-btn primary">저장하고 AI 피드백 보기</button>
-      </div>
-      <p id="wrongnote-status" class="hint-note status-line">회고를 작성하면 AI 분석과 유사 오답노트 근거를 확인할 수 있습니다.</p>
-
-      <section id="feedback-result" class="feedback-result" hidden>
-        <div class="feedback-result-head">
-          <span class="panel-kicker">AI Feedback</span>
-          <h2>AI 오답 피드백</h2>
-          <p id="saved-reflection" class="wrongnote-comment"></p>
-        </div>
-
-        <div class="feedback-stack">
-          <article class="feedback-card">
-            <h3>유사 오답노트 RAG</h3>
-            <div id="similar-notes" class="evidence-list" hidden></div>
-            <div id="similar-empty" class="game-empty">유사 노트가 있으면 표시됩니다.</div>
-          </article>
-          <article class="feedback-card">
-            <h3>AI 분석</h3>
-            <div id="ai-analysis" class="analysis-grid" hidden></div>
-            <div id="analysis-empty" class="game-empty">AI 분석 결과를 기다리는 중입니다.</div>
-          </article>
-        </div>
-      </section>
-    </aside>
+      </aside>
+    </div>
   </div>
 </section>
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'js/wrongnote_form.js' %}?v=wrongnote-two-split-v18"></script>
+<script src="{% static 'js/wrongnote_form.js' %}?v=wrongnote-two-panel-v19"></script>
 {% endblock %}
