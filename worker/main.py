@@ -22,7 +22,6 @@ from config import (
     CODE_TIMEOUT_SEC,
     DB_CONFIG,
     DEFAULT_TEST_CASES,
-    MAX_TEST_CASES,
     POLL_INTERVAL_SEC,
 )
 from logging_setup import setup_logging
@@ -55,24 +54,35 @@ def log_system_error(conn, user_id, message: str, exc: Exception) -> None:
         )
 
 
-def test_case_limit(job_type: str) -> int:
-    """Use a fast sample for runs and fuller validation for final submissions."""
+def test_case_limit(job_type: str):
+    """실행(run)은 빠른 샘플 1개, 제출(submit)은 전체 테스트케이스 검증(None=제한 없음)."""
     if job_type == "code_submit":
-        return MAX_TEST_CASES
+        return None  # 전체 검증
     return DEFAULT_TEST_CASES
 
 
-def fetch_test_cases(cur, problem_id: int, limit: int) -> list[dict]:
-    cur.execute(
-        """
-        SELECT input_data, expected_output, compare_mode, float_tolerance
-          FROM problems_testcase
-         WHERE problem_id = %s
-         ORDER BY id
-         LIMIT %s
-        """,
-        (problem_id, limit),
-    )
+def fetch_test_cases(cur, problem_id: int, limit) -> list[dict]:
+    if limit is None:  # 전체
+        cur.execute(
+            """
+            SELECT input_data, expected_output, compare_mode, float_tolerance
+              FROM problems_testcase
+             WHERE problem_id = %s
+             ORDER BY id
+            """,
+            (problem_id,),
+        )
+    else:
+        cur.execute(
+            """
+            SELECT input_data, expected_output, compare_mode, float_tolerance
+              FROM problems_testcase
+             WHERE problem_id = %s
+             ORDER BY id
+             LIMIT %s
+            """,
+            (problem_id, limit),
+        )
     return [
         {
             "input": row[0] or "",
