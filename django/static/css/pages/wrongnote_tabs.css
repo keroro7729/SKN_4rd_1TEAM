@@ -972,3 +972,116 @@
     overflow: visible !important;
   }
 }
+
+/* v25 full-width workspace fix
+   User feedback: game-page/wrongnote-page/wn2-page itself was too narrow, so the
+   2-column panels looked clipped. This makes the create workspace use nearly
+   the full viewport and keeps both panels exactly the same width. */
+body:has(.wrongnote-page.wn2-page) {
+  overflow-x: hidden !important;
+}
+
+.content:has(.wrongnote-page.wn2-page),
+main.content:has(.wrongnote-page.wn2-page) {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.game-page.wrongnote-page.wn2-page {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  margin-left: calc(50% - 50vw) !important;
+  margin-right: calc(50% - 50vw) !important;
+  padding: 0 12px 24px !important;
+  overflow-x: hidden !important;
+}
+
+.game-page.wrongnote-page.wn2-page .game-topbar {
+  width: calc(100vw - 24px) !important;
+  max-width: none !important;
+  margin: 0 auto !important;
+}
+
+.game-page.wrongnote-page.wn2-page .wn2-shell {
+  width: calc(100vw - 32px) !important;
+  max-width: 1840px !important;
+  margin: 14px auto 20px !important;
+}
+
+@media (min-width: 861px) {
+  .game-page.wrongnote-page.wn2-page .wn2-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    width: 100% !important;
+    height: clamp(640px, calc(100dvh - 172px), 860px) !important;
+    min-height: 640px !important;
+    overflow: hidden !important;
+  }
+
+  .game-page.wrongnote-page.wn2-page .wn2-context-panel,
+  .game-page.wrongnote-page.wn2-page .wn2-reflection-panel {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 100% !important;
+  }
+
+  .game-page.wrongnote-page.wn2-page .wn2-panel {
+    padding: 18px 20px !important;
+  }
+
+  .game-page.wrongnote-page.wn2-page .wn2-reflection-panel {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  .game-page.wrongnote-page.wn2-page .wn2-reflection-textarea {
+    flex: 1 1 auto !important;
+    min-height: 280px !important;
+    width: 100% !important;
+    overflow: auto !important;
+  }
+
+  .game-page.wrongnote-page.wn2-page .wn2-guide-box {
+    flex: 0 0 auto !important;
+    max-height: 120px !important;
+    overflow: auto !important;
+  }
+
+  .game-page.wrongnote-page.wn2-page .wn2-actions,
+  .game-page.wrongnote-page.wn2-page .status-line {
+    flex: 0 0 auto !important;
+  }
+
+  .game-page.wrongnote-page.wn2-page .wn2-scroll-reader,
+  .game-page.wrongnote-page.wn2-page .wn2-code-view,
+  .game-page.wrongnote-page.wn2-page .wn2-history-list {
+    max-height: none !important;
+  }
+}
+
+@media (min-width: 1500px) {
+  .game-page.wrongnote-page.wn2-page {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+  .game-page.wrongnote-page.wn2-page .wn2-shell {
+    width: calc(100vw - 48px) !important;
+  }
+}
+
+@media (max-width: 860px) {
+  .game-page.wrongnote-page.wn2-page {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding: 0 9px 18px !important;
+  }
+  .game-page.wrongnote-page.wn2-page .wn2-shell,
+  .game-page.wrongnote-page.wn2-page .game-topbar {
+    width: 100% !important;
+  }
+}
