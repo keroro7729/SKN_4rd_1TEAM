@@ -234,6 +234,14 @@ class WrongNoteCreateView(LoginRequiredMixin, TemplateView):
             note.save(update_fields=["ai_analysis", "status"])
         record_user_action(request.user, "wrongnote_completed", note)
 
+        # 학습 이벤트 훅: 코딩 상태(AI 내부 참고값) 자동 갱신(제출이 충분히 쌓였을 때만).
+        try:
+            from codingstate.services import ensure_fresh
+
+            ensure_fresh(request.user)
+        except Exception:  # noqa: BLE001 - 상태 갱신 실패가 노트 저장을 막지 않도록
+            pass
+
         return JsonResponse(
             {
                 "ok": True,

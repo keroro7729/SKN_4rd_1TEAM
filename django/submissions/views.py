@@ -80,6 +80,19 @@ def _create_code_job(request, *, submission_type: str, job_type: str):
 
     problem = get_object_or_404(Problem, pk=problem_id, is_active=True)
 
+    # 문제에 테스트케이스가 없으면 생성 에이전트로 즉시 생성·등록(문제당 최초 1회, 동기).
+    # 생성 실패 시에도 실행/제출은 진행한다(Worker 가 무 TC 를 자체 처리).
+    if not problem.test_cases.exists():
+        try:
+            from problems.services.testcase_agent import (
+                TestcaseAgentError,
+                generate_and_save,
+            )
+
+            generate_and_save(problem, user=request.user)
+        except TestcaseAgentError:
+            pass
+
     with transaction.atomic():
         submission = Submission.objects.create(
             user=request.user,

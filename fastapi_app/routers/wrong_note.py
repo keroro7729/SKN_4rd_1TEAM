@@ -15,7 +15,7 @@ from schemas.wrong_note import (
 )
 from logging_setup import log_ai_event
 from services import chroma, llm
-from services.llm import LLMNotImplementedError
+from services.llm import LLMCallError, LLMNotImplementedError
 from services.security import verify_internal
 
 router = APIRouter(prefix="/ai/wrong-note", tags=["wrong-note"])
@@ -41,17 +41,22 @@ async def search(req: WrongNoteSearchRequest, ctx=Depends(verify_internal)):
 async def analyze(req: WrongNoteAnalyzeRequest, ctx=Depends(verify_internal)):
     """오답 원인 분석."""
     try:
-        result = await llm.analyze_wrong_note(req.code, req.comment, evidence=[])
-    except LLMNotImplementedError:
-        log_ai_event(
-            "analyze",
-            model=config.OPENAI_MODEL,
-            status="not_implemented",
+        result = await llm.analyze_wrong_note(
+            req.code, req.comment, evidence=[], coding_state=req.coding_state
         )
+    except LLMNotImplementedError:
+        log_ai_event("analyze", model=config.OPENAI_MODEL, status="not_implemented")
         return WrongNoteAnalyzeResponse(
             request_id=ctx["request_id"],
             status=LLMStatus.failed,
             message="not_implemented",
+        )
+    except LLMCallError as exc:
+        log_ai_event("analyze", model=config.OPENAI_MODEL, status="failed")
+        return WrongNoteAnalyzeResponse(
+            request_id=ctx["request_id"],
+            status=LLMStatus.failed,
+            message=str(exc),
         )
     log_ai_event("analyze", model=config.OPENAI_MODEL)
     return WrongNoteAnalyzeResponse(
@@ -93,17 +98,15 @@ async def ask(req: NoteAskRequest, ctx=Depends(verify_internal)):
         )
     try:
         answer = await llm.answer_from_notes(req.question, evidence)
-    except LLMNotImplementedError:
+    except (LLMNotImplementedError, LLMCallError) as exc:
+        msg = "not_implemented" if isinstance(exc, LLMNotImplementedError) else str(exc)
         log_ai_event(
-            "note_ask",
-            user_id=req.user_id,
-            hits=len(evidence),
-            status="not_implemented",
+            "note_ask", user_id=req.user_id, hits=len(evidence), status="failed"
         )
         return NoteAskResponse(
             request_id=ctx["request_id"],
             status=LLMStatus.failed,
-            message="not_implemented",
+            message=msg,
             answer="",
             evidence_note_ids=[e.note_id for e in evidence],
             scores=[e.score for e in evidence],

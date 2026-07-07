@@ -31,6 +31,8 @@ def call_fastapi(
 
 def build_wrong_note_payload(note) -> dict:
     """Build the common payload for wrong-note FastAPI endpoints."""
+    from codingstate.services import get_prompt_context
+
     tags = [tag.name for tag in note.tags.all()]
     return {
         "wrong_note_id": note.id,
@@ -43,6 +45,7 @@ def build_wrong_note_payload(note) -> dict:
         "submitted_code": note.submission.code,
         "code": note.submission.code,
         "comment": note.comment,
+        "coding_state": get_prompt_context(note.user),  # AI 참고: 사용자 코딩 상태
     }
 
 

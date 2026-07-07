@@ -54,8 +54,12 @@ Return a JSON object with EXACTLY these keys:
   stdin, prints only the final answer to stdout. Deterministic. No prompts, no debug prints.
 - "generator_code": string. A Python 3 program that reads a single integer `seed` from the
   FIRST line of stdin, does `random.seed(seed)`, and prints ONE random VALID test input to
-  stdout in EXACTLY the input format the solution expects. Use SMALL bounds so it runs fast
-  (e.g. array length <= 20, values with small magnitude), while respecting the problem format.
+  stdout in EXACTLY the input format the solution expects. Pick the random ranges WIDE enough
+  that different seeds almost never produce identical inputs: draw numeric values from a broad
+  range (e.g. up to 1_000_000, or the problem's stated maximum) and also randomize the sizes
+  (e.g. array length chosen randomly up to a few hundred), while staying within the problem
+  constraints and keeping each run fast (well under ~2 seconds). Do NOT use tiny ranges such as
+  values only 1..20 or fixed sizes — those cause frequent duplicate test cases.
 - "edge_inputs": array of 1..5 strings. Each string is a COMPLETE stdin for a tricky small
   edge case (minimum sizes, boundaries, ties, duplicates, negatives, empty-ish), matching the
   exact input format.

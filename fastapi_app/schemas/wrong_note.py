@@ -28,6 +28,7 @@ class WrongNoteAnalyzeRequest(BaseModel):
     user_id: int
     code: str = ""
     comment: str = ""
+    coding_state: str = ""  # AI 참고: 사용자 코딩 상태 컨텍스트(사용자 비노출)
 
 
 class WrongNoteAnalyzeResponse(InternalResponse):

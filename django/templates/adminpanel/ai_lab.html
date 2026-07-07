@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}AI 실험 랩 · 운영{% endblock %}
+
+{% block content %}
+<form hidden>{% csrf_token %}</form>
+<div class="page-head">
+  <h1 class="page-title">AI 실험 랩</h1>
+  <a href="{% url 'adminpanel:dashboard' %}" class="btn btn-ghost">← 대시보드</a>
+</div>
+<p class="page-sub">에이전트 그래프 보기 · 단일 노드에 프롬프트를 주입해 실행 · 결과 수집/비교. 핵심 로직은 FastAPI에 있습니다.</p>
+{% if not graph_ok %}<p class="result-pre result-error-text">그래프 로드 실패: {{ graph_error }} — FastAPI 기동/네트워크를 확인하세요.</p>{% endif %}
+
+{{ graph|json_script:"lab-graph-data" }}
+
+<div class="lab-layout">
+  <aside class="panel">
+    <h3 class="sub-title">에이전트 그래프</h3>
+    <div id="lab-agents"></div>
+  </aside>
+
+  <section class="panel">
+    <h3 class="sub-title" id="lab-node-title">← 왼쪽에서 노드를 선택하세요</h3>
+    <p id="lab-nonrunnable" class="hint-note" hidden>이 노드는 리트리빙/워커 노드라 랩에서 직접 실행할 수 없습니다(그래프 보기 전용).</p>
+    <div id="lab-editor" hidden>
+      <label class="hint-note">system 프롬프트 (비우면 노드 기본값)</label>
+      <textarea id="lab-system" class="code-input" style="min-height:120px"></textarea>
+      <label class="hint-note">user 프롬프트 (비우면 템플릿+inputs 렌더)</label>
+      <textarea id="lab-user" class="code-input" style="min-height:160px"></textarea>
+      <label class="hint-note">inputs (JSON)</label>
+      <textarea id="lab-inputs" class="code-input" style="min-height:90px"></textarea>
+      <div class="editor-actions" style="margin-top:8px">
+        <input id="lab-model" class="filter-input" placeholder="model (선택, 기본 gpt-4o-mini)">
+        <button id="lab-run" type="button" class="btn">실행</button>
+        <button id="lab-add" type="button" class="btn btn-ghost" disabled>비교에 추가</button>
+        <span id="lab-status" class="hint-note"></span>
+      </div>
+      <pre id="lab-output" class="result-pre" hidden></pre>
+    </div>
+  </section>
+</div>
+
+<section class="panel">
+  <div class="page-head"><h3 class="sub-title" style="margin:0">결과 비교 (<span id="lab-compare-count">0</span>)</h3><button id="lab-clear" type="button" class="btn btn-ghost">비우기</button></div>
+  <div id="lab-compare" class="lab-compare"></div>
+</section>
+
+<style>
+.lab-layout{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start}
+.lab-agent{margin-bottom:12px}
+.lab-agent>strong{display:block;margin-bottom:4px}
+.lab-node{display:block;width:100%;text-align:left;margin:3px 0;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);color:var(--text);cursor:pointer;font-size:.85rem}
+.lab-node.is-active{border-color:var(--accent)}
+.lab-node.kind-retrieval,.lab-node.kind-worker{opacity:.6}
+.lab-edges{color:var(--muted);font-size:.72rem;margin-top:4px}
+.lab-compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.lab-card{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:10px}
+.lab-card pre{white-space:pre-wrap;font-size:.78rem;max-height:280px;overflow:auto}
+.lab-card .meta{color:var(--muted);font-size:.75rem;margin-bottom:6px}
+@media(max-width:820px){.lab-layout{grid-template-columns:1fr}}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(() => {
+  const GRAPH = JSON.parse(document.getElementById("lab-graph-data").textContent || "{}");
+  const RUN_URL = "{% url 'adminpanel:ai_lab_run' %}";
+  const nodes = GRAPH.nodes || {};
+  const agents = GRAPH.agents || [];
+  const $ = (id) => document.getElementById(id);
+  const getCookie = (n) => (document.cookie || "").split(";").map(v=>v.trim()).find(v=>v.startsWith(n+"="))?.slice(n.length+1) || "";
+  const esc = (s) => String(s==null?"":s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+  let current = null, lastRun = null;
+  const compare = [];
+
+  // 그래프 렌더
+  const agentsBox = $("lab-agents");
+  agents.forEach(a => {
+    const wrap = document.createElement("div"); wrap.className = "lab-agent";
+    wrap.innerHTML = `<strong>${esc(a.label)}</strong>`;
+    (a.nodes||[]).forEach(nid => {
+      const n = nodes[nid] || {}; const btn = document.createElement("button");
+      btn.type="button"; btn.className = `lab-node kind-${n.kind||""}` + (n.runnable?"":" ");
+      btn.dataset.node = nid;
+      btn.innerHTML = `${esc(n.label||nid)} <span class="hint-note">· ${esc(n.kind||"")}${n.runnable?"":" (보기)"}</span>`;
+      btn.addEventListener("click", () => selectNode(nid, btn));
+      wrap.appendChild(btn);
+    });
+    if ((a.edges||[]).length) wrap.insertAdjacentHTML("beforeend",
+      `<div class="lab-edges">${a.edges.map(e=>esc(e[0])+" → "+esc(e[1])).join("<br>")}</div>`);
+    agentsBox.appendChild(wrap);
+  });
+
+  function selectNode(nid, btn) {
+    document.querySelectorAll(".lab-node").forEach(b=>b.classList.remove("is-active"));
+    btn.classList.add("is-active");
+    current = nid; lastRun = null; $("lab-add").disabled = true; $("lab-output").hidden = true; $("lab-status").textContent = "";
+    const n = nodes[nid] || {};
+    $("lab-node-title").textContent = (n.label||nid) + "  ·  " + nid;
+    if (!n.runnable) { $("lab-editor").hidden = true; $("lab-nonrunnable").hidden = false; return; }
+    $("lab-nonrunnable").hidden = true; $("lab-editor").hidden = false;
+    $("lab-system").value = n.default_system || "";
+    $("lab-user").value = n.default_user || "";
+    $("lab-inputs").value = JSON.stringify(n.sample || {}, null, 2);
+    $("lab-model").value = "";
+  }
+
+  $("lab-run").addEventListener("click", async () => {
+    if (!current) return;
+    let inputs = {};
+    try { inputs = JSON.parse($("lab-inputs").value || "{}"); }
+    catch (e) { $("lab-status").textContent = "inputs JSON 파싱 오류"; return; }
+    $("lab-run").disabled = true; $("lab-status").textContent = "실행 중…";
+    try {
+      const res = await fetch(RUN_URL, { method:"POST",
+        headers:{"Content-Type":"application/json","X-CSRFToken":decodeURIComponent(getCookie("csrftoken")),"Accept":"application/json"},
+        body: JSON.stringify({ node_id: current, inputs, system: $("lab-system").value, user: $("lab-user").value, model: $("lab-model").value.trim() })
+      });
+      const d = await res.json();
+      if (d.status !== "success") { $("lab-status").textContent = "실패: " + (d.message||d.status); $("lab-output").hidden=true; return; }
+      const data = d.data || {};
+      lastRun = { node: current, output: data.output, latency: data.latency_ms, model: data.model, system: data.system_used, user: data.user_used };
+      $("lab-output").hidden = false;
+      $("lab-output").textContent = `[${data.model} · ${data.latency_ms}ms]\n\n${data.output}`;
+      $("lab-status").textContent = "완료"; $("lab-add").disabled = false;
+    } catch (e) { $("lab-status").textContent = "네트워크 오류: " + e.message; }
+    finally { $("lab-run").disabled = false; }
+  });
+
+  $("lab-add").addEventListener("click", () => {
+    if (!lastRun) return;
+    compare.push(lastRun); renderCompare();
+  });
+  $("lab-clear").addEventListener("click", () => { compare.length = 0; renderCompare(); });
+
+  function renderCompare() {
+    $("lab-compare-count").textContent = compare.length;
+    $("lab-compare").innerHTML = compare.map((r,i) =>
+      `<div class="lab-card"><div class="meta">#${i+1} · ${esc(r.node)} · ${esc(r.model)} · ${r.latency}ms<br>system ${esc((r.system||"").slice(0,40))}…</div><pre>${esc(r.output)}</pre></div>`
+    ).join("");
+  }
+})();
+</script>
+{% endblock %}
