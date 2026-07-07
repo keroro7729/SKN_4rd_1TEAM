@@ -5,12 +5,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}WOOK'S CODING{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=front-v46-avatar-level">
-  <link rel="stylesheet" href="{% static 'css/pages/profile_avatar.css' %}?v=profile-avatar-level-v46">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=front-v49-level-sidekick">
+  <link rel="stylesheet" href="{% static 'css/pages/profile_avatar.css' %}?v=profile-avatar-level-sidekick-v49">
   {% block extra_head %}{% endblock %}
 </head>
-<body class="app-shell">
-{# PROFILE_AVATAR_LEVEL_V46_BASE: 프로필만 적용, 동물 상점은 팝업으로 표시 #}
+<body class="app-shell {% if user.is_authenticated %}player-level-{{ user.level_number }}{% else %}player-level-1{% endif %}">
+{# PROFILE_AVATAR_LEVEL_V49_BASE: 레벨별 프로필 테두리 + 힌트 파트너 연동 #}
   <header class="game-site-header">
     <a class="game-logo" href="{% url 'home' %}" aria-label="WOOK'S CODING 홈">
       <span class="game-logo-mark">&lt;/&gt;</span>
@@ -33,11 +33,11 @@
     </nav>
 
     {% if user.is_authenticated %}
-      <div class="game-player-pill avatar-player-pill">
-        <button type="button" class="profile-avatar-trigger" data-avatar-modal-open aria-label="동물 프로필 변경">
-          <span class="profile-avatar-mini" aria-hidden="true">{{ user.avatar_icon }}</span>
+      <div class="game-player-pill avatar-player-pill level-frame level-frame-{{ user.level_number }}">
+        <button type="button" class="profile-avatar-trigger level-frame level-frame-{{ user.level_number }}" data-avatar-modal-open aria-label="동물 프로필 변경">
+          <span class="profile-avatar-mini level-frame level-frame-{{ user.level_number }}" aria-hidden="true">{{ user.avatar_icon }}</span>
         </button>
-        <span class="game-player-level avatar-level-badge" title="{{ user.level_name }} · {{ user.point }}P">Lv.{{ user.level_number }}</span>
+        <span class="game-player-level avatar-level-badge level-frame level-frame-{{ user.level_number }}" title="{{ user.level_name }} · {{ user.point }}P">Lv.{{ user.level_number }}</span>
         <strong>{{ user.username }}</strong>
         <span>{{ user.point }}P</span>
         <form action="{% url 'accounts:logout' %}" method="post" class="logout-form">
@@ -126,6 +126,6 @@
   {% endif %}
 
   {% block scripts %}{% endblock %}
-  <script src="{% static 'js/profile_avatar.js' %}?v=profile-avatar-level-v46"></script>
+  <script src="{% static 'js/profile_avatar.js' %}?v=profile-avatar-level-sidekick-v49"></script>
 </body>
 </html>

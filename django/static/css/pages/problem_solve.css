@@ -545,3 +545,64 @@
   .result-card,
   .result-area { max-height: 240px; }
 }
+
+
+/* PROBLEM_SOLVE_SIDEKICK_V49: level-based AI partner profile */
+.hint-partner-card.level-frame {
+  position: relative;
+  border-color: color-mix(in srgb, var(--level-main, #35f276) 44%, transparent) !important;
+  background:
+    radial-gradient(circle at 12% 12%, color-mix(in srgb, var(--level-main, #35f276) 17%, transparent), transparent 34%),
+    linear-gradient(135deg, rgba(53,216,255,.08), rgba(53,242,118,.04)) !important;
+  box-shadow: 0 0 24px var(--level-glow, rgba(53,242,118,.16));
+}
+
+.hint-partner-avatar.level-frame,
+.mini-ai.level-frame {
+  border: 1px solid color-mix(in srgb, var(--level-main, #35f276) 68%, transparent) !important;
+  background:
+    radial-gradient(circle at 35% 28%, color-mix(in srgb, var(--level-main, #35f276) 24%, #ffffff 10%), transparent 46%),
+    #0d1723 !important;
+  color: #fff !important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--level-sub, #35d8ff) 18%, transparent),
+    0 0 20px var(--level-glow, rgba(53,242,118,.18)) !important;
+  font-size: 1.35rem;
+}
+
+.partner-lv-chip {
+  margin-left: auto;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 46px;
+  height: 28px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(53,242,118,.35);
+  font-weight: 950;
+  font-size: .76rem;
+  letter-spacing: .01em;
+}
+
+.hint-partner-card strong {
+  color: var(--text, #f0f7ff);
+}
+
+.hint-partner-card small {
+  max-width: 220px;
+  line-height: 1.45;
+}
+
+@supports not (color: color-mix(in srgb, #fff 50%, #000)) {
+  .hint-partner-card.level-frame,
+  .hint-partner-avatar.level-frame,
+  .mini-ai.level-frame {
+    border-color: var(--level-main, #35f276) !important;
+  }
+}
+
+@media (max-width: 1280px) {
+  .hint-partner-card small { max-width: none; }
+}

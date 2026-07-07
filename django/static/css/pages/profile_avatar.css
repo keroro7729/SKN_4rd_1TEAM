@@ -457,3 +457,56 @@
     font-weight: 900;
   }
 }
+
+
+/* PROFILE_AVATAR_LEVEL_V49: level-based borders for header/mypage/avatar shop */
+.level-frame-1 { --level-main: #35f276; --level-sub: #35d8ff; --level-glow: rgba(53, 242, 118, 0.20); }
+.level-frame-2 { --level-main: #7cf7ff; --level-sub: #35f276; --level-glow: rgba(124, 247, 255, 0.22); }
+.level-frame-3 { --level-main: #b66cff; --level-sub: #35d8ff; --level-glow: rgba(182, 108, 255, 0.24); }
+.level-frame-4 { --level-main: #ffd54a; --level-sub: #ff8f3d; --level-glow: rgba(255, 213, 74, 0.26); }
+.level-frame-5 { --level-main: #ff8fd4; --level-sub: #b66cff; --level-glow: rgba(255, 143, 212, 0.24); }
+.level-frame-6 { --level-main: #ff6473; --level-sub: #ffd54a; --level-glow: rgba(255, 100, 115, 0.28); }
+.level-frame-7 { --level-main: #35d8ff; --level-sub: #35f276; --level-glow: rgba(53, 216, 255, 0.32); }
+
+.avatar-player-pill.level-frame,
+.profile-avatar-trigger.level-frame,
+.player-avatar.profile-avatar-page-trigger.level-frame,
+.profile-avatar-current-icon.level-frame,
+.profile-avatar-mini.level-frame {
+  border-color: color-mix(in srgb, var(--level-main) 72%, transparent) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--level-sub) 22%, transparent),
+    0 0 24px var(--level-glow),
+    inset 0 0 18px color-mix(in srgb, var(--level-main) 10%, transparent) !important;
+}
+
+.profile-avatar-trigger.level-frame,
+.player-avatar.profile-avatar-page-trigger.level-frame,
+.profile-avatar-current-icon.level-frame {
+  background:
+    radial-gradient(circle at 35% 25%, color-mix(in srgb, var(--level-main) 34%, transparent), transparent 44%),
+    linear-gradient(145deg, rgba(11, 19, 30, 0.96), rgba(7, 13, 22, 0.96)) !important;
+}
+
+.avatar-level-badge.level-frame,
+.partner-lv-chip.level-frame {
+  border-color: color-mix(in srgb, var(--level-main) 62%, transparent) !important;
+  color: var(--level-main) !important;
+  background: color-mix(in srgb, var(--level-main) 13%, transparent) !important;
+  box-shadow: 0 0 18px var(--level-glow) !important;
+}
+
+.profile-avatar-popup-card.selected .profile-avatar-popup-icon {
+  border-color: color-mix(in srgb, var(--level-main, #35f276) 48%, transparent);
+}
+
+@supports not (color: color-mix(in srgb, #fff 50%, #000)) {
+  .avatar-player-pill.level-frame,
+  .profile-avatar-trigger.level-frame,
+  .player-avatar.profile-avatar-page-trigger.level-frame,
+  .profile-avatar-current-icon.level-frame,
+  .profile-avatar-mini.level-frame {
+    border-color: var(--level-main) !important;
+    box-shadow: 0 0 22px var(--level-glow) !important;
+  }
+}

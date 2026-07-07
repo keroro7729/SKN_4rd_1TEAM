@@ -2,9 +2,9 @@
 {% block title %}마이페이지 · WOOK'S CODING{% endblock %}
 {% block content %}
 <section class="game-page mypage-page">
-  {# PROFILE_AVATAR_LEVEL_V46_MYPAGE: 기존 마이페이지 레이아웃 유지, 프로필 아이콘만 팝업 트리거로 변경 #}
+  {# PROFILE_AVATAR_LEVEL_V49_MYPAGE: 기존 마이페이지 레이아웃 유지, 프로필 아이콘만 팝업 트리거로 변경 #}
   <div class="game-topbar"><div class="game-window-dots"><span></span><span></span><span></span></div><div class="game-route">/player <b>›</b> dashboard <b>›</b> {{ user.username }}</div><div class="game-mode-pill">PLAYER DASHBOARD</div></div>
-  <div class="game-hero compact-hero player-hero-card"><div><p class="game-eyebrow">My Growth Dashboard</p><h1 class="game-title">{{ user.username }}님의 <span class="accent">성장 현황</span></h1><p class="game-sub">현재 Lv.{{ user.level_number }} {{ user.level_name }} · {{ user.point }}P · 프로필을 누르면 동물 상점이 열립니다.</p></div><button type="button" class="player-avatar profile-avatar-page-trigger" data-avatar-modal-open aria-label="동물 프로필 변경"><span>{{ user.avatar_icon }}</span><small>Lv.{{ user.level_number }}</small></button></div>
+  <div class="game-hero compact-hero player-hero-card"><div><p class="game-eyebrow">My Growth Dashboard</p><h1 class="game-title">{{ user.username }}님의 <span class="accent">성장 현황</span></h1><p class="game-sub">현재 Lv.{{ user.level_number }} {{ user.level_name }} · {{ user.point }}P · 프로필을 누르면 동물 상점이 열립니다.</p></div><button type="button" class="player-avatar profile-avatar-page-trigger level-frame level-frame-{{ user.level_number }}" data-avatar-modal-open aria-label="동물 프로필 변경"><span>{{ user.avatar_icon }}</span><small>Lv.{{ user.level_number }}</small></button></div>
   <div class="mypage-shell">
     <div class="game-stat-grid"><div class="game-stat-card"><span>총 풀이</span><strong>{{ summary.total_submissions }}</strong></div><div class="game-stat-card"><span>정답률</span><strong>{{ summary.accuracy }}%</strong></div><div class="game-stat-card"><span>오답노트</span><strong>{{ summary.wrong_note_count }}</strong></div><div class="game-stat-card"><span>복습 완료</span><strong>{{ summary.reviewed_count }}</strong></div></div>
     <div class="mypage-layout">

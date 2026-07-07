@@ -10,7 +10,7 @@ from django.db import models
 
 
 class CustomUser(AbstractUser):
-    # PROFILE_AVATAR_LEVEL_V46_MODEL: 동물 프로필 필드/해금 카탈로그
+    # PROFILE_AVATAR_LEVEL_V49_MODEL: 동물 프로필 + 레벨별 힌트 파트너/테두리
     class Role(models.TextChoices):
         STUDENT = "student", "학습자"
         ADMIN = "admin", "관리자"
@@ -33,6 +33,58 @@ class CustomUser(AbstractUser):
         {"level": 5, "name": "분석가", "required_point": 350},
         {"level": 6, "name": "해결사", "required_point": 500},
         {"level": 7, "name": "마스터", "required_point": 800},
+    ]
+
+    HINT_PARTNER_CATALOG = [
+        {
+            "level": 1,
+            "name": "새싹 코치",
+            "icon": "🐣",
+            "title": "기초 조건 확인형",
+            "message": "입력·출력·예제를 먼저 확인하도록 도와줍니다.",
+        },
+        {
+            "level": 2,
+            "name": "강아지 코치",
+            "icon": "🐶",
+            "title": "흐름 추적형",
+            "message": "예제 흐름을 따라가며 실수 지점을 찾도록 도와줍니다.",
+        },
+        {
+            "level": 3,
+            "name": "토끼 코치",
+            "icon": "🐰",
+            "title": "경계값 점검형",
+            "message": "인덱스, 기저 조건, 출력 형식을 꼼꼼히 점검합니다.",
+        },
+        {
+            "level": 4,
+            "name": "여우 코치",
+            "icon": "🦊",
+            "title": "전략 설계형",
+            "message": "풀이 전략과 알고리즘 선택을 함께 좁혀줍니다.",
+        },
+        {
+            "level": 5,
+            "name": "판다 코치",
+            "icon": "🐼",
+            "title": "복잡도 분석형",
+            "message": "시간·메모리 조건을 기준으로 풀이를 점검합니다.",
+        },
+        {
+            "level": 6,
+            "name": "호랑이 코치",
+            "icon": "🐯",
+            "title": "실전 디버깅형",
+            "message": "실행 결과와 반례 중심으로 원인을 빠르게 좁힙니다.",
+        },
+        {
+            "level": 7,
+            "name": "드래곤 코치",
+            "icon": "🐲",
+            "title": "마스터 리뷰형",
+            "message": "정답 접근, 최적화, 오답 회고까지 종합적으로 안내합니다.",
+        },
     ]
 
     AVATAR_CATALOG = [
@@ -143,6 +195,42 @@ class CustomUser(AbstractUser):
     @property
     def level_name(self) -> str:
         return self.level_meta["name"]
+
+
+    @classmethod
+    def hint_partner_catalog(cls):
+        """레벨별 AI 힌트 파트너 카탈로그."""
+        return [dict(item) for item in cls.HINT_PARTNER_CATALOG]
+
+    @property
+    def level_tier_class(self) -> str:
+        return f"level-frame-{self.level_number}"
+
+    @property
+    def hint_partner_meta(self):
+        current = self.hint_partner_catalog()[0]
+        for item in self.hint_partner_catalog():
+            if self.level_number >= int(item["level"]):
+                current = item
+            else:
+                break
+        return current
+
+    @property
+    def hint_partner_icon(self) -> str:
+        return self.hint_partner_meta["icon"]
+
+    @property
+    def hint_partner_name(self) -> str:
+        return self.hint_partner_meta["name"]
+
+    @property
+    def hint_partner_title(self) -> str:
+        return self.hint_partner_meta["title"]
+
+    @property
+    def hint_partner_message(self) -> str:
+        return self.hint_partner_meta["message"]
 
     @property
     def next_level_meta(self):
