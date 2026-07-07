@@ -1136,3 +1136,53 @@ main.content:has(.wrongnote-page.wn2-page) {
     flex: 0 0 auto !important;
   }
 }
+
+/* ===== v28 FINAL FIX: remove reflection guide scrollbar completely =====
+   실제 화면의 빨간 원 위치는 .wn2-guide-box 또는 오른쪽 reflection panel의 내부 스크롤바가
+   겹쳐 보이는 케이스가 있어 둘 다 제거한다. 내용은 3줄이라 박스 안에서 스크롤될 필요가 없다.
+*/
+@media (min-width: 861px) {
+  .game-page.wrongnote-page.wn2-page .wn2-reflection-panel {
+    overflow: hidden !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  .game-page.wrongnote-page.wn2-page .wn2-reflection-panel::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+  }
+
+  .game-page.wrongnote-page.wn2-page .wn2-guide-box {
+    flex: 0 0 auto !important;
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  .game-page.wrongnote-page.wn2-page .wn2-guide-box::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+  }
+
+  .game-page.wrongnote-page.wn2-page .wn2-guide-box ul,
+  .game-page.wrongnote-page.wn2-page .wn2-guide-box li {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .game-page.wrongnote-page.wn2-page .wn2-actions {
+    overflow: visible !important;
+  }
+}
