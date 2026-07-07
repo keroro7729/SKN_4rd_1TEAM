@@ -81,19 +81,28 @@
                   <p class="wrongnote-comment">{{ note.comment|default:"아직 회고 내용이 없습니다. 상세 화면에서 원인을 정리해보세요."|truncatechars:136 }}</p>
                   <div class="wrongnote-foot review-board-actions">
                     <span>{{ note.created_at|date:"Y.m.d H:i" }}</span>
-                    <div class="review-action-group">
-                      <a class="text-link" href="{% url 'wrongnotes:detail' note.id %}">상세 보기</a>
+                    <div class="review-action-group clean-action-group" aria-label="오답노트 카드 작업">
+                      <a class="review-card-action detail" href="{% url 'wrongnotes:detail' note.id %}">
+                        <span class="action-icon">보기</span>
+                        <span>상세 보기</span>
+                      </a>
                       {% if note.is_review_hidden %}
                         <form method="post" action="{% url 'wrongnotes:restore' note.id %}" class="inline-review-form">
                           {% csrf_token %}
                           <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                          <button type="submit" class="game-mini-btn ghost">복습보드로 복원</button>
+                          <button type="submit" class="review-card-action restore">
+                            <span class="action-icon">복원</span>
+                            <span>보드 복원</span>
+                          </button>
                         </form>
                       {% else %}
                         <form method="post" action="{% url 'wrongnotes:hide' note.id %}" class="inline-review-form" onsubmit="return confirm('이 노트를 복습보드에서 제거할까요? 오답노트 원본은 삭제되지 않습니다.');">
                           {% csrf_token %}
                           <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                          <button type="submit" class="game-mini-btn ghost danger">복습보드에서 제거</button>
+                          <button type="submit" class="review-card-action remove">
+                            <span class="action-icon">제거</span>
+                            <span>보드에서 제거</span>
+                          </button>
                         </form>
                       {% endif %}
                     </div>
