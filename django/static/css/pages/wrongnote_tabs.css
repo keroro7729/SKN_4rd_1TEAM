@@ -1,4 +1,4 @@
-/* WrongNote create page v21
+/* WrongNote create page v22
    Desktop: 2-column layout exactly as requested
    Left: problem/code/history/result tabs
    Right: reflection writer
@@ -501,4 +501,170 @@
   .wn2-problem-reader {
     max-width: 100% !important;
   }
+}
+
+
+/* v22 compact readability pass
+   - reflection writer no longer looks cut off
+   - smaller tab/title typography
+   - both columns become internal scroll workspaces on desktop
+*/
+.wn2-shell {
+  margin-top: 12px;
+  margin-bottom: 18px;
+}
+
+.wn2-header {
+  min-height: 58px;
+  padding: 13px 18px;
+}
+
+.wn2-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+.wn2-title { gap: 10px; }
+.wn2-title h1 { font-size: clamp(1.12rem, 1.55vw, 1.45rem); }
+.wn2-title p { margin-top: 3px; font-size: .78rem; }
+.wn2-close { width: 34px; height: 34px; font-size: 1.65rem; }
+
+.wn2-panel { padding: 16px 18px; }
+.wn2-panel-head,
+.wn2-inner-head {
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.panel-kicker { font-size: .68rem; letter-spacing: .11em; }
+.wn2-panel-head h2 { font-size: 1.02rem; }
+.wn2-inner-head h3 { font-size: .92rem; }
+.wn2-small-title,
+.wn2-reader-section h4 { font-size: .9rem; }
+
+.wn2-tabs {
+  gap: 6px;
+  padding: 4px;
+  margin-bottom: 10px;
+  border-radius: 13px;
+}
+.reflection-tab {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 10px;
+  font-size: .82rem;
+  font-weight: 800;
+}
+
+.wn2-problem-titlebar {
+  padding: 12px 14px;
+}
+.wn2-problem-titlebar h3 {
+  font-size: clamp(1rem, 1.35vw, 1.22rem);
+}
+.wn2-problem-nav {
+  gap: 6px;
+  padding: 8px 12px;
+}
+.wn2-problem-nav a {
+  min-height: 28px;
+  padding: 0 9px;
+  font-size: .75rem;
+}
+.wn2-scroll-reader {
+  padding: 14px;
+}
+.wn2-desc-text {
+  font-size: .9rem;
+  line-height: 1.68;
+}
+.wn2-list {
+  font-size: .88rem;
+  line-height: 1.55;
+  gap: 6px;
+}
+.wn2-reader-section {
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+.quick-template-row {
+  gap: 6px;
+  margin: 2px 0 10px;
+}
+.quick-template-row .game-mini-btn,
+.wn2-actions .game-btn {
+  min-height: 34px;
+  font-size: .84rem;
+}
+.wn2-reflection-textarea {
+  min-height: clamp(190px, 31vh, 290px);
+  line-height: 1.6;
+  font-size: .92rem;
+}
+.wn2-guide-box {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  font-size: .86rem;
+}
+.wn2-guide-box ul {
+  gap: 5px;
+  line-height: 1.45;
+}
+.wn2-actions {
+  gap: 8px;
+  margin-top: 12px;
+}
+.status-line {
+  margin-top: 7px;
+  font-size: .78rem;
+}
+
+@media (min-width: 861px) {
+  .wn2-shell {
+    width: min(1600px, calc(100vw - 28px));
+    max-height: calc(100vh - 128px);
+  }
+
+  .wn2-grid {
+    height: calc(100vh - 205px) !important;
+    min-height: 520px !important;
+    max-height: 760px !important;
+    grid-template-columns: minmax(0, 1.13fr) minmax(380px, .87fr) !important;
+  }
+
+  .wn2-context-panel,
+  .wn2-reflection-panel {
+    min-height: 0 !important;
+    overflow: auto !important;
+    scrollbar-width: thin;
+  }
+
+  .wn2-tab-body,
+  .reflection-panel.is-active,
+  .wn2-problem-reader,
+  .wn2-inner-card {
+    min-height: 0 !important;
+  }
+
+  .wn2-scroll-reader,
+  .wn2-code-view,
+  .wn2-history-list {
+    max-height: calc(100vh - 365px) !important;
+  }
+
+  .wn2-reflection-panel {
+    padding-bottom: 18px;
+  }
+}
+
+@media (max-width: 860px) {
+  .wn2-header,
+  .wn2-panel { padding: 14px; }
+  .wn2-panel-head h2 { font-size: 1rem; }
+  .reflection-tab { font-size: .8rem; }
+  .wn2-reflection-textarea { min-height: 230px; }
 }
