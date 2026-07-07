@@ -1086,37 +1086,51 @@ main.content:has(.wrongnote-page.wn2-page) {
   }
 }
 
-/* v26 reflection guide no-scroll fix
-   - Removes the internal scrollbar from the red-circled reflection guide area.
-   - The guide box now expands naturally, while the textarea absorbs remaining space.
+
+/* ===== v27 FIX: remove red-circled scrollbar in reflection guide =====
+   This block must stay at the very bottom of wrongnote_tabs.css.
+   Target: 회고 작성 포인트 박스 내부 스크롤 제거
 */
-.game-page.wrongnote-page.wn2-page .wn2-guide-box {
-  max-height: none !important;
+.game-page.wrongnote-page.wn2-page .wn2-reflection-panel {
   overflow: visible !important;
 }
 
+.game-page.wrongnote-page.wn2-page .wn2-guide-box,
+.game-page.wrongnote-page.wn2-page .wn2-guide-box *,
 .game-page.wrongnote-page.wn2-page .wn2-guide-box ul,
 .game-page.wrongnote-page.wn2-page .wn2-guide-box li {
   max-height: none !important;
+  height: auto !important;
   overflow: visible !important;
+  overscroll-behavior: auto !important;
+}
+
+/* Hide scrollbar even if the browser keeps old overflow styles cached/applied */
+.game-page.wrongnote-page.wn2-page .wn2-guide-box {
+  scrollbar-width: none !important;       /* Firefox */
+  -ms-overflow-style: none !important;    /* old Edge/IE */
+}
+
+.game-page.wrongnote-page.wn2-page .wn2-guide-box::-webkit-scrollbar,
+.game-page.wrongnote-page.wn2-page .wn2-guide-box *::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
 }
 
 @media (min-width: 861px) {
   .game-page.wrongnote-page.wn2-page .wn2-reflection-panel {
-    overflow: hidden !important;
-  }
-
-  .game-page.wrongnote-page.wn2-page .wn2-reflection-textarea {
-    flex: 1 1 0 !important;
-    min-height: 230px !important;
-  }
-
-  .game-page.wrongnote-page.wn2-page .wn2-guide-box {
-    flex: 0 0 auto !important;
-    max-height: none !important;
+    display: flex !important;
+    flex-direction: column !important;
     overflow: visible !important;
   }
 
+  .game-page.wrongnote-page.wn2-page .wn2-reflection-textarea {
+    flex: 1 1 auto !important;
+    min-height: 260px !important;
+  }
+
+  .game-page.wrongnote-page.wn2-page .wn2-guide-box,
   .game-page.wrongnote-page.wn2-page .wn2-actions,
   .game-page.wrongnote-page.wn2-page .status-line {
     flex: 0 0 auto !important;
