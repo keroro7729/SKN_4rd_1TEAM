@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}{{ notice.title }} · 공지사항{% endblock %}
+{% block content %}
+<section class="game-page notice-page"><article class="game-panel notice-detail-card"><div class="game-panel-head"><div><p class="game-eyebrow">Notice</p><h1>{{ notice.title }}</h1><p>{{ notice.created_at|date:"Y-m-d H:i" }}</p></div><a class="game-btn ghost" href="{% url 'notices:list' %}">목록</a></div><div class="notice-content">{{ notice.content|linebreaksbr }}</div></article></section>
+{% endblock %}

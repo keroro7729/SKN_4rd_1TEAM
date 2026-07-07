@@ -8,46 +8,83 @@
 {% block content %}
 <form hidden>{% csrf_token %}</form>
 <section class="game-page solve-page">
-  <div class="game-topbar"><div class="game-window-dots"><span></span><span></span><span></span></div><div class="game-route">/quest-board <b>›</b> solve <b>›</b> #{{ problem.id }}</div><div class="game-mode-pill">정답 시 +20P</div></div>
+  <div class="game-topbar">
+    <div class="game-window-dots"><span></span><span></span><span></span></div>
+    <div class="game-route">/quest-board / solve / #{{ problem.id }}</div>
+    <div class="game-mode-pill">정답 제출 +20P</div>
+  </div>
+
   <div class="solve-header">
     <p class="game-eyebrow">Code Battle Stage</p>
     <h1 class="game-title">#{{ problem.id }} {{ problem.title }}</h1>
-    <p class="game-sub"><span class="badge badge-{{ problem.difficulty }}">{{ problem.get_difficulty_display }}</span> {% for t in problem.tags.all %}<span class="game-chip">{{ t.name }}</span>{% endfor %}</p>
+    <p class="game-sub">
+      <span class="badge badge-{{ problem.difficulty }}">{{ problem.get_difficulty_display }}</span>
+      {% for t in problem.tags.all %}<span class="game-chip">{{ t.name }}</span>{% endfor %}
+    </p>
   </div>
 
   <div class="solve-layout">
     <section class="game-panel solve-pane">
       <div class="game-panel-head"><h2>문제 보기</h2><p>조건과 예제를 확인하고 풀이 전략을 세우세요.</p></div>
       <div class="problem-desc">{{ problem.description|linebreaksbr }}</div>
-      {% if problem.constraints %}<h3 class="section-title">제한사항</h3><ul class="constraints-list">{% for line in problem.constraints.splitlines %}<li>{{ line }}</li>{% endfor %}</ul>{% endif %}
-      {% if sample_cases %}<h3 class="section-title">예제</h3>{% for tc in sample_cases %}<div class="testcase"><div><strong>입력</strong><pre>{{ tc.input_data }}</pre></div><div><strong>출력</strong><pre>{{ tc.expected_output }}</pre></div></div>{% endfor %}{% endif %}
+      {% if problem.constraints %}
+        <h3 class="section-title">제한사항</h3>
+        <ul class="constraints-list">{% for line in problem.constraints.splitlines %}<li>{{ line }}</li>{% endfor %}</ul>
+      {% endif %}
+      {% if sample_cases %}
+        <h3 class="section-title">공개 예제</h3>
+        {% for tc in sample_cases %}
+          <div class="testcase"><div><strong>입력</strong><pre>{{ tc.input_data }}</pre></div><div><strong>출력</strong><pre>{{ tc.expected_output }}</pre></div></div>
+        {% endfor %}
+      {% endif %}
     </section>
 
     <section class="game-panel solve-pane editor-pane" data-problem-id="{{ problem.id }}" data-run-url="{% url 'submissions:run' %}" data-submit-url="{% url 'submissions:submit' %}" data-result-url-template="/submissions/__ID__/result/" data-hint-url="{% url 'ai_proxy:hint' %}" data-wrongnote-list-url="{% url 'wrongnotes:list' %}">
-      <div class="editor-toolbar"><label class="section-title" for="code-editor">코드 작성</label><div class="editor-toolbar-right"><select class="game-input" aria-label="실행 언어"><option>Python</option></select><span class="autosave-note">자동 저장됨</span><button id="reset-code-btn" type="button" class="game-mini-btn ghost">초기화</button></div></div>
+      <div class="editor-toolbar">
+        <label class="section-title" for="code-editor">코드 작성</label>
+        <div class="editor-toolbar-right"><select class="game-input" aria-label="실행 언어"><option>Python</option></select><span class="autosave-note">자동 저장됨</span><button id="reset-code-btn" type="button" class="game-mini-btn ghost">초기화</button></div>
+      </div>
       <textarea id="code-editor" spellcheck="false" placeholder="# 여기에 코드를 작성하세요"></textarea>
-      <div class="editor-actions"><button id="run-code-btn" type="button" class="game-btn ghost">▶ 실행</button><button id="submit-btn" type="button" class="game-btn primary">제출하기</button></div>
+      <div class="editor-actions"><button id="run-code-btn" type="button" class="game-btn ghost">실행</button><button id="submit-btn" type="button" class="game-btn primary">제출하기</button></div>
+
+      <section class="editor-testcase-panel" aria-label="테스트케이스 3개">
+        <div class="editor-testcase-head"><h3>테스트케이스</h3><span>3개 구성 · RAG 연동 예정</span></div>
+        <div class="editor-testcase-grid">
+          {% for slot in test_case_slots %}
+            <article class="editor-testcase-card {% if not slot.is_ready %}is-pending{% endif %}">
+              <div class="editor-testcase-title"><strong>TC {{ slot.index }}</strong><span>{{ slot.label }}</span></div>
+              {% if slot.case %}
+                <div><em>입력</em><pre>{{ slot.case.input_data }}</pre></div>
+                <div><em>기대 출력</em><pre>{{ slot.case.expected_output }}</pre></div>
+              {% else %}
+                <p>문제별 테스트케이스 생성 후 이 영역에 자동 표시됩니다.</p>
+              {% endif %}
+            </article>
+          {% endfor %}
+        </div>
+      </section>
+
       <div id="run-loading-box" class="result-area" hidden></div><div id="run-error-box" class="result-area result-error" hidden></div><div id="result-status-box" class="result-card" hidden></div>
     </section>
 
     <aside class="game-panel hint-sidebar">
-      <div class="game-panel-head"><h2>AI 파트너 힌트</h2></div>
+      <div class="game-panel-head"><h2>AI 힌트 파트너</h2></div>
       <p class="hint-note">정답을 직접 노출하지 않고 사고 과정을 단계적으로 유도합니다.</p>
       <div class="hint-accordion" id="hint-accordion">
-        {% for level in "123" %}<div class="hint-step" data-level="{{ level }}"><button type="button" class="hint-step-toggle" data-level="{{ level }}" disabled><span>힌트 {{ level }}단계</span><span class="lock-label">잠금 🔒</span></button><div class="hint-step-body" id="hint-body-{{ level }}" hidden></div></div>{% endfor %}
+        {% for level in "123" %}<div class="hint-step" data-level="{{ level }}"><button type="button" class="hint-step-toggle" data-level="{{ level }}" disabled><span>힌트 {{ level }}단계</span><span class="lock-label">잠금</span></button><div class="hint-step-body" id="hint-body-{{ level }}" hidden></div></div>{% endfor %}
       </div>
       <button id="hint-next-btn" type="button" class="game-btn ghost">다음 힌트 요청</button>
-      <a id="wrong-note-create-link" href="{% url 'wrongnotes:list' %}" class="game-btn ghost">📕 오답노트 작성</a>
+      <a id="wrong-note-create-link" href="{% url 'wrongnotes:list' %}" class="game-btn ghost">오답노트 작성</a>
       <p id="wrong-note-help" class="hint-note">오답 제출 후 회고 워크스페이스로 이동합니다.</p>
     </aside>
   </div>
   <div class="pixel-journey" aria-hidden="true"></div>
-  <p class="back-link"><a href="{% url 'problems:list' %}">← 목록으로 돌아가기</a></p>
+  <p class="back-link"><a href="{% url 'problems:list' %}">목록으로 돌아가기</a></p>
 </section>
 {% endblock %}
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
-<script src="{% static 'js/problem_solve.js' %}?v=game-design-v8"></script>
+<script src="{% static 'js/problem_solve.js' %}?v=problem-testcases-v1"></script>
 {% endblock %}

@@ -1,7 +1,7 @@
 """문제 도메인 관리자 화면."""
 from django.contrib import admin
 
-from .models import Problem, ProblemCategory, ProblemFavorite, ProblemTag, TestCase
+from .models import Problem, ProblemCategory, ProblemChecker, ProblemFavorite, ProblemTag, TestCase
 
 
 class TestCaseInline(admin.TabularInline):
@@ -40,3 +40,9 @@ class TestCaseAdmin(admin.ModelAdmin):
 class ProblemFavoriteAdmin(admin.ModelAdmin):
     list_display = ("user", "problem", "created_at")
     list_filter = ("created_at",)
+
+@admin.register(ProblemChecker)
+class ProblemCheckerAdmin(admin.ModelAdmin):
+    list_display = ("problem", "language", "time_limit_ms", "memory_limit_mb", "is_active", "updated_at")
+    list_filter = ("language", "is_active")
+    search_fields = ("problem__title", "runner_path")

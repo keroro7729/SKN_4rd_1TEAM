@@ -8,6 +8,7 @@ from django.utils import timezone
 from config.choices import POINT_REWARD_MAP
 
 from .models import Mission, PointLog, UserMission
+from accounts.models import calculate_user_level
 from django.contrib.auth import get_user_model
 
 def _related_identity(related_obj=None, *, related_model: str = "", related_id=None):
@@ -40,8 +41,12 @@ def award_points(user, action_type: str, related_obj=None, *, related_model: str
                 defaults={"point": point},
             )
             if created:
-                get_user_model().objects.filter(pk=user.pk).update(point=F("point") + point)
+                UserModel = get_user_model()
+                UserModel.objects.filter(pk=user.pk).update(point=F("point") + point)
                 user.refresh_from_db(fields=["point"])
+                new_level = calculate_user_level(user.point)
+                UserModel.objects.filter(pk=user.pk).update(level=new_level)
+                user.level = new_level
             return log, created
     except IntegrityError:
         return (

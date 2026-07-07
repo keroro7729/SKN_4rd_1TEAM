@@ -115,3 +115,28 @@ class TestCase(models.Model):
     def __str__(self):
         sample = "샘플" if self.is_sample else "채점"
         return f"TC#{self.pk}({sample}) · problem {self.problem_id}"
+
+class ProblemChecker(models.Model):
+    """Per-problem checker runtime configuration for app/worker execution."""
+
+    problem = models.OneToOneField(
+        Problem,
+        on_delete=models.CASCADE,
+        related_name="checker",
+        verbose_name="문제",
+    )
+    language = models.CharField("실행언어", max_length=30, default="python")
+    runner_path = models.CharField("채점기경로", max_length=255, blank=True)
+    time_limit_ms = models.PositiveIntegerField("시간제한(ms)", default=2000)
+    memory_limit_mb = models.PositiveIntegerField("메모리제한(MB)", default=128)
+    is_active = models.BooleanField("활성", default=True)
+    created_at = models.DateTimeField("생성일시", auto_now_add=True)
+    updated_at = models.DateTimeField("수정일시", auto_now=True)
+
+    class Meta:
+        verbose_name = "문제 채점기"
+        verbose_name_plural = "문제 채점기"
+        indexes = [models.Index(fields=["is_active", "language"])]
+
+    def __str__(self):
+        return f"Checker problem {self.problem_id} ({self.language})"

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}계정정보 확인 · WOOK'S CODING{% endblock %}
+{% block content %}
+<section class="game-page account-page">
+  <div class="account-narrow">
+    <section class="game-panel">
+      <div class="game-panel-head">
+        <div>
+          <h1>계정정보 확인</h1>
+          <p>개인정보 보호를 위해 현재 비밀번호를 한 번 더 입력해주세요.</p>
+        </div>
+      </div>
+      <form method="post" class="account-form" novalidate>
+        {% csrf_token %}
+        <label for="{{ form.password.id_for_label }}">비밀번호</label>
+        {{ form.password }}
+        {% if form.password.errors %}<p class="form-error">{{ form.password.errors|striptags }}</p>{% endif %}
+        <div class="account-action-row">
+          <a class="game-btn ghost" href="{% url 'mypage:index' %}">취소</a>
+          <button class="game-btn primary" type="submit">확인</button>
+        </div>
+      </form>
+    </section>
+  </div>
+</section>
+{% endblock %}

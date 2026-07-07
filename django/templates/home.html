@@ -1,85 +1,15 @@
 {% extends "base.html" %}
 {% block title %}WOOK'S CODING · 홈{% endblock %}
-
 {% block content %}
 <section class="game-page home-page">
-  <div class="game-topbar">
-    <div class="game-window-dots"><span></span><span></span><span></span></div>
-    <div class="game-route">/home/wooks-coding <b>›</b> dashboard <b>›</b> start</div>
-    <div class="game-mode-pill">AI CODING RPG</div>
-  </div>
-
-  <div class="home-hero">
-    <div>
-      <p class="game-eyebrow">AI CODING TEST PLATFORM</p>
-      <h1 class="game-title"><span class="accent">AI 오답 회고</span>로 성장하는<br>코딩 테스트 RPG</h1>
-      <p class="game-sub">문제를 퀘스트처럼 풀고, 실패한 코드는 오답노트와 RAG 근거로 다시 분석합니다. AI 파트너가 힌트와 회고를 도와 실수 패턴을 학습 데이터로 바꿔줍니다.</p>
-      <div class="home-actions">
-        {% if user.is_authenticated %}
-          <a class="game-btn primary" href="{% url 'problems:list' %}">오늘의 퀘스트 시작</a>
-          <a class="game-btn ghost" href="{% url 'wrongnotes:list' %}">오답노트 분석실</a>
-        {% else %}
-          <a class="game-btn primary" href="{% url 'accounts:signup' %}">학습 시작</a>
-          <a class="game-btn ghost" href="{% url 'accounts:login' %}">로그인</a>
-        {% endif %}
-      </div>
-    </div>
-    <div class="home-hero-card" aria-hidden="true"><div class="home-ai-core">AI</div></div>
-  </div>
-
-  <div class="home-feature-grid">
-    <article class="game-panel home-feature"><div class="home-feature-icon">01</div><h2>단계별 AI 힌트</h2><p class="hint-note">정답 대신 사고 방향을 1~3단계로 열어줍니다.</p></article>
-    <article class="game-panel home-feature accent-cyan"><div class="home-feature-icon">02</div><h2>오답노트 RAG</h2><p class="hint-note">note_id, source, score 근거를 화면에 남깁니다.</p></article>
-    <article class="game-panel home-feature accent-purple"><div class="home-feature-icon">03</div><h2>과거 코드 회고</h2><p class="hint-note">현재 코드와 과거 제출을 비교해 반복 실수를 찾습니다.</p></article>
-    <article class="game-panel home-feature accent-warning"><div class="home-feature-icon">04</div><h2>미션/포인트</h2><p class="hint-note">퀘스트처럼 풀고, 성장 지표를 마이페이지에서 확인합니다.</p></article>
-  </div>
-
+  <div class="game-topbar"><div class="game-window-dots"><span></span><span></span><span></span></div><div class="game-route">/home/wooks-coding / dashboard / start</div><div class="game-mode-pill">AI CODING RPG</div></div>
+  <div class="home-hero"><div><p class="game-eyebrow">AI CODING TEST PLATFORM</p><h1 class="game-title"><span class="accent">AI 오답 회고</span>로 성장하는<br>코딩 테스트 RPG</h1><p class="game-sub">문제를 퀘스트처럼 풀고, 실패한 코드는 오답노트와 RAG 근거로 다시 분석합니다.</p><div class="home-actions">{% if user.is_authenticated %}<a class="game-btn primary" href="{% url 'problems:list' %}">오늘의 퀘스트 시작</a><a class="game-btn ghost" href="{% url 'wrongnotes:list' %}">오답노트 분석</a>{% else %}<a class="game-btn primary" href="{% url 'accounts:signup' %}">학습 시작</a><a class="game-btn ghost" href="{% url 'accounts:login' %}">로그인</a>{% endif %}</div></div><div class="home-hero-card" aria-hidden="true"><div class="home-ai-core">AI</div></div></div>
+  <div class="home-feature-grid"><article class="game-panel home-feature"><div class="home-feature-icon">01</div><h2>단계별 AI 힌트</h2><p class="hint-note">정답 대신 사고 방향을 단계적으로 제공합니다.</p></article><article class="game-panel home-feature accent-cyan"><div class="home-feature-icon">02</div><h2>오답노트 RAG</h2><p class="hint-note">오답 근거와 반복 실수를 누적합니다.</p></article><article class="game-panel home-feature accent-purple"><div class="home-feature-icon">03</div><h2>과거 코드 회고</h2><p class="hint-note">현재 코드와 과거 실수를 비교합니다.</p></article><article class="game-panel home-feature accent-warning"><div class="home-feature-icon">04</div><h2>미션/포인트</h2><p class="hint-note">성장 지표를 마이페이지에서 확인합니다.</p></article></div>
   <div class="game-dashboard-grid home-dashboard">
-    <section class="game-panel game-span-4">
-      <div class="game-panel-head"><h2>오늘의 추천 문제</h2><a class="text-link" href="{% url 'problems:list' %}">전체 보기</a></div>
-      <div class="game-list">
-        {% for p in recommended_problems %}
-          <a class="game-row" href="{% url 'problems:detail' p.id %}"><span>{{ p.id }}번 {{ p.title|truncatechars:28 }}</span><span class="game-chip cyan">{{ p.get_difficulty_display }}</span></a>
-        {% empty %}<p class="game-empty">추천할 문제가 없습니다.</p>{% endfor %}
-      </div>
-    </section>
-
-    <section class="game-panel game-span-4 accent-cyan">
-      <div class="game-panel-head"><h2>공지사항</h2></div>
-      <div class="game-list">
-        {% for n in notices %}
-          <div class="game-row"><span>{{ n.title|truncatechars:34 }}</span><span class="game-chip">{{ n.created_at|date:"m.d" }}</span></div>
-        {% empty %}<p class="game-empty">등록된 공지사항이 없습니다.</p>{% endfor %}
-      </div>
-    </section>
-
-    <section class="game-panel game-span-4 accent-purple">
-      <div class="game-panel-head"><h2>오늘의 미션</h2></div>
-      <div class="game-list">
-        {% for m in missions|slice:":4" %}
-          <div class="game-row"><span>{{ m.title|truncatechars:28 }}</span><span class="game-chip amber">+{{ m.reward_point }}P</span></div>
-        {% empty %}<p class="game-empty">진행 가능한 미션이 없습니다.</p>{% endfor %}
-      </div>
-    </section>
-
-    {% if user.is_authenticated %}
-    <section class="game-panel game-span-6">
-      <div class="game-panel-head"><h2>최근 제출</h2><a class="text-link" href="{% url 'mypage:index' %}">학습 기록</a></div>
-      <div class="game-list">
-        {% for s in recent_submissions %}
-          <a class="game-row" href="{% url 'problems:detail' s.problem_id %}"><span>{{ s.problem.title|truncatechars:34 }}</span><span class="badge badge-status-{{ s.result }}">{{ s.get_result_display }}</span></a>
-        {% empty %}<p class="game-empty">아직 제출 기록이 없습니다.</p>{% endfor %}
-      </div>
-    </section>
-    <section class="game-panel game-span-6 accent-warning">
-      <div class="game-panel-head"><h2>최근 오답노트</h2><a class="text-link" href="{% url 'wrongnotes:list' %}">전체 보기</a></div>
-      <div class="game-list">
-        {% for note in recent_wrong_notes %}
-          <a class="game-row" href="{% url 'wrongnotes:detail' note.id %}"><span>{{ note.problem.title|truncatechars:34 }}</span><span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span></a>
-        {% empty %}<p class="game-empty">아직 오답노트가 없습니다.</p>{% endfor %}
-      </div>
-    </section>
-    {% endif %}
+    <section class="game-panel game-span-4"><div class="game-panel-head"><h2>오늘의 추천 문제</h2><a class="text-link" href="{% url 'problems:list' %}">전체 보기</a></div><div class="game-list">{% for p in recommended_problems %}<a class="game-row" href="{% url 'problems:detail' p.id %}"><span>{{ p.id }}번 {{ p.title|truncatechars:28 }}</span><span class="game-chip cyan">{{ p.get_difficulty_display }}</span></a>{% empty %}<p class="game-empty">추천할 문제가 없습니다.</p>{% endfor %}</div></section>
+    <section class="game-panel game-span-4 accent-cyan"><div class="game-panel-head"><h2>공지사항</h2><a class="text-link" href="{% url 'notices:list' %}">전체 보기</a></div><div class="game-list">{% for n in notices %}<a class="game-row" href="{% url 'notices:detail' n.id %}"><span>{{ n.title|truncatechars:34 }}</span><span class="game-chip">{{ n.created_at|date:"m.d" }}</span></a>{% empty %}<p class="game-empty">등록된 공지사항이 없습니다.</p>{% endfor %}</div></section>
+    <section class="game-panel game-span-4 accent-purple"><div class="game-panel-head"><h2>오늘의 미션</h2></div><div class="game-list">{% for m in missions|slice:":4" %}<div class="game-row"><span>{{ m.title|truncatechars:28 }}</span><span class="game-chip amber">+{{ m.reward_point }}P</span></div>{% empty %}<p class="game-empty">진행 가능한 미션이 없습니다.</p>{% endfor %}</div></section>
+    {% if user.is_authenticated %}<section class="game-panel game-span-6"><div class="game-panel-head"><h2>최근 제출</h2><a class="text-link" href="{% url 'mypage:index' %}">마이페이지</a></div><div class="game-list">{% for s in recent_submissions %}<a class="game-row" href="{% url 'problems:detail' s.problem_id %}"><span>{{ s.problem.title|truncatechars:34 }}</span><span class="badge badge-status-{{ s.result }}">{{ s.get_result_display }}</span></a>{% empty %}<p class="game-empty">아직 제출 기록이 없습니다.</p>{% endfor %}</div></section><section class="game-panel game-span-6 accent-warning"><div class="game-panel-head"><h2>최근 오답노트</h2><a class="text-link" href="{% url 'wrongnotes:list' %}">전체 보기</a></div><div class="game-list">{% for note in recent_wrong_notes %}<a class="game-row" href="{% url 'wrongnotes:detail' note.id %}"><span>{{ note.problem.title|truncatechars:34 }}</span><span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span></a>{% empty %}<p class="game-empty">아직 오답노트가 없습니다.</p>{% endfor %}</div></section>{% endif %}
   </div>
 </section>
 {% endblock %}

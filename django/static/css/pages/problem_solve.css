@@ -30,3 +30,17 @@
 .pixel-journey::before { content:"PLAYER + AI PARTNER → QUEST CLEAR"; position:absolute; inset:0; display:grid; place-items:center; color:var(--muted); font-family:var(--font-code); letter-spacing:.08em; }
 .back-link { margin: 0 clamp(20px,3vw,34px) 26px; }
 .back-link a { color:var(--cyan); text-decoration:none; font-weight:900; }
+.editor-testcase-panel { margin-top:14px; border:1px solid rgba(53,216,255,.18); border-radius:16px; padding:14px; background:rgba(255,255,255,.025); }
+.editor-testcase-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
+.editor-testcase-head h3 { margin:0; color:var(--text); font-size:1rem; }
+.editor-testcase-head span { color:var(--muted); font-size:.78rem; }
+.editor-testcase-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.editor-testcase-card { min-width:0; display:grid; gap:8px; border:1px solid rgba(134,149,165,.16); border-radius:13px; padding:11px; background:rgba(1,7,12,.42); }
+.editor-testcase-card.is-pending { border-style:dashed; opacity:.82; }
+.editor-testcase-title { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.editor-testcase-title strong { color:var(--green); font-family:var(--font-code); }
+.editor-testcase-title span { color:var(--muted); font-size:.72rem; white-space:nowrap; }
+.editor-testcase-card em { color:var(--cyan); font-style:normal; font-size:.76rem; font-weight:900; }
+.editor-testcase-card pre { max-height:86px; margin:4px 0 0; padding:8px; overflow:auto; border-radius:10px; border:1px solid rgba(134,149,165,.14); background:rgba(0,0,0,.22); font-size:.78rem; }
+.editor-testcase-card p { margin:0; color:var(--muted); line-height:1.55; font-size:.82rem; }
+@media (max-width: 1180px) { .editor-testcase-grid { grid-template-columns:1fr; } }
