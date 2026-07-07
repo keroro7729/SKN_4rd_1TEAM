@@ -1,0 +1,41 @@
+/* front-v34-real-fix
+   Purpose: remove the inner scrollbar from the wrongnote reflection guide box only.
+   This file is loaded from base.html with a cache-busting query string.
+*/
+
+/* 회고 작성 포인트 박스 내부 스크롤 제거 */
+.wn2-guide-box,
+.wn2-reflection-panel .wn2-guide-box,
+.game-page.wrongnote-page.wn2-page .wn2-guide-box,
+.wrongnote-page .wn2-guide-box,
+[class*="guide-box"] {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  scrollbar-width: none !important;
+}
+
+.wn2-guide-box::-webkit-scrollbar,
+.wn2-reflection-panel .wn2-guide-box::-webkit-scrollbar,
+.game-page.wrongnote-page.wn2-page .wn2-guide-box::-webkit-scrollbar,
+.wrongnote-page .wn2-guide-box::-webkit-scrollbar,
+[class*="guide-box"]::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* 오른쪽 회고 영역은 버튼까지 자연스럽게 보이도록 높이 제한 해제 */
+.wn2-reflection-panel,
+.game-page.wrongnote-page.wn2-page .wn2-reflection-panel,
+.wrongnote-page .wn2-reflection-panel {
+  max-height: none !important;
+}
+
+/* 학습 기록 탭 삭제 후 메뉴 간격 보정 */
+.game-nav {
+  gap: clamp(14px, 2.2vw, 34px);
+}

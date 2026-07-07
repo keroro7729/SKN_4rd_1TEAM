@@ -1227,3 +1227,57 @@ main.content:has(.wrongnote-page.wn2-page) {
     overflow-y: visible !important;
   }
 }
+
+/* ===== v32 HARD OVERRIDE: remove visible scrollbar from reflection guide box ===== */
+.game-page.wrongnote-page.wn2-page .wn2-guide-box,
+.game-page.wrongnote-page.wn2-page .wn2-guide-no-scroll,
+.wrongnote-page.wn2-page .wn2-guide-box,
+.wrongnote-page.wn2-page .wn2-guide-no-scroll {
+  display: block !important;
+  box-sizing: border-box !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.game-page.wrongnote-page.wn2-page .wn2-guide-box::-webkit-scrollbar,
+.game-page.wrongnote-page.wn2-page .wn2-guide-no-scroll::-webkit-scrollbar,
+.wrongnote-page.wn2-page .wn2-guide-box::-webkit-scrollbar,
+.wrongnote-page.wn2-page .wn2-guide-no-scroll::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+
+.game-page.wrongnote-page.wn2-page .wn2-guide-box ul,
+.game-page.wrongnote-page.wn2-page .wn2-guide-no-scroll ul,
+.wrongnote-page.wn2-page .wn2-guide-box ul,
+.wrongnote-page.wn2-page .wn2-guide-no-scroll ul {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  margin-bottom: 0 !important;
+}
+
+.game-page.wrongnote-page.wn2-page .wn2-guide-box li,
+.game-page.wrongnote-page.wn2-page .wn2-guide-no-scroll li,
+.wrongnote-page.wn2-page .wn2-guide-box li,
+.wrongnote-page.wn2-page .wn2-guide-no-scroll li {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* v33 DIRECT FIX: remove wrongnote reflection scroll */
+.game-page.wrongnote-page.wn2-page .wn2-reflection-panel { overflow: visible !important; max-height: none !important; height: auto !important; }
+.game-page.wrongnote-page.wn2-page .wn2-guide-box { overflow: visible !important; max-height: none !important; height: auto !important; scrollbar-width: none !important; }
+.game-page.wrongnote-page.wn2-page .wn2-guide-box::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+.game-page.wrongnote-page.wn2-page .wn2-reflection-panel::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+
