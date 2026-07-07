@@ -17,9 +17,20 @@
   const historyView = document.getElementById("history-code-view");
   const feedbackCloseButtons = Array.from(document.querySelectorAll("[data-feedback-close]"));
 
+  // v36: AI 피드백은 본문 아래에 펼치지 않고 항상 body 직속 팝업으로만 띄운다.
+  if (feedbackResult) {
+    feedbackResult.hidden = true;
+    feedbackResult.classList.remove("is-open");
+    feedbackResult.setAttribute("aria-hidden", "true");
+    if (feedbackResult.parentElement !== document.body) {
+      document.body.appendChild(feedbackResult);
+    }
+  }
+
   const openFeedbackModal = () => {
     if (!feedbackResult) return;
     feedbackResult.hidden = false;
+    feedbackResult.removeAttribute("aria-hidden");
     feedbackResult.classList.add("is-open");
     document.documentElement.classList.add("wn2-modal-open");
     document.body.classList.add("wn2-modal-open");
@@ -31,6 +42,7 @@
     if (!feedbackResult) return;
     feedbackResult.classList.remove("is-open");
     feedbackResult.hidden = true;
+    feedbackResult.setAttribute("aria-hidden", "true");
     document.documentElement.classList.remove("wn2-modal-open");
     document.body.classList.remove("wn2-modal-open");
     saveBtn?.focus();

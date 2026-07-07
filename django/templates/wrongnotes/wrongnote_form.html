@@ -3,7 +3,7 @@
 {% block title %}오답노트 작성 · WOOK'S CODING{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/pages/wrongnote_tabs.css' %}?v=wrongnote-feedback-modal-v35">
+<link rel="stylesheet" href="{% static 'css/pages/wrongnote_tabs.css' %}?v=wrongnote-feedback-modal-v36">
 {% endblock %}
 
 
@@ -250,7 +250,7 @@
 
       </aside>
     </div>
-    <section id="feedback-result" class="feedback-result wn2-feedback-modal" hidden role="dialog" aria-modal="true" aria-labelledby="feedback-modal-title">
+    <section id="feedback-result" class="feedback-result wn2-feedback-modal" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="feedback-modal-title">
       <button type="button" class="wn2-modal-backdrop" data-feedback-close aria-label="AI 피드백 팝업 닫기"></button>
 
       <article class="wn2-modal-card" role="document">
@@ -287,5 +287,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'js/wrongnote_form.js' %}?v=wrongnote-feedback-modal-v35"></script>
+<script src="{% static 'js/wrongnote_form.js' %}?v=wrongnote-feedback-modal-v36"></script>
 {% endblock %}

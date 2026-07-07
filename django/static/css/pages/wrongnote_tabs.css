@@ -1339,3 +1339,72 @@ body.wn2-modal-open {
     flex-direction: column !important;
   }
 }
+
+
+/* ===== v36 HARD FIX: AI feedback result must be popup modal only ===== */
+#feedback-result.feedback-result {
+  margin: 0 !important;
+}
+
+#feedback-result.feedback-result:not(.is-open),
+#feedback-result.wn2-feedback-modal[hidden] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+#feedback-result.wn2-feedback-modal.is-open {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483000 !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  padding: 28px !important;
+  overflow: hidden !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  background: transparent !important;
+}
+
+#feedback-result.wn2-feedback-modal.is-open .wn2-modal-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  border: 0 !important;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(53, 216, 255, .18), transparent 36%),
+    rgba(0, 4, 10, .82) !important;
+  backdrop-filter: blur(9px) !important;
+}
+
+#feedback-result.wn2-feedback-modal.is-open .wn2-modal-card {
+  position: relative !important;
+  z-index: 1 !important;
+  width: min(1120px, calc(100vw - 44px)) !important;
+  max-height: min(84dvh, 840px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+#feedback-result.wn2-feedback-modal.is-open .wn2-modal-body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+}
+
+@media (max-width: 860px) {
+  #feedback-result.wn2-feedback-modal.is-open {
+    padding: 12px !important;
+    align-items: end !important;
+  }
+  #feedback-result.wn2-feedback-modal.is-open .wn2-modal-card {
+    width: 100% !important;
+    max-height: 88dvh !important;
+    border-radius: 18px 18px 0 0 !important;
+  }
+}
