@@ -1085,3 +1085,40 @@ main.content:has(.wrongnote-page.wn2-page) {
     width: 100% !important;
   }
 }
+
+/* v26 reflection guide no-scroll fix
+   - Removes the internal scrollbar from the red-circled reflection guide area.
+   - The guide box now expands naturally, while the textarea absorbs remaining space.
+*/
+.game-page.wrongnote-page.wn2-page .wn2-guide-box {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.game-page.wrongnote-page.wn2-page .wn2-guide-box ul,
+.game-page.wrongnote-page.wn2-page .wn2-guide-box li {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+@media (min-width: 861px) {
+  .game-page.wrongnote-page.wn2-page .wn2-reflection-panel {
+    overflow: hidden !important;
+  }
+
+  .game-page.wrongnote-page.wn2-page .wn2-reflection-textarea {
+    flex: 1 1 0 !important;
+    min-height: 230px !important;
+  }
+
+  .game-page.wrongnote-page.wn2-page .wn2-guide-box {
+    flex: 0 0 auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .game-page.wrongnote-page.wn2-page .wn2-actions,
+  .game-page.wrongnote-page.wn2-page .status-line {
+    flex: 0 0 auto !important;
+  }
+}
