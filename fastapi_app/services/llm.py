@@ -67,19 +67,25 @@ _ANALYZE_SYSTEM = (
 )
 
 
-async def analyze_wrong_note(code: str, comment: str, evidence: list[Evidence]) -> dict:
-    """오답을 문제핵심/오답원인/풀이과정/주의사항 4섹션으로 분석."""
+async def analyze_wrong_note(
+    code: str, comment: str, evidence: list[Evidence], coding_state: str = ""
+) -> dict:
+    """오답을 문제핵심/오답원인/풀이과정/주의사항 4섹션으로 분석.
+
+    coding_state: 사용자 코딩 상태(AI 내부 참고값). 있으면 학습자 수준/약점에 맞춰 분석한다.
+    """
     ref = ""
     if evidence:
         ref = "\n참고(과거 유사 오답): " + ", ".join(
             f"note {e.note_id}({e.title or ''})" for e in evidence
         )
+    ctx = f"\n\n{coding_state}\n(위 상태를 참고해 학습자 수준·약점에 맞춰 분석하되, 이 내용을 사용자에게 그대로 노출하지는 말 것.)" if coding_state else ""
     user = f"""제출 코드:
 ```
 {code or '(코드 없음)'}
 ```
 사용자 회고:
-{comment or '(작성하지 않음)'}{ref}
+{comment or '(작성하지 않음)'}{ref}{ctx}
 
 아래 키를 가진 JSON 객체로만 답하라(모두 한국어, 정답 직접 노출 금지):
 - "problem_core": 이 문제/코드에서 핵심적으로 다뤄야 할 개념 한두 줄.

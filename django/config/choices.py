@@ -46,6 +46,7 @@ LLM_REQUEST_TYPE_CHOICES = [
     ("note_ask", "내노트질의"),
     ("testcase_gen", "테스트케이스생성"),
     ("testcase_fix", "정답코드수정"),
+    ("coding_state", "코딩상태요약"),
 ]
 
 LLM_STATUS_CHOICES = [

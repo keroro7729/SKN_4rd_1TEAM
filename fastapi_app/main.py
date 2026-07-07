@@ -7,7 +7,15 @@ from fastapi import FastAPI
 
 import config  # noqa: F401  (.env 로드 트리거)
 from logging_setup import setup_logging
-from routers import authoring, diagnostics, health, hint, wrong_note, wrong_note_report
+from routers import (
+    authoring,
+    coding_state,
+    diagnostics,
+    health,
+    hint,
+    wrong_note,
+    wrong_note_report,
+)
 
 # 앱 생성 전에 로깅 초기화 (콘솔 + logs/fastapi/app.log + logs/ai/research.jsonl)
 setup_logging()
@@ -24,3 +32,4 @@ app.include_router(wrong_note.router)
 app.include_router(diagnostics.router)
 app.include_router(authoring.router)
 app.include_router(wrong_note_report.router)
+app.include_router(coding_state.router)
