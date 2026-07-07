@@ -55,9 +55,54 @@ async def _chat_json(system: str, user: str) -> dict:
         raise LLMCallError(f"json_parse_error: {exc}") from exc
 
 
-async def generate_hint(problem_id: int, user_code: str, hint_level: int) -> str:
-    """1~3단계 힌트 (STEP-06 담당 구현 예정)."""
-    raise LLMNotImplementedError("not_implemented")
+_HINT_SYSTEM = (
+    "You are a Socratic coding tutor for a Korean coding-practice service. You give "
+    "STEP-BY-STEP hints tailored to the learner's level. A GOOD hint makes the learner "
+    "THINK, WRITE code themselves, and VERIFY — it NEVER reveals the answer, the full "
+    "approach, or ready-to-paste solution code. Reply ONLY with a JSON object; the hint "
+    "content must be in KOREAN.\n"
+    "Style by learner level:\n"
+    "- 입문/초급: briefly explain the relevant syntax/concept in plain words, then scaffold "
+    "with gentle first-step prompts like 'for문부터 써볼까요?', '주석으로 풀이 계획을 세워볼까요?'.\n"
+    "- 중급: do NOT point out the exact bug. Instead teach them to find it themselves — e.g. "
+    "print 기반 디버깅으로 중간값을 찍어보게 유도하거나, 다른 접근법/비유를 제시해 개념을 떠올리게 하거나, "
+    "'~개념을 공부하고 다시 풀러 와볼까요?' 처럼 스스로 방향을 잡게 한다.\n"
+    "- 고급: minimal high-level nudges — point at the class of technique or a property to "
+    "reason about, and let the learner drive.\n"
+    "Depth by hint_level: 1 = gentlest orientation/concept, 2 = more concrete process "
+    "guidance, 3 = most concrete scaffolding (still NOT the full answer or code)."
+)
+
+
+async def generate_hint(
+    problem: dict,
+    user_code: str,
+    hint_level: int,
+    coding_state: str = "",
+    level: str = "",
+) -> str:
+    """문제 + 현재 코드 + 사용자 레벨을 반영한 단계별 소크라테스식 힌트.
+
+    problem: {title, description, constraints, difficulty}
+    """
+    ctx = f"\n\n{coding_state}" if coding_state else ""
+    user = f"""문제: {problem.get('title', '')} (난이도 {problem.get('difficulty', '')})
+{problem.get('description', '')}
+제약조건: {problem.get('constraints', '') or '(명시 없음)'}
+
+학습자가 지금 작성한 코드:
+```
+{user_code or '(아직 작성하지 않음)'}
+```
+힌트 단계(hint_level): {hint_level} / 3
+학습자 추정 수준: {level or '(미평가)'}{ctx}
+
+위 학습자의 수준과 현재 코드 상태를 고려해, hint_level {hint_level} 에 맞는 힌트를 하나 만들어라.
+반드시 지킬 것: 정답·전체 접근법·붙여넣기용 코드 금지. 학습자가 스스로 생각하고, 직접 써보고,
+결과를 확인해보게 만드는 힌트여야 한다. (coding_state 내용을 사용자에게 그대로 노출하지 말 것)
+JSON 객체 {{"content": string}} 형태로만 답하라(content 는 한국어)."""
+    data = await _chat_json(_HINT_SYSTEM, user)
+    return str(data.get("content") or "")
 
 
 _ANALYZE_SYSTEM = (

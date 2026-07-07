@@ -94,12 +94,56 @@ def _proxy_post(
 @login_required
 @require_POST
 def hint(request):
-    return _proxy_post(
-        request,
+    """문제 지문·사용자 코딩상태(레벨)로 enrich 후 힌트 에이전트 호출."""
+    payload, error_response = _load_json(request)
+    if error_response is not None:
+        return error_response
+
+    problem_id = payload.get("problem_id")
+    hint_level = payload.get("hint_level")
+    if not problem_id or not hint_level:
+        return JsonResponse(
+            {
+                "status": "failed",
+                "request_id": "",
+                "message": "missing required fields: problem_id, hint_level",
+                "data": {},
+            },
+            status=400,
+        )
+
+    from codingstate.models import CodingState
+    from codingstate.services import get_prompt_context
+    from problems.models import Problem
+
+    problem = Problem.objects.filter(pk=problem_id).first()
+    if problem is None:
+        return JsonResponse(
+            {"status": "failed", "request_id": "", "message": "problem_not_found", "data": {}},
+            status=404,
+        )
+    state = CodingState.objects.filter(user=request.user).first()
+
+    enriched = {
+        "user_id": request.user.id,
+        "problem_id": problem.id,
+        "hint_level": int(hint_level),
+        "user_code": payload.get("user_code") or "",
+        "problem_title": problem.title,
+        "description": problem.description,
+        "constraints": problem.constraints,
+        "difficulty": problem.get_difficulty_display(),
+        "level": state.level if state else "",
+        "coding_state": get_prompt_context(request.user),
+    }
+    result = call_fastapi(
+        user=request.user,
         request_type="hint",
-        fastapi_path="/ai/hint",
-        required=("problem_id", "hint_level"),
+        path="/ai/hint",
+        payload=enriched,
     )
+    http_status = 200 if result.status in {"success", "empty"} else 502
+    return JsonResponse(result.to_response(), status=http_status)
 
 
 @login_required
