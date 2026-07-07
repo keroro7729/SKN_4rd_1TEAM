@@ -608,7 +608,7 @@
 }
 
 
-/* PROBLEM_SOLVE_ROBOT_SIDEKICK_V50: robot-only AI coach profile */
+/* PROBLEM_SOLVE_ROBOT_SIDEKICK_V52: robot-only AI coach profile */
 .robot-coach-card {
   position: relative;
   border-color: color-mix(in srgb, var(--robot-main, #35d8ff) 52%, transparent) !important;
@@ -717,4 +717,51 @@
   border-radius: 999px;
   background: var(--robot-main, #35d8ff);
   opacity: .75;
+}
+
+
+/* PROBLEM_SOLVE_ROBOT_SIDEKICK_V52_FORCE: animal sidekick fallback override */
+.ai-sidekick-panel .hint-partner-avatar,
+.ai-sidekick-panel .sidekick-face {
+  font-size: 0 !important;
+}
+.ai-sidekick-panel .hint-partner-avatar::before,
+.ai-sidekick-panel .sidekick-face::before {
+  content: "" !important;
+}
+.ai-sidekick-panel .hint-partner-avatar::after,
+.ai-sidekick-panel .sidekick-face::after {
+  content: "" !important;
+}
+
+
+/* PROBLEM_SOLVE_ROBOT_SIDEKICK_V52_FINAL: level-specific robot only */
+.robot-coach-card.robot-coach-level-1,
+.robot-coach-level-1 { --robot-main:#35d8ff; --robot-sub:#b8f4ff; }
+.robot-coach-card.robot-coach-level-2,
+.robot-coach-level-2 { --robot-main:#35f276; --robot-sub:#b8ffd2; }
+.robot-coach-card.robot-coach-level-3,
+.robot-coach-level-3 { --robot-main:#9b7cff; --robot-sub:#e0d7ff; }
+.robot-coach-card.robot-coach-level-4,
+.robot-coach-level-4 { --robot-main:#ffd34d; --robot-sub:#fff1b8; }
+.robot-coach-card.robot-coach-level-5,
+.robot-coach-level-5 { --robot-main:#ff7ac8; --robot-sub:#ffd3ed; }
+.robot-coach-card.robot-coach-level-6,
+.robot-coach-level-6 { --robot-main:#ff6b6b; --robot-sub:#ffd0d0; }
+.robot-coach-card.robot-coach-level-7,
+.robot-coach-level-7 { --robot-main:#7cffef; --robot-sub:#e4fffb; }
+
+.ai-sidekick-panel .sidekick-face.robot-coach-avatar {
+  font-size: 0 !important;
+  overflow: visible !important;
+}
+
+.ai-sidekick-panel .sidekick-face.robot-coach-avatar .robot-eye,
+.ai-sidekick-panel .sidekick-face.robot-coach-avatar .robot-mouth {
+  display: block !important;
+}
+
+.ai-sidekick-panel .robot-coach-card {
+  border-color: color-mix(in srgb, var(--robot-main, #35d8ff) 62%, transparent) !important;
+  box-shadow: 0 0 26px color-mix(in srgb, var(--robot-main, #35d8ff) 24%, transparent) !important;
 }

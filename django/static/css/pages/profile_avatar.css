@@ -459,54 +459,73 @@
 }
 
 
-/* PROFILE_AVATAR_LEVEL_V49: level-based borders for header/mypage/avatar shop */
-.level-frame-1 { --level-main: #35f276; --level-sub: #35d8ff; --level-glow: rgba(53, 242, 118, 0.20); }
-.level-frame-2 { --level-main: #7cf7ff; --level-sub: #35f276; --level-glow: rgba(124, 247, 255, 0.22); }
-.level-frame-3 { --level-main: #b66cff; --level-sub: #35d8ff; --level-glow: rgba(182, 108, 255, 0.24); }
-.level-frame-4 { --level-main: #ffd54a; --level-sub: #ff8f3d; --level-glow: rgba(255, 213, 74, 0.26); }
-.level-frame-5 { --level-main: #ff8fd4; --level-sub: #b66cff; --level-glow: rgba(255, 143, 212, 0.24); }
-.level-frame-6 { --level-main: #ff6473; --level-sub: #ffd54a; --level-glow: rgba(255, 100, 115, 0.28); }
-.level-frame-7 { --level-main: #35d8ff; --level-sub: #35f276; --level-glow: rgba(53, 216, 255, 0.32); }
+/* PROFILE_FRAME_ROBOT_V52: level-based profile border frames */
+.avatar-player-pill.profile-frame-level-1,
+.profile-frame-level-1 { --frame-main:#35d8ff; --frame-sub:#b8f4ff; }
+.avatar-player-pill.profile-frame-level-2,
+.profile-frame-level-2 { --frame-main:#35f276; --frame-sub:#b8ffd2; }
+.avatar-player-pill.profile-frame-level-3,
+.profile-frame-level-3 { --frame-main:#9b7cff; --frame-sub:#e0d7ff; }
+.avatar-player-pill.profile-frame-level-4,
+.profile-frame-level-4 { --frame-main:#ffd34d; --frame-sub:#fff1b8; }
+.avatar-player-pill.profile-frame-level-5,
+.profile-frame-level-5 { --frame-main:#ff7ac8; --frame-sub:#ffd3ed; }
+.avatar-player-pill.profile-frame-level-6,
+.profile-frame-level-6 { --frame-main:#ff6b6b; --frame-sub:#ffd0d0; }
+.avatar-player-pill.profile-frame-level-7,
+.profile-frame-level-7 { --frame-main:#7cffef; --frame-sub:#e4fffb; }
 
-.avatar-player-pill.level-frame,
-.profile-avatar-trigger.level-frame,
-.player-avatar.profile-avatar-page-trigger.level-frame,
-.profile-avatar-current-icon.level-frame,
-.profile-avatar-mini.level-frame {
-  border-color: color-mix(in srgb, var(--level-main) 72%, transparent) !important;
+.avatar-player-pill[class*="profile-frame-level-"] {
+  border-color: color-mix(in srgb, var(--frame-main, #35d8ff) 60%, transparent) !important;
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--level-sub) 22%, transparent),
-    0 0 24px var(--level-glow),
-    inset 0 0 18px color-mix(in srgb, var(--level-main) 10%, transparent) !important;
+    0 0 0 1px color-mix(in srgb, var(--frame-main, #35d8ff) 30%, transparent) inset,
+    0 0 22px color-mix(in srgb, var(--frame-main, #35d8ff) 18%, transparent) !important;
 }
 
-.profile-avatar-trigger.level-frame,
-.player-avatar.profile-avatar-page-trigger.level-frame,
-.profile-avatar-current-icon.level-frame {
+.profile-avatar-trigger.profile-frame,
+.player-avatar.profile-avatar-page-trigger[class*="profile-frame-level-"] {
+  position: relative;
+  border: 2px solid color-mix(in srgb, var(--frame-main, #35d8ff) 72%, transparent) !important;
   background:
-    radial-gradient(circle at 35% 25%, color-mix(in srgb, var(--level-main) 34%, transparent), transparent 44%),
-    linear-gradient(145deg, rgba(11, 19, 30, 0.96), rgba(7, 13, 22, 0.96)) !important;
+    radial-gradient(circle at 35% 26%, color-mix(in srgb, var(--frame-sub, #b8f4ff) 30%, transparent), transparent 40%),
+    linear-gradient(145deg, color-mix(in srgb, var(--frame-main, #35d8ff) 18%, #0b111a), #09111a 72%) !important;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--frame-main, #35d8ff) 10%, transparent),
+    0 0 28px color-mix(in srgb, var(--frame-main, #35d8ff) 34%, transparent),
+    inset 0 0 18px color-mix(in srgb, var(--frame-main, #35d8ff) 14%, transparent) !important;
 }
 
-.avatar-level-badge.level-frame,
-.partner-lv-chip.level-frame {
-  border-color: color-mix(in srgb, var(--level-main) 62%, transparent) !important;
-  color: var(--level-main) !important;
-  background: color-mix(in srgb, var(--level-main) 13%, transparent) !important;
-  box-shadow: 0 0 18px var(--level-glow) !important;
+.profile-avatar-trigger.profile-frame::after,
+.player-avatar.profile-avatar-page-trigger[class*="profile-frame-level-"]::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: inherit;
+  border: 1px solid color-mix(in srgb, var(--frame-main, #35d8ff) 45%, transparent);
+  pointer-events: none;
+  opacity: .9;
 }
 
-.profile-avatar-popup-card.selected .profile-avatar-popup-icon {
-  border-color: color-mix(in srgb, var(--level-main, #35f276) 48%, transparent);
+.profile-frame-ring {
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--frame-main, #35d8ff) 70%, transparent), transparent 42%, color-mix(in srgb, var(--frame-sub, #b8f4ff) 55%, transparent));
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  padding: 2px;
 }
 
-@supports not (color: color-mix(in srgb, #fff 50%, #000)) {
-  .avatar-player-pill.level-frame,
-  .profile-avatar-trigger.level-frame,
-  .player-avatar.profile-avatar-page-trigger.level-frame,
-  .profile-avatar-current-icon.level-frame,
-  .profile-avatar-mini.level-frame {
-    border-color: var(--level-main) !important;
-    box-shadow: 0 0 22px var(--level-glow) !important;
-  }
+.avatar-level-badge {
+  border-color: color-mix(in srgb, var(--frame-main, #35f276) 64%, transparent) !important;
+  color: var(--frame-main, #35f276) !important;
+  background: color-mix(in srgb, var(--frame-main, #35f276) 12%, transparent) !important;
+}
+
+.player-avatar.profile-avatar-page-trigger[class*="profile-frame-level-"] small {
+  border-color: color-mix(in srgb, var(--frame-main, #35d8ff) 55%, transparent) !important;
+  color: var(--frame-main, #35d8ff) !important;
 }
