@@ -94,19 +94,23 @@
         <section id="problem-section-checklist" class="reader-section reader-section-checklist">
           <div class="reader-section-title"><span>풀이 전 체크</span></div>
           {% if pre_solve_checklist %}
-          <div class="ai-precheck-box">
-            <span class="game-chip green">AI · 지난 오답 기반</span>
-            <strong>{% if pre_solve_source == "this_problem" %}이 문제에서 지난번에 체크한 항목{% else %}최근 오답노트에서 가져온 체크{% endif %}</strong>
-            <ul>{% for item in pre_solve_checklist %}<li>{{ item }}</li>{% endfor %}</ul>
-            {% if pre_solve_note %}<a class="hint-note" href="{% url 'wrongnotes:detail' pre_solve_note.id %}">원본 오답노트 보기 →</a>{% endif %}
-          </div>
+            <div class="precheck-source-row">
+              <span class="game-chip green">AI · {% if pre_solve_source == "this_problem" %}이 문제 지난 오답 기반{% else %}최근 오답노트 기반{% endif %}</span>
+              {% if pre_solve_note %}<a class="hint-note" href="{% url 'wrongnotes:detail' pre_solve_note.id %}">원본 오답노트 →</a>{% endif %}
+            </div>
+            <div class="solve-check-grid">
+              {% for item in pre_solve_checklist %}
+                <label><input type="checkbox" data-quest-check> {{ item }}</label>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="solve-check-grid">
+              <label><input type="checkbox" data-quest-check> 입력 범위와 예외 케이스 확인</label>
+              <label><input type="checkbox" data-quest-check> 시간 복잡도 예상</label>
+              <label><input type="checkbox" data-quest-check> 기저 조건/초기값 확인</label>
+              <label><input type="checkbox" data-quest-check> 출력 형식 확인</label>
+            </div>
           {% endif %}
-          <div class="solve-check-grid">
-            <label><input type="checkbox" data-quest-check> 입력 범위와 예외 케이스 확인</label>
-            <label><input type="checkbox" data-quest-check> 시간 복잡도 예상</label>
-            <label><input type="checkbox" data-quest-check> 기저 조건/초기값 확인</label>
-            <label><input type="checkbox" data-quest-check> 출력 형식 확인</label>
-          </div>
         </section>
       </div>
     </section>

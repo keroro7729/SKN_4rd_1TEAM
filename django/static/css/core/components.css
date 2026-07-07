@@ -260,10 +260,8 @@ button.game-row { width:100%; text-align:left; cursor:pointer; }
 .ai-feedback-box { margin-top:14px; padding:14px 16px; border:1px solid rgba(53,242,118,.22); border-radius:14px; background:rgba(53,242,118,.05); }
 .ai-feedback-box p { margin:8px 0 0; color:var(--muted); line-height:1.65; }
 .analysis-card-wide { grid-column:1 / -1; }
-.ai-precheck-box { margin-bottom:14px; padding:12px 14px; border:1px solid rgba(53,242,118,.24); border-radius:12px; background:rgba(53,242,118,.05); }
-.ai-precheck-box strong { display:block; margin:6px 0 8px; }
-.ai-precheck-box ul { margin:0; padding-left:18px; }
-.ai-precheck-box li { margin:4px 0; color:var(--muted); line-height:1.55; }
+.precheck-source-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.precheck-source-row .hint-note { text-decoration:none; }
 .review-dot {
   display:inline-flex;
   justify-content:center;
