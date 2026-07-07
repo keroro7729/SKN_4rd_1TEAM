@@ -5,7 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}WOOK'S CODING{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=front-v34-real-fix">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=front-v42-avatar">
+  <link rel="stylesheet" href="{% static 'css/pages/profile_avatar.css' %}?v=profile-avatar-v42">
   <link rel="stylesheet" href="{% static 'css/pages/wrongnote_scroll_fix.css' %}?v=wrongnote-scroll-v34-real-fix">
   {% block extra_head %}{% endblock %}
 </head>
@@ -32,7 +33,8 @@
     </nav>
 
     {% if user.is_authenticated %}
-      <div class="game-player-pill">
+      <div class="game-player-pill avatar-player-pill">
+        <span class="profile-avatar-mini" title="{{ user.avatar_name }} 프로필">{{ user.avatar_icon }}</span>
         <span class="game-player-level">Lv</span>
         <strong>{{ user.username }}</strong>
         <span>{{ user.point }}P</span>

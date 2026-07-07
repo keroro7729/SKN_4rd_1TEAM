@@ -7,4 +7,6 @@ app_name = "mypage"
 
 urlpatterns = [
     path("", views.MyPageView.as_view(), name="index"),
+    path("avatar/", views.AvatarUpdateView.as_view(), name="avatar"),
+    path("history/", views.LearningHistoryView.as_view(), name="history"),
 ]

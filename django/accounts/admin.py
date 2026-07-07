@@ -14,18 +14,19 @@ class CustomUserAdmin(UserAdmin):
         "email",
         "role",
         "point",
+        "selected_avatar",
         "is_subscribed",
         "is_staff",
         "date_joined",
     )
-    list_filter = ("role", "is_subscribed", "is_staff", "is_superuser")
+    list_filter = ("role", "selected_avatar", "is_subscribed", "is_staff", "is_superuser")
     search_fields = ("username", "email")
     ordering = ("-date_joined",)
 
     # 기존 UserAdmin 구성에 서비스 전용 필드 추가
     fieldsets = UserAdmin.fieldsets + (
-        ("WOOK'S CODING", {"fields": ("role", "point", "is_subscribed")}),
+        ("WOOK'S CODING", {"fields": ("role", "point", "selected_avatar", "is_subscribed")}),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
-        ("WOOK'S CODING", {"fields": ("role", "point", "is_subscribed")}),
+        ("WOOK'S CODING", {"fields": ("role", "point", "selected_avatar", "is_subscribed")}),
     )
