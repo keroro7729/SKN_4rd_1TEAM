@@ -608,7 +608,7 @@
 }
 
 
-/* PROBLEM_SOLVE_ROBOT_SIDEKICK_V52: robot-only AI coach profile */
+/* PROBLEM_SOLVE_ROBOT_SIDEKICK_V55: robot-only AI coach profile */
 .robot-coach-card {
   position: relative;
   border-color: color-mix(in srgb, var(--robot-main, #35d8ff) 52%, transparent) !important;
@@ -720,7 +720,7 @@
 }
 
 
-/* PROBLEM_SOLVE_ROBOT_SIDEKICK_V52_FORCE: animal sidekick fallback override */
+/* PROBLEM_SOLVE_ROBOT_SIDEKICK_V55_FORCE: animal sidekick fallback override */
 .ai-sidekick-panel .hint-partner-avatar,
 .ai-sidekick-panel .sidekick-face {
   font-size: 0 !important;
@@ -735,7 +735,7 @@
 }
 
 
-/* PROBLEM_SOLVE_ROBOT_SIDEKICK_V52_FINAL: level-specific robot only */
+/* PROBLEM_SOLVE_ROBOT_SIDEKICK_V55_FINAL: level-specific robot only */
 .robot-coach-card.robot-coach-level-1,
 .robot-coach-level-1 { --robot-main:#35d8ff; --robot-sub:#b8f4ff; }
 .robot-coach-card.robot-coach-level-2,

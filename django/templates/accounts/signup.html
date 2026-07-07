@@ -1,15 +1,21 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}회원가입 · WOOK'S CODING{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/auth.css' %}?v=auth-clean-v48">
+{% endblock %}
+
 {% block content %}
-<section class="game-page auth-page">
+<section class="auth-page auth-signup-page">
   <div class="auth-shell">
-    <aside class="auth-brand-panel signup-brand-panel">
-      <p class="game-eyebrow">New Player</p>
-      <h1>나만의 코딩 성장 기록을 만드세요</h1>
-      <p>오답을 그냥 지나치지 않고, 회고와 AI 피드백으로 다음 풀이에 바로 연결합니다.</p>
-      <div class="auth-steps" aria-label="학습 흐름">
+    <aside class="auth-hero-panel">
+      <p class="auth-eyebrow">CREATE PLAYER</p>
+      <h1>나만의 학습 캐릭터로 시작하세요</h1>
+      <p class="auth-copy">포인트를 모아 레벨을 올리고, 동물 프로필을 해금하며 코딩 테스트 실력을 성장시킵니다.</p>
+
+      <div class="auth-step-list" aria-label="가입 후 이용 흐름">
         <span>1. 문제 풀이</span>
         <span>2. 제출 결과</span>
         <span>3. 오답 회고</span>
@@ -17,15 +23,21 @@
       </div>
     </aside>
 
-    <div class="auth-card clean-auth-card signup-card">
+    <section class="auth-form-panel" aria-labelledby="signupTitle">
       <div class="auth-card-head">
-        <span class="game-chip cyan">CREATE PLAYER</span>
-        <h2 class="auth-title">회원가입</h2>
-        <p>아이디와 비밀번호를 설정하면 바로 학습을 시작할 수 있습니다.</p>
+        <span class="auth-card-icon">Lv</span>
+        <div>
+          <p class="auth-eyebrow">NEW PLAYER</p>
+          <h2 id="signupTitle">회원가입</h2>
+        </div>
       </div>
 
-      <form method="post" class="auth-form">
+      <form method="post" class="clean-auth-form">
         {% csrf_token %}
+        {% if form.non_field_errors %}
+          <div class="auth-alert">{{ form.non_field_errors|striptags }}</div>
+        {% endif %}
+
         {% for field in form %}
           <div class="auth-field">
             <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -38,11 +50,12 @@
             {% endif %}
           </div>
         {% endfor %}
-        <button type="submit" class="game-btn primary auth-submit">가입하기</button>
+
+        <button type="submit" class="auth-submit">가입하기</button>
       </form>
 
       <p class="auth-alt">이미 계정이 있으신가요? <a href="{% url 'accounts:login' %}">로그인</a></p>
-    </div>
+    </section>
   </div>
 </section>
 {% endblock %}

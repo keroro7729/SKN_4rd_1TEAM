@@ -529,3 +529,78 @@
   border-color: color-mix(in srgb, var(--frame-main, #35d8ff) 55%, transparent) !important;
   color: var(--frame-main, #35d8ff) !important;
 }
+
+/* PROFILE_FRAME_V53_FORCE: restore visible level borders */
+.profile-frame,
+.profile-avatar-trigger,
+.player-avatar.profile-avatar-page-trigger,
+.profile-avatar-current-icon {
+  position: relative !important;
+  isolation: isolate !important;
+  border-width: 2px !important;
+  border-style: solid !important;
+  overflow: visible !important;
+}
+.profile-frame-level-1 { --frame-main:#35d8ff; --frame-sub:#9eeaff; }
+.profile-frame-level-2 { --frame-main:#35f276; --frame-sub:#b8ffd2; }
+.profile-frame-level-3 { --frame-main:#9b7cff; --frame-sub:#e0d7ff; }
+.profile-frame-level-4 { --frame-main:#ffd34d; --frame-sub:#fff1b8; }
+.profile-frame-level-5 { --frame-main:#ff7ac8; --frame-sub:#ffd3ed; }
+.profile-frame-level-6 { --frame-main:#ff6b6b; --frame-sub:#ffd0d0; }
+.profile-frame-level-7 { --frame-main:#7cffef; --frame-sub:#e4fffb; }
+.profile-frame-level-1,
+.profile-frame-level-2,
+.profile-frame-level-3,
+.profile-frame-level-4,
+.profile-frame-level-5,
+.profile-frame-level-6,
+.profile-frame-level-7 {
+  border-color: color-mix(in srgb, var(--frame-main) 84%, transparent) !important;
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--frame-main) 15%, transparent),
+    0 0 26px color-mix(in srgb, var(--frame-main) 34%, transparent),
+    inset 0 0 22px color-mix(in srgb, var(--frame-main) 12%, transparent) !important;
+}
+.profile-frame::after,
+.player-avatar.profile-avatar-page-trigger::after {
+  content:"";
+  position:absolute;
+  inset:-5px;
+  z-index:-1;
+  border-radius:inherit;
+  border:1px solid color-mix(in srgb, var(--frame-main, #35d8ff) 40%, transparent);
+  opacity:.9;
+  pointer-events:none;
+}
+
+/* PROFILE_DESIGN_RESTORE_V55: strong restore for animal profile, level badge, and visible frames */
+.game-player-pill.avatar-player-pill,
+.account-hero-card .player-avatar.profile-avatar-page-trigger,
+.profile-avatar-trigger.profile-frame {
+  isolation: isolate;
+}
+
+.profile-avatar-trigger.profile-frame,
+.player-avatar.profile-avatar-page-trigger.profile-frame,
+.profile-avatar-current-icon[class*="profile-frame-level-"] {
+  outline: 2px solid var(--frame-main, #35d8ff) !important;
+  outline-offset: 2px !important;
+}
+
+.profile-avatar-trigger.profile-frame .profile-avatar-mini,
+.player-avatar.profile-avatar-page-trigger > span {
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--frame-main, #35d8ff) 44%, transparent));
+}
+
+.game-player-level.avatar-level-badge,
+.player-avatar.profile-avatar-page-trigger small {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900 !important;
+}
+
+.profile-avatar-popup-card.selected .profile-avatar-popup-icon {
+  outline: 2px solid var(--frame-main, #35f276);
+  outline-offset: 2px;
+}

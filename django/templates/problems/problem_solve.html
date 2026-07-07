@@ -1,15 +1,15 @@
-{# PROBLEM_SOLVE_ROBOT_SIDEKICK_V52: 레벨별 색상 로봇 프로필 #}
 {% extends "base.html" %}
 {% load static %}
+{# PROBLEM_SOLVE_ROBOT_SIDEKICK_V55: 레벨별 색상 로봇 프로필 #}
 {% block title %}{{ problem.title|truncatechars:30 }} · 문제 풀이{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
-<link rel="stylesheet" href="{% static 'css/pages/problem_solve.css' %}?v=robot-sidekick-v52">
+<link rel="stylesheet" href="{% static 'css/pages/problem_solve.css' %}?v=robot-sidekick-v55">
 {% endblock %}
 
 {% block content %}
-{# PROBLEM_SOLVE_ROBOT_SIDEKICK_V51: AI 코치 프로필을 동물 대신 로봇으로 고정 #}
+{# PROBLEM_SOLVE_ROBOT_SIDEKICK_V55: AI 코치 프로필을 동물 대신 로봇으로 고정 #}
 <form hidden>{% csrf_token %}</form>
 
 <section class="game-page solve-page solve-three-split" data-quest-stage="reading">
@@ -222,5 +222,5 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
-<script src="{% static 'js/problem_solve.js' %}?v=robot-sidekick-v52"></script>
+<script src="{% static 'js/problem_solve.js' %}?v=robot-sidekick-v55"></script>
 {% endblock %}

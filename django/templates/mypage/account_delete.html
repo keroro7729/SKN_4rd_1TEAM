@@ -1,31 +1,20 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}회원 탈퇴 · WOOK'S CODING{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/pages/account_management.css' %}?v=account-management-v55">{% endblock %}
 {% block content %}
 <section class="game-page account-page">
-  <div class="account-narrow">
-    <section class="game-panel account-danger-panel">
-      <div class="game-panel-head">
-        <div>
-          <h1>탈퇴하기</h1>
-          <p>탈퇴하면 계정과 연결된 제출, 오답노트, 포인트, 미션 정보가 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</p>
-        </div>
-      </div>
-      <form method="post" class="account-form" novalidate>
+  <div class="account-shell narrow">
+    <div class="game-topbar"><div class="game-window-dots"><span></span><span></span><span></span></div><div class="game-route">/mypage <b>›</b> account <b>›</b> delete</div><div class="game-mode-pill danger">DELETE</div></div>
+    <section class="game-panel account-panel danger-panel">
+      <p class="game-eyebrow">DELETE ACCOUNT</p>
+      <h1>회원 탈퇴</h1>
+      <p class="game-sub">탈퇴하면 계정과 연결된 개인 학습 데이터 접근이 불가능해집니다.</p>
+      <form method="post" class="account-form">
         {% csrf_token %}
-        <label for="{{ form.password.id_for_label }}">비밀번호</label>
-        {{ form.password }}
-        {% if form.password.errors %}<p class="form-error">{{ form.password.errors|striptags }}</p>{% endif %}
-
-        <label class="account-check-row">
-          {{ form.confirm_delete }}
-          <span>탈퇴하시겠습니까? 모든 정보가 삭제됨을 확인했습니다.</span>
-        </label>
-        {% if form.confirm_delete.errors %}<p class="form-error">{{ form.confirm_delete.errors|striptags }}</p>{% endif %}
-
-        <div class="account-action-row">
-          <a class="game-btn ghost" href="{% url 'mypage:account_detail' %}">취소</a>
-          <button class="game-btn btn-danger-ghost" type="submit">탈퇴하기</button>
-        </div>
+        <label class="account-field"><span>현재 비밀번호</span>{{ form.password }}</label>{% if form.password.errors %}<p class="field-error">{{ form.password.errors|striptags }}</p>{% endif %}
+        <label class="delete-confirm-row">{{ form.confirm }} <span>회원 탈퇴 내용을 확인했습니다.</span></label>{% if form.confirm.errors %}<p class="field-error">{{ form.confirm.errors|striptags }}</p>{% endif %}
+        <div class="account-actions"><a class="game-btn ghost" href="{% url 'mypage:account_detail' %}">취소</a><button class="game-btn danger" type="submit">탈퇴하기</button></div>
       </form>
     </section>
   </div>

@@ -2,12 +2,12 @@
 {% load static %}
 {% block title %}마이페이지 · WOOK'S CODING{% endblock %}
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/pages/profile_avatar.css' %}?v=profile-avatar-v52-frame">
-<link rel="stylesheet" href="{% static 'css/pages/account_settings.css' %}?v=account-settings-v51">
+<link rel="stylesheet" href="{% static 'css/pages/profile_avatar.css' %}?v=profile-frame-v55">
+<link rel="stylesheet" href="{% static 'css/pages/account_management.css' %}?v=account-management-v55">
 {% endblock %}
 {% block content %}
 <section class="game-page mypage-page">
-  {# PROFILE_FRAME_ROBOT_V52_MYPAGE: 기존 마이페이지 유지 + 레벨별 프로필 테두리 #}
+  {# PROFILE_DESIGN_RESTORE_V55_MYPAGE #}
   <div class="game-topbar">
     <div class="game-window-dots"><span></span><span></span><span></span></div>
     <div class="game-route">/player <b>›</b> dashboard <b>›</b> {{ user.username }}</div>
@@ -20,11 +20,11 @@
       <h1 class="game-title">{{ user.username }}님의 <span class="accent">성장 현황</span></h1>
       <p class="game-sub">현재 Lv.{{ user.level_number }} {{ user.level_name }} · {{ user.point }}P · 프로필을 누르면 동물 상점이 열립니다.</p>
       <div class="account-quick-actions">
-        <button type="button" class="account-edit-btn" data-account-modal-open>회원 정보 수정</button>
+        <a class="account-edit-btn" href="{% url 'mypage:account_verify' %}">회원 정보 수정</a>
         <span class="account-email-chip">{{ user.email|default:"이메일 미등록" }}</span>
       </div>
     </div>
-    <button type="button" class="player-avatar profile-avatar-page-trigger profile-frame-level-{{ user.level_number }}" data-avatar-modal-open aria-label="동물 프로필 변경">
+    <button type="button" class="player-avatar profile-avatar-page-trigger profile-frame profile-frame-level-{{ user.level_number }}" data-avatar-modal-open aria-label="동물 프로필 변경">
       <span>{{ user.avatar_icon }}</span>
       <small>Lv.{{ user.level_number }}</small>
     </button>
@@ -77,12 +77,13 @@
         <section class="game-panel account-info-panel">
           <div class="game-panel-head">
             <h2>회원 정보</h2>
-            <button type="button" class="text-link account-panel-edit" data-account-modal-open>수정</button>
+            <a class="text-link account-panel-edit" href="{% url 'mypage:account_verify' %}">관리</a>
           </div>
           <div class="account-info-list">
             <div><span>아이디</span><strong>{{ user.username }}</strong></div>
             <div><span>이메일</span><strong>{{ user.email|default:"미등록" }}</strong></div>
             <div><span>현재 프로필</span><strong>{{ user.avatar_icon }} {{ user.avatar_name }}</strong></div>
+            <div><span>레벨</span><strong>Lv.{{ user.level_number }} {{ user.level_name }}</strong></div>
           </div>
         </section>
 
@@ -105,16 +106,7 @@
           <div class="game-panel-head"><h2>복습 필요</h2></div>
           <div class="game-list">
             {% for note in review_needed %}
-              <div class="game-row review-needed-row">
-                <a class="review-needed-link" href="{% url 'wrongnotes:detail' note.id %}">
-                  <span>{{ note.problem.title|truncatechars:26 }}</span><span class="game-chip amber">복습</span>
-                </a>
-                <form method="post" action="{% url 'wrongnotes:hide' note.id %}" class="inline-review-form" onsubmit="return confirm('이 노트를 복습보드에서 제거할까요? 오답노트 원본은 삭제되지 않습니다.');">
-                  {% csrf_token %}
-                  <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                  <button type="submit" class="game-mini-btn ghost danger">제거</button>
-                </form>
-              </div>
+              <a class="game-row" href="{% url 'wrongnotes:detail' note.id %}"><span>{{ note.problem.title|truncatechars:26 }}</span><span class="game-chip amber">복습</span></a>
             {% empty %}
               <p class="game-empty">복습할 오답노트가 없습니다.</p>
             {% endfor %}
@@ -123,41 +115,5 @@
       </aside>
     </div>
   </div>
-
-  <div class="account-settings-modal" id="accountSettingsModal" hidden>
-    <button type="button" class="account-settings-backdrop" data-account-modal-close aria-label="회원 정보 수정 닫기"></button>
-    <section class="account-settings-card" role="dialog" aria-modal="true" aria-labelledby="accountSettingsTitle">
-      <header class="account-settings-head">
-        <div>
-          <p class="account-settings-eyebrow">ACCOUNT SETTINGS</p>
-          <h2 id="accountSettingsTitle">회원 정보 수정</h2>
-          <p>아이디와 이메일을 수정할 수 있습니다. 포인트와 학습 기록은 유지됩니다.</p>
-        </div>
-        <button type="button" class="account-settings-close" data-account-modal-close aria-label="닫기">×</button>
-      </header>
-
-      <form method="post" action="{% url 'mypage:account' %}" class="account-settings-form">
-        {% csrf_token %}
-        <div class="account-settings-field">
-          <label for="account_username">아이디</label>
-          <input type="text" id="account_username" name="username" value="{{ user.username }}" required maxlength="150" autocomplete="username">
-        </div>
-        <div class="account-settings-field">
-          <label for="account_email">이메일</label>
-          <input type="email" id="account_email" name="email" value="{{ user.email|default:'' }}" placeholder="email@example.com" autocomplete="email">
-        </div>
-        <div class="account-settings-note">
-          비밀번호 변경은 보안을 위해 별도 기능으로 분리하는 것을 권장합니다.
-        </div>
-        <div class="account-settings-actions">
-          <button type="button" class="account-settings-cancel" data-account-modal-close>취소</button>
-          <button type="submit" class="account-settings-submit">저장하기</button>
-        </div>
-      </form>
-    </section>
-  </div>
 </section>
-{% endblock %}
-{% block scripts %}
-<script src="{% static 'js/account_settings.js' %}?v=account-settings-v51"></script>
 {% endblock %}
