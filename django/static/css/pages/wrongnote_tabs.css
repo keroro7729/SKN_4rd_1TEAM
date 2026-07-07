@@ -668,3 +668,142 @@
   .reflection-tab { font-size: .8rem; }
   .wn2-reflection-textarea { min-height: 230px; }
 }
+
+
+/* v23 equal-height two column fix
+   Goal: left problem context and right reflection writer use the same desktop height.
+   The writing panel should not be pushed below or clipped at the bottom.
+*/
+@media (min-width: 861px) {
+  .wn2-shell {
+    width: min(1540px, calc(100vw - 44px)) !important;
+    max-height: none !important;
+  }
+
+  .wn2-grid {
+    height: clamp(600px, calc(100vh - 190px), 780px) !important;
+    min-height: 600px !important;
+    max-height: none !important;
+    grid-template-columns: minmax(0, 1.08fr) minmax(430px, .92fr) !important;
+    align-items: stretch !important;
+  }
+
+  .wn2-context-panel,
+  .wn2-reflection-panel {
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .wn2-context-panel {
+    border-right: 1px solid rgba(148,163,184,.16) !important;
+  }
+
+  .wn2-panel-head {
+    flex: 0 0 auto !important;
+  }
+
+  .wn2-tabs {
+    flex: 0 0 auto !important;
+  }
+
+  .wn2-tab-body {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+  }
+
+  .reflection-panel {
+    min-width: 0 !important;
+    min-height: 0 !important;
+  }
+
+  .reflection-panel.is-active {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+  }
+
+  .wn2-problem-reader,
+  .wn2-inner-card {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .wn2-problem-titlebar,
+  .wn2-problem-nav,
+  .wn2-inner-head {
+    flex: 0 0 auto !important;
+  }
+
+  .wn2-scroll-reader,
+  .wn2-code-view,
+  .wn2-history-list {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: auto !important;
+  }
+
+  .wn2-history-grid {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+  }
+
+  .wn2-history-grid > .wn2-inner-card {
+    min-height: 0 !important;
+  }
+
+  .wn2-reflection-panel .quick-template-row,
+  .wn2-guide-box,
+  .wn2-actions,
+  .status-line {
+    flex: 0 0 auto !important;
+  }
+
+  .wn2-reflection-textarea {
+    flex: 1 1 auto !important;
+    min-height: 220px !important;
+    max-height: none !important;
+    resize: none !important;
+    overflow: auto !important;
+  }
+
+  .wn2-guide-box {
+    max-height: 128px;
+    overflow: auto;
+  }
+
+  .wn2-actions {
+    position: static !important;
+  }
+
+  .wn2-feedback {
+    flex: 0 0 auto;
+    max-height: 260px;
+    overflow: auto;
+  }
+}
+
+@media (min-width: 861px) and (max-height: 820px) {
+  .wn2-grid {
+    height: 620px !important;
+  }
+  .wn2-reflection-textarea {
+    min-height: 190px !important;
+  }
+  .wn2-guide-box {
+    max-height: 108px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .wn2-panel-head h2 { font-size: .98rem; }
+  .wn2-problem-titlebar h3 { font-size: 1.08rem; }
+  .reflection-tab { font-size: .79rem; }
+}
