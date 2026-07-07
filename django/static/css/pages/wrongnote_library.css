@@ -358,3 +358,92 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ===== v41 WRONGNOTE ACTIONS: board stat removed + clean card buttons ===== */
+.clean-note-card .wrongnote-foot.review-board-actions,
+.wrongnote-card .wrongnote-foot.review-board-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+.clean-note-card .review-action-group.clean-action-group,
+.wrongnote-card .review-action-group.clean-action-group {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  flex-wrap: nowrap !important;
+}
+
+.clean-note-card .review-action-group.clean-action-group .inline-review-form,
+.wrongnote-card .review-action-group.clean-action-group .inline-review-form {
+  margin: 0 !important;
+  display: inline-flex !important;
+}
+
+.review-card-action {
+  min-width: 104px !important;
+  min-height: 34px !important;
+  padding: 8px 14px !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  white-space: nowrap !important;
+  text-decoration: none !important;
+  font-size: .82rem !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+}
+
+.review-card-action.detail {
+  border: 1px solid rgba(53, 216, 255, .50) !important;
+  background: rgba(53, 216, 255, .08) !important;
+  color: var(--cyan) !important;
+}
+
+.review-card-action.remove {
+  border: 1px solid rgba(255, 100, 115, .52) !important;
+  background: rgba(255, 100, 115, .08) !important;
+  color: #ff9ba6 !important;
+}
+
+.review-card-action.restore {
+  border: 1px solid rgba(53, 242, 118, .52) !important;
+  background: rgba(53, 242, 118, .08) !important;
+  color: var(--green) !important;
+}
+
+.review-card-action .action-icon {
+  display: none !important;
+}
+
+.review-card-action:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.08) !important;
+}
+
+@media (max-width: 720px) {
+  .clean-note-card .wrongnote-foot.review-board-actions,
+  .wrongnote-card .wrongnote-foot.review-board-actions {
+    align-items: stretch !important;
+  }
+
+  .clean-note-card .review-action-group.clean-action-group,
+  .wrongnote-card .review-action-group.clean-action-group {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .review-card-action {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
