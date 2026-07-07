@@ -149,5 +149,6 @@ docker compose down                # (down -v : DB까지 삭제)
 - `7. ...STEP05-07_AI_RAG_FE_연계_가이드_v0.1.md` — FastAPI/RAG/프론트 연계
 - `8. ...테스트케이스_생성_에이전트_v0.1.md` — 정답코드/제너레이터 기반 TC 생성 에이전트(worker code_eval 위임, dry-run)
 - `9. ...오답노트_AI리포트_useflow_및_RAG설계_v0.1.md` — 오답노트 작성/AI리포트 분리, **2단계 RAG 에이전트**, WrongNoteReport 모델·RAG 문서구조 초안
+- `10. ...오답노트_RAG_리트리빙_고도화_v0_vs_v1_성능평가.md` — 리트리빙 v1(섹션 멀티청킹+mean/max 집계, 노이즈 제외, OpenAI 임베딩) 구현·**성능평가**. RAG 임베딩은 `text-embedding-3-small`(해시 폴백), 컬렉션은 임베더별 버저닝(`wrong_note_embeddings-<sig>`). 평가: `python -m services.rag_eval`
 - 지시문 v0.7 §5는 Django 앱을 레포 루트에 두는 구조였으나, **venv 분리 위해 `django/` 하위로 승격**함.
   app 이름·endpoint path 등 내부 규칙은 지시문을 그대로 따른다.
