@@ -2,9 +2,20 @@
   const pane = document.querySelector(".editor-pane");
   if (!pane) return;
 
+  const solvePage = document.querySelector(".solve-page");
+  const questLabel = document.getElementById("quest-status-label");
+  const questText = document.getElementById("quest-status-text");
+  const setQuestState = (state, label, text) => {
+    if (!solvePage) return;
+    solvePage.classList.remove("is-reading", "is-coding", "is-running", "is-success", "is-failed", "is-hint");
+    if (state) solvePage.classList.add(`is-${state}`);
+    if (questLabel && label) questLabel.textContent = label;
+    if (questText && text) questText.textContent = text;
+  };
+
   const codeTextarea = document.getElementById("code-editor");
   const autosaveNote = document.getElementById("autosave-note");
-  const storageKey = `wooks_problem_${pane.dataset.problemId}_code`;
+  const storageKey = `wooks:problem:${pane.dataset.problemId}:draft`;
 
   const cm = window.CodeMirror ? CodeMirror.fromTextArea(codeTextarea, {
     mode: "python",
@@ -24,10 +35,14 @@
   if (savedCode && !editor.value.trim()) {
     editor.value = savedCode;
     if (autosaveNote) autosaveNote.textContent = "임시 저장 복원됨";
+    setQuestState("coding", "코드 작성 중", "이전에 작성하던 코드를 불러왔습니다. 이어서 풀이해보세요.");
+  } else {
+    setQuestState("reading", "문제 분석 중", "문제를 읽고 핵심 조건을 확인한 뒤 코드를 작성해보세요.");
   }
 
   let saveTimer = null;
   const persistCode = () => {
+    setQuestState("coding", "코드 작성 중", "코드를 작성하고 있습니다. 실행 버튼으로 빠르게 검증해보세요.");
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       localStorage.setItem(storageKey, editor.value);
@@ -87,6 +102,12 @@
     }
   };
 
+  const resultLooksSuccess = (data) => {
+    const label = String(data.submission_result || data.job_status || "").toLowerCase();
+    if (data.total && Number(data.passed) === Number(data.total)) return true;
+    return ["correct", "success", "accepted", "passed", "completed"].some((word) => label.includes(word));
+  };
+
   const renderResult = (data) => {
     const resultLabel = data.submission_result || "pending";
     const passed = data.total ? `${data.passed}/${data.total}` : "-";
@@ -120,6 +141,12 @@
       </div>
     `;
     statusBox.hidden = false;
+
+    if (resultLooksSuccess(data)) {
+      setQuestState("success", "Quest Clear", "테스트를 통과했습니다. 제출 결과를 저장하고 다음 문제로 이동할 수 있습니다.");
+    } else {
+      setQuestState("failed", "다시 도전", "통과하지 못한 케이스를 확인하고, 필요하면 오답노트로 실수 원인을 정리하세요.");
+    }
   };
 
   statusBox?.addEventListener("click", (event) => {
@@ -147,6 +174,7 @@
         hide(loadingBox);
         return;
       }
+      setQuestState("running", "채점 중", `테스트케이스를 확인하고 있습니다. ${i + 1}/20`);
       showText(loadingBox, `채점 중입니다. Job: ${data.job_status} · ${i + 1}/20`);
       await new Promise((resolve) => setTimeout(resolve, 700));
     }
@@ -156,6 +184,7 @@
   const createJob = async (url, queuedMessage) => {
     hide(errorBox, statusBox);
     showText(loadingBox, queuedMessage);
+    setQuestState("running", "대기열 등록", "코드를 실행 환경에 보내고 있습니다. 잠시만 기다려주세요.");
     runButton.disabled = true;
     submitButton.disabled = true;
     persistCode();
@@ -180,11 +209,13 @@
         hide(loadingBox);
       } else {
         showText(loadingBox, "결과 확인 중입니다.");
+        setQuestState("running", "채점 중", "테스트케이스를 순서대로 확인하고 있습니다.");
         await pollResult(data.submission_id);
       }
     } catch (error) {
       hide(loadingBox);
       showText(errorBox, error.message);
+      setQuestState("failed", "실행 오류", "오류 메시지를 확인하고 코드나 실행 환경을 점검하세요.");
     } finally {
       runButton.disabled = false;
       submitButton.disabled = false;
@@ -201,6 +232,7 @@
     hintNextButton.disabled = true;
     body.hidden = false;
     showText(body, "힌트를 생성 중입니다…");
+    setQuestState("hint", "AI 힌트 요청", "AI 파트너가 현재 코드와 문제를 기준으로 단계별 힌트를 준비합니다.");
     try {
       const response = await fetch(pane.dataset.hintUrl, {
         method: "POST",
@@ -224,6 +256,7 @@
         toggle.querySelector(".lock-label").outerHTML = '<span class="chevron">▾</span>';
         unlockedHintLevel = level;
         hintNextButton.textContent = level >= 3 ? "모든 힌트를 확인했습니다" : "다음 힌트 요청";
+        setQuestState("hint", `힌트 ${level}단계 열림`, "힌트를 참고해서 풀이 방향을 다시 점검해보세요.");
       } else {
         showText(body, `힌트 생성 상태: ${data.message || data.status} · request_id ${data.request_id || "-"}`);
       }
@@ -241,6 +274,7 @@
     localStorage.removeItem(storageKey);
     if (autosaveNote) autosaveNote.textContent = "초기화됨";
     hide(errorBox, statusBox, loadingBox);
+    setQuestState("reading", "초기화 완료", "문제를 다시 확인하고 새 풀이를 시작하세요.");
   });
   hintNextButton?.addEventListener("click", () => requestHint(unlockedHintLevel + 1));
   document.querySelectorAll(".hint-step-toggle").forEach((toggle) => {
@@ -259,6 +293,8 @@
       reader.dataset.mode = button.dataset.problemMode;
       reader.querySelectorAll("[data-problem-mode]").forEach((item) => item.classList.toggle("active", item === button));
       problemScroll?.scrollTo({top: 0, behavior: "smooth"});
+      const modeLabel = button.textContent.trim();
+      setQuestState("reading", `${modeLabel} 읽기`, "필요한 문제 섹션만 골라 보고 코드 작성 흐름을 유지하세요.");
     });
   });
 
@@ -268,6 +304,7 @@
       if (!target || !problemScroll) return;
       const top = target.offsetTop - problemScroll.offsetTop - 8;
       problemScroll.scrollTo({top, behavior: "smooth"});
+      setQuestState("reading", "문제 확인 중", `${button.textContent.trim()} 섹션으로 이동했습니다.`);
     });
   });
 
@@ -283,6 +320,7 @@
         await navigator.clipboard.writeText(button.dataset.copyText || "");
         const original = button.textContent;
         button.textContent = "복사됨";
+        setQuestState("coding", "예제 입력 복사", "복사한 입력으로 직접 실행해보며 풀이를 검증하세요.");
         setTimeout(() => { button.textContent = original; }, 1200);
       } catch (_) {
         button.textContent = "복사 실패";

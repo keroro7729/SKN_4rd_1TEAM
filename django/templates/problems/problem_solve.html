@@ -33,22 +33,26 @@
     <section class="game-panel solve-pane problem-reader-pane" data-reader data-mode="full">
       <div class="game-panel-head problem-reader-head">
         <div>
-          <h2>문제 보기</h2>
-          <p>긴 문제는 요약 → 조건 → 예제 순서로 읽으면 빠르게 파악할 수 있습니다.</p>
+          <h2>문제 읽기</h2>
+          <p>AI 요약 없이 원문을 섹션별로 나눠서 읽고, 코드 영역은 그대로 유지합니다.</p>
         </div>
         <div class="reader-mode-toggle" aria-label="문제 읽기 모드">
           <button type="button" class="reader-mode active" data-problem-mode="full">전체</button>
-          <button type="button" class="reader-mode" data-problem-mode="summary">요약</button>
-          <button type="button" class="reader-mode" data-problem-mode="examples">예제</button>
+          <button type="button" class="reader-mode" data-problem-mode="problem">문제만</button>
+          <button type="button" class="reader-mode" data-problem-mode="examples">예제만</button>
         </div>
       </div>
 
-      <div class="problem-quick-summary">
-        <div class="quick-summary-head">
-          <span class="game-chip green">한눈 요약</span>
-          <span class="summary-count">문제 · 제약 · 예제 분리 보기</span>
+      <div class="reader-guide-card">
+        <div class="reader-guide-title">
+          <span class="game-chip green">READING HUD</span>
+          <span class="reader-guide-meta">긴 문제 전용</span>
         </div>
-        <p>{{ problem.description|striptags|truncatechars:165 }}</p>
+        <ul>
+          <li>문제 패널만 따로 스크롤해서 코드 작성 화면이 밀리지 않습니다.</li>
+          <li>섹션 버튼으로 문제 설명, 제한사항, 예제를 바로 확인할 수 있습니다.</li>
+          <li>예제 입력은 복사해서 빠르게 실행 테스트할 수 있습니다.</li>
+        </ul>
       </div>
 
       <div class="reader-progress" aria-hidden="true"><span></span></div>
@@ -125,7 +129,7 @@
       <div class="editor-actions">
         <button id="run-code-btn" type="button" class="game-btn ghost">▶ 실행</button>
         <button id="submit-btn" type="button" class="game-btn primary">제출하기</button>
-        <span class="editor-job-note">Run → Judge → WrongNote</span>
+        <span class="editor-job-note">Read → Code → Run → Review</span>
       </div>
       <div id="run-loading-box" class="result-area" hidden></div>
       <div id="run-error-box" class="result-area result-error" hidden></div>
@@ -134,7 +138,7 @@
 
     <aside class="game-panel hint-sidebar">
       <div class="game-panel-head"><h2>AI 파트너 힌트</h2></div>
-      <p class="hint-note">정답을 직접 노출하지 않고 사고 과정을 단계적으로 유도합니다.</p>
+      <p class="hint-note">문제 원문은 그대로 두고, 막히는 지점에서만 단계별 힌트를 요청하세요.</p>
       <div class="hint-accordion" id="hint-accordion">
         {% for level in "123" %}
           <div class="hint-step" data-level="{{ level }}">
@@ -151,12 +155,34 @@
     </aside>
   </div>
 
-  <div class="pixel-journey" aria-hidden="true"></div>
+  <section class="quest-journey" aria-label="학습 진행 상태">
+    <div class="quest-track">
+      <div class="quest-ground"></div>
+      <div class="quest-party">
+        <div class="quest-avatar" aria-hidden="true">
+          <div class="q-head"></div><div class="q-body">&lt;/&gt;</div>
+          <span class="q-arm left"></span><span class="q-arm right"></span>
+          <span class="q-leg left"></span><span class="q-leg right"></span>
+        </div>
+        <div class="quest-hand" aria-hidden="true"></div>
+        <div class="quest-ai" aria-hidden="true">
+          <div class="q-antenna"></div><div class="q-ai-head">•‿•</div><div class="q-ai-body">AI</div>
+          <span class="q-arm left"></span><span class="q-arm right"></span>
+          <span class="q-leg left"></span><span class="q-leg right"></span>
+        </div>
+      </div>
+      <div class="quest-flag" aria-hidden="true"><span></span></div>
+    </div>
+    <div class="quest-status-box">
+      <strong id="quest-status-label">문제 분석 중</strong>
+      <span id="quest-status-text">문제를 읽고 핵심 조건을 확인한 뒤 코드를 작성해보세요.</span>
+    </div>
+  </section>
 </section>
 {% endblock %}
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
-<script src="{% static 'js/problem_solve.js' %}?v=long-reader-v14"></script>
+<script src="{% static 'js/problem_solve.js' %}?v=game-reader-v15"></script>
 {% endblock %}
