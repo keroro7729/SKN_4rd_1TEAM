@@ -42,6 +42,7 @@ class WrongNote(models.Model):
         "상태", max_length=20, choices=WRONG_NOTE_STATUS_CHOICES, default="draft"
     )
     is_reviewed = models.BooleanField("복습완료", default=False)
+    is_review_hidden = models.BooleanField("복습보드숨김", default=False)
     reviewed_at = models.DateTimeField("복습일", null=True, blank=True)
     created_at = models.DateTimeField("작성일", auto_now_add=True)
 

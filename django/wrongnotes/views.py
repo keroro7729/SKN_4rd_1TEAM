@@ -4,7 +4,7 @@ import json
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.views.generic import DetailView, ListView, TemplateView
 from django.views.decorators.http import require_POST
@@ -35,25 +35,32 @@ class WrongNoteListView(LoginRequiredMixin, ListView):
         )
         if self.f_q:
             qs = qs.filter(problem__title__icontains=self.f_q)
-        if self.f_status == "reviewed":
-            qs = qs.filter(is_reviewed=True)
-        elif self.f_status == "unreviewed":
-            qs = qs.filter(is_reviewed=False)
-        elif self.f_status:
-            qs = qs.filter(status=self.f_status)
+
+        # 복습보드에서 제거한 노트는 기본 목록에서 숨깁니다.
+        # 오답노트 원본은 삭제하지 않고, hidden 필터에서 다시 확인/복원할 수 있습니다.
+        if self.f_status == "hidden":
+            qs = qs.filter(is_review_hidden=True)
+        else:
+            qs = qs.filter(is_review_hidden=False)
+            if self.f_status == "reviewed":
+                qs = qs.filter(is_reviewed=True)
+            elif self.f_status == "unreviewed":
+                qs = qs.filter(is_reviewed=False)
+            elif self.f_status:
+                qs = qs.filter(status=self.f_status)
         return qs.order_by("-created_at")
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         notes_all = WrongNote.objects.filter(user=self.request.user)
-        existing_submission_ids = WrongNote.objects.filter(
-            user=self.request.user
-        ).values_list("submission_id", flat=True)
+        visible_notes = notes_all.filter(is_review_hidden=False)
+        existing_submission_ids = notes_all.values_list("submission_id", flat=True)
         ctx["note_stats"] = {
-            "total": notes_all.count(),
-            "unreviewed": notes_all.filter(is_reviewed=False).count(),
-            "reviewed": notes_all.filter(is_reviewed=True).count(),
-            "indexed": notes_all.filter(status="indexed").count(),
+            "total": visible_notes.count(),
+            "unreviewed": visible_notes.filter(is_reviewed=False).count(),
+            "reviewed": visible_notes.filter(is_reviewed=True).count(),
+            "indexed": visible_notes.filter(status="indexed").count(),
+            "hidden": notes_all.filter(is_review_hidden=True).count(),
         }
         ctx["q"] = self.f_q
         ctx["cur_status"] = self.f_status
@@ -63,6 +70,7 @@ class WrongNoteListView(LoginRequiredMixin, ListView):
             ("reviewed", "해결 완료"),
             ("indexed", "인덱싱 완료"),
             ("index_failed", "인덱싱 실패"),
+            ("hidden", "보드에서 제거됨"),
         ]
         ctx["recent_wrong_submissions"] = (
             Submission.objects.filter(
@@ -75,10 +83,10 @@ class WrongNoteListView(LoginRequiredMixin, ListView):
             .order_by("-created_at")[:10]
         )
         ctx["recent_notes"] = (
-            notes_all.select_related("problem").order_by("-created_at")[:5]
+            visible_notes.select_related("problem").order_by("-created_at")[:5]
         )
         ctx["pattern_rows"] = (
-            notes_all.exclude(error_pattern="")
+            visible_notes.exclude(error_pattern="")
             .values("error_pattern")
             .annotate(count=Count("id"))
             .order_by("-count")[:4]
@@ -337,3 +345,27 @@ def review_wrong_note(request, note_id):
             "user_point": request.user.point,
         }
     )
+
+
+@login_required
+@require_POST
+def hide_from_review_board(request, note_id):
+    """Hide a wrong note from the review board without deleting the note."""
+    note = get_object_or_404(WrongNote, pk=note_id, user=request.user)
+    if not note.is_review_hidden:
+        note.is_review_hidden = True
+        note.save(update_fields=["is_review_hidden"])
+
+    return redirect(request.POST.get("next") or request.META.get("HTTP_REFERER") or "wrongnotes:list")
+
+
+@login_required
+@require_POST
+def restore_to_review_board(request, note_id):
+    """Restore a hidden wrong note to the review board."""
+    note = get_object_or_404(WrongNote, pk=note_id, user=request.user)
+    if note.is_review_hidden:
+        note.is_review_hidden = False
+        note.save(update_fields=["is_review_hidden"])
+
+    return redirect(request.POST.get("next") or request.META.get("HTTP_REFERER") or "wrongnotes:list")

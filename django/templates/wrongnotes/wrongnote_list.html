@@ -17,7 +17,6 @@
     </div>
     <div class="hero-action-stack">
       <a href="{% url 'wrongnotes:ask' %}" class="game-btn primary">내 노트에 질문</a>
-      <a href="{% url 'mypage:index' %}" class="game-btn ghost">학습 기록</a>
     </div>
   </section>
 
@@ -27,6 +26,7 @@
       <div class="game-stat-card"><span>복습 필요</span><strong>{{ note_stats.unreviewed }}</strong><small>오늘 다시 볼 항목</small></div>
       <div class="game-stat-card"><span>복습 완료</span><strong>{{ note_stats.reviewed }}</strong><small>완료한 노트</small></div>
       <div class="game-stat-card"><span>RAG 반영</span><strong>{{ note_stats.indexed }}</strong><small>검색 가능 노트</small></div>
+      <div class="game-stat-card"><span>보드 제외</span><strong>{{ note_stats.hidden }}</strong><small>원본은 유지</small></div>
     </div>
 
     <div class="note-workflow-strip" aria-label="오답노트 활용 흐름">
@@ -79,9 +79,24 @@
                     {% for tag in note.tags.all %}<span class="game-chip">{{ tag.name }}</span>{% endfor %}
                   </div>
                   <p class="wrongnote-comment">{{ note.comment|default:"아직 회고 내용이 없습니다. 상세 화면에서 원인을 정리해보세요."|truncatechars:136 }}</p>
-                  <div class="wrongnote-foot">
+                  <div class="wrongnote-foot review-board-actions">
                     <span>{{ note.created_at|date:"Y.m.d H:i" }}</span>
-                    <a class="text-link" href="{% url 'wrongnotes:detail' note.id %}">상세 보기</a>
+                    <div class="review-action-group">
+                      <a class="text-link" href="{% url 'wrongnotes:detail' note.id %}">상세 보기</a>
+                      {% if note.is_review_hidden %}
+                        <form method="post" action="{% url 'wrongnotes:restore' note.id %}" class="inline-review-form">
+                          {% csrf_token %}
+                          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                          <button type="submit" class="game-mini-btn ghost">복습보드로 복원</button>
+                        </form>
+                      {% else %}
+                        <form method="post" action="{% url 'wrongnotes:hide' note.id %}" class="inline-review-form" onsubmit="return confirm('이 노트를 복습보드에서 제거할까요? 오답노트 원본은 삭제되지 않습니다.');">
+                          {% csrf_token %}
+                          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                          <button type="submit" class="game-mini-btn ghost danger">복습보드에서 제거</button>
+                        </form>
+                      {% endif %}
+                    </div>
                   </div>
                 </div>
               </article>

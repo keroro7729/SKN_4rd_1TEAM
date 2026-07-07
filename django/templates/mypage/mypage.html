@@ -89,7 +89,17 @@
           <div class="game-panel-head"><div><h2>복습 필요</h2><p>다시 보면 좋은 오답노트입니다.</p></div></div>
           <div class="game-list dense-list">
             {% for note in review_needed %}
-              <a class="game-row" href="{% url 'wrongnotes:detail' note.id %}"><span>{{ note.problem.title|truncatechars:28 }}</span><span class="game-chip amber">복습</span></a>
+              <div class="game-row review-needed-row">
+                <a class="review-needed-link" href="{% url 'wrongnotes:detail' note.id %}">
+                  <span>{{ note.problem.title|truncatechars:28 }}</span>
+                  <span class="game-chip amber">복습</span>
+                </a>
+                <form method="post" action="{% url 'wrongnotes:hide' note.id %}" class="inline-review-form" onsubmit="return confirm('이 노트를 복습보드에서 제거할까요? 오답노트 원본은 삭제되지 않습니다.');">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                  <button type="submit" class="game-mini-btn ghost danger">제거</button>
+                </form>
+              </div>
             {% empty %}<p class="game-empty">복습할 오답노트가 없습니다.</p>{% endfor %}
           </div>
         </section>

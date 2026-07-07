@@ -224,3 +224,19 @@
 .analysis-label.danger { color:var(--red); border-color:rgba(255,100,115,.25); }
 .analysis-label.cyan { color:var(--cyan); border-color:rgba(53,216,255,.25); }
 .analysis-label.amber { color:var(--amber); border-color:rgba(255,213,74,.25); }
+
+
+/* v39 REVIEW BOARD HIDE */
+.review-board-actions { align-items:center; gap:10px; flex-wrap:wrap; }
+.review-action-group { display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.inline-review-form { margin:0; display:inline-flex; }
+.game-mini-btn.danger { border-color:rgba(255,100,115,.45); color:#ff8a96; background:rgba(255,100,115,.06); }
+.game-mini-btn.danger:hover { border-color:rgba(255,100,115,.9); background:rgba(255,100,115,.14); color:#ffd7dc; }
+.review-needed-row { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.review-needed-link { flex:1; min-width:0; display:flex; align-items:center; justify-content:space-between; gap:10px; color:inherit; text-decoration:none; }
+@media (max-width:720px) {
+  .review-action-group, .review-needed-row { align-items:stretch; }
+  .review-action-group { width:100%; justify-content:flex-start; }
+  .review-needed-row { flex-direction:column; }
+  .review-needed-link { width:100%; }
+}
