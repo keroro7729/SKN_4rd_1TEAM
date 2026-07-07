@@ -40,6 +40,7 @@ def build_wrong_note_payload(note) -> dict:
         "problem_id": note.problem_id,
         "submission_id": note.submission_id,
         "problem_title": note.problem.title,
+        "problem_statement": note.problem.description,
         "tags": tags,
         "user_comment": note.comment,
         "submitted_code": note.submission.code,
@@ -63,9 +64,10 @@ def build_wrong_note_index_content(note) -> str:
         f"오류 메시지: {submission.error_message or ''}",
         f"제출 코드: {submission.code or ''}",
         f"문제 핵심: {analysis.get('problem_core', '')}",
-        f"오답 원인: {analysis.get('cause', '')}",
         f"풀이 과정: {analysis.get('solution', '')}",
-        f"주의사항: {analysis.get('caution', '')}",
+        f"오답 원인: {analysis.get('cause', '')}",
+        f"개선 사항: {analysis.get('improvement', '')}",
+        f"다음 풀이 전 체크: {' / '.join(analysis.get('next_checklist', []))}",
     ]
     return "\n".join(part for part in parts if part.strip())
 
@@ -132,9 +134,11 @@ def analyze_wrong_note(note) -> dict:
         )
         result["analysis"] = {
             "problem_core": analyze.get("problem_core", ""),
-            "cause": analyze.get("cause", ""),
             "solution": analyze.get("solution", ""),
-            "caution": analyze.get("caution", ""),
+            "cause": analyze.get("cause", ""),
+            "improvement": analyze.get("improvement", ""),
+            "ai_feedback": analyze.get("ai_feedback", ""),
+            "next_checklist": analyze.get("next_checklist", []),
             "evidence": analyze.get("evidence", []),
         }
         result["analysis_status"] = analyze.get("status")

@@ -42,7 +42,13 @@ async def analyze(req: WrongNoteAnalyzeRequest, ctx=Depends(verify_internal)):
     """오답 원인 분석."""
     try:
         result = await llm.analyze_wrong_note(
-            req.code, req.comment, evidence=[], coding_state=req.coding_state
+            req.code,
+            req.comment,
+            evidence=[],
+            coding_state=req.coding_state,
+            problem_title=req.problem_title,
+            tags=req.tags,
+            problem_statement=req.problem_statement,
         )
     except LLMNotImplementedError:
         log_ai_event("analyze", model=config.OPENAI_MODEL, status="not_implemented")

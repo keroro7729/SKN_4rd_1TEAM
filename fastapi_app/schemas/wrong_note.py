@@ -28,15 +28,20 @@ class WrongNoteAnalyzeRequest(BaseModel):
     user_id: int
     code: str = ""
     comment: str = ""
+    problem_title: str = ""
+    tags: List[str] = Field(default_factory=list)
+    problem_statement: str = ""  # 문제 설명(문제핵심/풀이과정 품질 향상용)
     coding_state: str = ""  # AI 참고: 사용자 코딩 상태 컨텍스트(사용자 비노출)
 
 
 class WrongNoteAnalyzeResponse(InternalResponse):
     status: LLMStatus = LLMStatus.success
-    problem_core: str = ""      # 문제 핵심
-    cause: str = ""             # 오답 원인
-    solution: str = ""          # 풀이 과정
-    caution: str = ""           # 주의사항
+    problem_core: str = ""       # 문제 핵심(문제 이해)
+    solution: str = ""           # 풀이 과정(정석 접근법)
+    cause: str = ""              # 오답 원인(코드에서 잘못된 부분)
+    improvement: str = ""        # 개선사항(구체적 개선/재시도 방법)
+    ai_feedback: str = ""        # AI 자유 형식 피드백
+    next_checklist: List[str] = Field(default_factory=list)  # 다음 풀이 전 체크(2~4)
     evidence: List[Evidence] = Field(default_factory=list)
 
 

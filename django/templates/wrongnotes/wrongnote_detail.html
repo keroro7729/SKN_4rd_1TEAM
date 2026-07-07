@@ -40,14 +40,20 @@
       </section>
 
       <section class="game-panel accent-cyan ai-analysis-clean">
-        <div class="game-panel-head"><div><h2>AI 오답 분석</h2><p>핵심, 원인, 풀이 흐름, 주의사항으로 나누어 보여줍니다.</p></div></div>
+        <div class="game-panel-head"><div><h2>AI 오답 분석</h2><p>문제 핵심 · 풀이 과정 · 오답 원인 · 개선 사항으로 나누어 보여줍니다.</p></div></div>
         {% if analysis %}
           <div class="analysis-grid analysis-grid-clean">
             <article class="analysis-card"><span class="analysis-label">핵심</span><strong>문제 핵심</strong><p>{{ analysis.problem_core|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
-            <article class="analysis-card"><span class="analysis-label danger">원인</span><strong>오답 원인</strong><p>{{ analysis.cause|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
             <article class="analysis-card"><span class="analysis-label cyan">풀이</span><strong>풀이 과정</strong><p>{{ analysis.solution|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
-            <article class="analysis-card"><span class="analysis-label amber">주의</span><strong>주의사항</strong><p>{{ analysis.caution|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
+            <article class="analysis-card"><span class="analysis-label danger">원인</span><strong>오답 원인</strong><p>{{ analysis.cause|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
+            <article class="analysis-card"><span class="analysis-label amber">개선</span><strong>개선 사항</strong><p>{{ analysis.improvement|default:"분석 결과가 없습니다."|linebreaksbr }}</p></article>
           </div>
+          {% if analysis.ai_feedback %}
+            <div class="ai-feedback-box">
+              <span class="analysis-label green">AI 피드백</span>
+              <p>{{ analysis.ai_feedback|linebreaksbr }}</p>
+            </div>
+          {% endif %}
         {% else %}
           <p class="game-empty">AI 분석 결과가 아직 없습니다.</p>
         {% endif %}
@@ -76,13 +82,20 @@
         <div class="game-panel-head"><div><h2>유사 오답노트</h2><p>비슷한 실수를 찾는 데 도움이 됩니다.</p></div></div>
         <div class="game-list dense-list">
           {% for item in similar_notes %}
-            <div class="similar-note-row"><span>note_id {{ item.note_id }}</span><span class="game-chip amber">score {{ item.score }}</span></div>
+            <a class="similar-note-row similar-note-link" href="{% url 'wrongnotes:detail' item.note_id %}">
+              <span class="similar-note-title">{{ item.title|default:"오답노트"|truncatechars:28 }}</span>
+              <span class="game-chip amber">score {{ item.score|floatformat:2 }}</span>
+            </a>
           {% empty %}<p class="game-empty">유사 오답노트 결과가 없습니다.</p>{% endfor %}
         </div>
       </section>
       <section class="game-panel accent-green">
-        <div class="game-panel-head"><div><h2>다음 풀이 전 체크</h2></div></div>
-        <ul class="check-list-clean"><li>기저 조건 확인</li><li>인덱스 범위 확인</li><li>출력 형식 확인</li><li>시간 복잡도 확인</li></ul>
+        <div class="game-panel-head"><div><h2>다음 풀이 전 체크</h2><p>자주 하는 실수를 다음 풀이 전에 먼저 점검하세요.</p></div></div>
+        {% if analysis.next_checklist %}
+          <ul class="check-list-clean">{% for item in analysis.next_checklist %}<li>{{ item }}</li>{% endfor %}</ul>
+        {% else %}
+          <p class="game-empty">체크리스트가 아직 없습니다.</p>
+        {% endif %}
       </section>
     </aside>
   </div>
