@@ -4,7 +4,7 @@
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
-<link rel="stylesheet" href="{% static 'css/pages/problem_solve.css' %}?v=sidekick-level-v49">
+<link rel="stylesheet" href="{% static 'css/pages/problem_solve.css' %}?v=robot-sidekick-v50">
 {% endblock %}
 
 {% block content %}
@@ -142,7 +142,7 @@
         <div class="mini-track">
           <div class="mini-party">
             <span class="mini-avatar">&lt;/&gt;</span>
-            {% if user.is_authenticated %}<span class="mini-ai level-frame level-frame-{{ user.level_number }}">{{ user.hint_partner_icon }}</span>{% else %}<span class="mini-ai">AI</span>{% endif %}
+            {% if user.is_authenticated %}<span class="mini-ai robot-mini-avatar robot-coach-level-{{ user.level_number }}" aria-hidden="true"><i></i></span>{% else %}<span class="mini-ai robot-mini-avatar robot-coach-level-1" aria-hidden="true"><i></i></span>{% endif %}
           </div>
           <span class="mini-flag">⚑</span>
         </div>
@@ -162,22 +162,28 @@
       </div>
 
       {% if user.is_authenticated %}
-      <div class="sidekick-status hint-partner-card level-frame level-frame-{{ user.level_number }}">
-        <span class="sidekick-face hint-partner-avatar level-frame level-frame-{{ user.level_number }}" aria-hidden="true">{{ user.hint_partner_icon }}</span>
-        <div>
-          <strong>{{ user.hint_partner_name }}</strong>
-          <small>{{ user.hint_partner_title }} · {{ user.hint_partner_message }}</small>
+      <div class="sidekick-status robot-coach-card robot-coach-level-{{ user.level_number }}">
+        <span class="sidekick-face robot-coach-avatar robot-coach-level-{{ user.level_number }}" aria-hidden="true">
+          <span class="robot-eye robot-eye-left"></span>
+          <span class="robot-eye robot-eye-right"></span>
+          <span class="robot-mouth"></span>
+        </span>
+        <div class="robot-coach-meta">
+          <strong>AI Coach</strong>
+          <small>Lv.{{ user.level_number }}</small>
         </div>
-        <span class="partner-lv-chip level-frame level-frame-{{ user.level_number }}">Lv.{{ user.level_number }}</span>
       </div>
       {% else %}
-      <div class="sidekick-status hint-partner-card level-frame level-frame-1">
-        <span class="sidekick-face hint-partner-avatar level-frame level-frame-1" aria-hidden="true">🐣</span>
-        <div>
-          <strong>새싹 코치</strong>
-          <small>기초 조건 확인형 · 입력·출력·예제를 먼저 확인하도록 도와줍니다.</small>
+      <div class="sidekick-status robot-coach-card robot-coach-level-1">
+        <span class="sidekick-face robot-coach-avatar robot-coach-level-1" aria-hidden="true">
+          <span class="robot-eye robot-eye-left"></span>
+          <span class="robot-eye robot-eye-right"></span>
+          <span class="robot-mouth"></span>
+        </span>
+        <div class="robot-coach-meta">
+          <strong>AI Coach</strong>
+          <small>Lv.1</small>
         </div>
-        <span class="partner-lv-chip level-frame level-frame-1">Lv.1</span>
       </div>
       {% endif %}
 
@@ -214,5 +220,5 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
-<script src="{% static 'js/problem_solve.js' %}?v=sidekick-level-v49"></script>
+<script src="{% static 'js/problem_solve.js' %}?v=robot-sidekick-v50"></script>
 {% endblock %}
