@@ -10,6 +10,7 @@ from django.db import models
 
 
 class CustomUser(AbstractUser):
+    # PROFILE_AVATAR_POPUP_V45_MODEL: 동물 프로필 필드/해금 카탈로그
     class Role(models.TextChoices):
         STUDENT = "student", "학습자"
         ADMIN = "admin", "관리자"
@@ -62,53 +63,48 @@ class CustomUser(AbstractUser):
         return self.role == self.Role.ADMIN or self.is_staff
 
     @classmethod
-    def get_avatar_catalog(cls) -> list[dict]:
-        """포인트로 해금되는 동물 프로필 목록."""
-        return list(cls.AVATAR_CATALOG)
-
-    @classmethod
-    def get_avatar_config(cls, key: str) -> dict | None:
-        for item in cls.AVATAR_CATALOG:
-            if item["key"] == key:
-                return item
-        return None
-
-    def can_use_avatar(self, key: str) -> bool:
-        item = self.get_avatar_config(key)
-        if not item:
-            return False
-        return self.point >= int(item["required_point"])
+    def avatar_catalog(cls):
+        """템플릿/뷰에서 공통으로 쓰는 동물 프로필 카탈로그."""
+        return [dict(item) for item in cls.AVATAR_CATALOG]
 
     @property
-    def avatar_icon(self) -> str:
-        item = self.get_avatar_config(self.selected_avatar)
-        return item["icon"] if item else "🐱"
-
-    @property
-    def avatar_name(self) -> str:
-        item = self.get_avatar_config(self.selected_avatar)
-        return item["name"] if item else "고양이"
-
-    @property
-    def avatar_items(self) -> list[dict]:
-        """템플릿에서 바로 사용할 수 있는 프로필 카드 데이터."""
+    def avatar_items(self):
+        """현재 사용자의 포인트 기준으로 해금/잠금 상태를 계산한다."""
         items = []
-        for item in self.AVATAR_CATALOG:
-            unlocked = self.point >= int(item["required_point"])
-            remaining = max(int(item["required_point"]) - int(self.point), 0)
-            items.append(
-                {
-                    **item,
-                    "unlocked": unlocked,
-                    "selected": self.selected_avatar == item["key"],
-                    "remaining": remaining,
-                }
-            )
+        current_point = self.point or 0
+        selected_key = self.selected_avatar or self.Avatar.CAT
+        for raw in self.avatar_catalog():
+            required = int(raw["required_point"])
+            unlocked = current_point >= required
+            item = {
+                **raw,
+                "unlocked": unlocked,
+                "selected": str(raw["key"]) == str(selected_key),
+                "remaining": max(required - current_point, 0),
+            }
+            items.append(item)
         return items
 
     @property
-    def next_locked_avatar(self) -> dict | None:
-        for item in self.avatar_items:
-            if not item["unlocked"]:
+    def avatar_meta(self):
+        selected_key = self.selected_avatar or self.Avatar.CAT
+        for item in self.avatar_catalog():
+            if str(item["key"]) == str(selected_key):
                 return item
-        return None
+        return self.avatar_catalog()[0]
+
+    @property
+    def avatar_icon(self) -> str:
+        return self.avatar_meta["icon"]
+
+    @property
+    def avatar_name(self) -> str:
+        return self.avatar_meta["name"]
+
+    @property
+    def next_locked_avatar(self):
+        current_point = self.point or 0
+        locked = [item for item in self.avatar_items if not item["unlocked"]]
+        if not locked:
+            return None
+        return locked[0]

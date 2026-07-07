@@ -5,12 +5,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}WOOK'S CODING{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=front-v42-avatar">
-  <link rel="stylesheet" href="{% static 'css/pages/profile_avatar.css' %}?v=profile-avatar-v42">
-  <link rel="stylesheet" href="{% static 'css/pages/wrongnote_scroll_fix.css' %}?v=wrongnote-scroll-v34-real-fix">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=front-v45-avatar-popup">
+  <link rel="stylesheet" href="{% static 'css/pages/profile_avatar.css' %}?v=profile-avatar-popup-v45">
   {% block extra_head %}{% endblock %}
 </head>
 <body class="app-shell">
+{# PROFILE_AVATAR_POPUP_V45_BASE: 프로필만 적용, 동물 상점은 팝업으로 표시 #}
   <header class="game-site-header">
     <a class="game-logo" href="{% url 'home' %}" aria-label="WOOK'S CODING 홈">
       <span class="game-logo-mark">&lt;/&gt;</span>
@@ -34,7 +34,9 @@
 
     {% if user.is_authenticated %}
       <div class="game-player-pill avatar-player-pill">
-        <span class="profile-avatar-mini" title="{{ user.avatar_name }} 프로필">{{ user.avatar_icon }}</span>
+        <button type="button" class="profile-avatar-trigger" data-avatar-modal-open aria-label="동물 프로필 변경">
+          <span class="profile-avatar-mini" aria-hidden="true">{{ user.avatar_icon }}</span>
+        </button>
         <span class="game-player-level">Lv</span>
         <strong>{{ user.username }}</strong>
         <span>{{ user.point }}P</span>
@@ -49,12 +51,9 @@
   <main class="game-content">
     {% if messages %}
       <ul class="game-messages">
-        {% for message in messages %}
-          <li class="game-message {{ message.tags }}">{{ message }}</li>
-        {% endfor %}
+        {% for message in messages %}<li class="game-message {{ message.tags }}">{{ message }}</li>{% endfor %}
       </ul>
     {% endif %}
-
     {% block content %}{% endblock %}
   </main>
 
@@ -62,6 +61,62 @@
     <span>WOOK'S CODING · AI 오답 회고 기반 코딩 테스트 RPG · SKN 4차 프로젝트</span>
   </footer>
 
+  {% if user.is_authenticated %}
+    <div class="profile-avatar-modal" id="profileAvatarModal" hidden>
+      <button type="button" class="profile-avatar-modal-backdrop" data-avatar-modal-close aria-label="프로필 팝업 닫기"></button>
+      <section class="profile-avatar-modal-card" role="dialog" aria-modal="true" aria-labelledby="profileAvatarModalTitle">
+        <header class="profile-avatar-modal-head">
+          <div>
+            <p class="avatar-popup-eyebrow">POINT UNLOCK</p>
+            <h2 id="profileAvatarModalTitle">동물 프로필 상점</h2>
+            <p>포인트를 모아 동물 프로필을 해금하고 아이디 옆에 표시하세요.</p>
+          </div>
+          <button type="button" class="profile-avatar-close" data-avatar-modal-close aria-label="닫기">×</button>
+        </header>
+
+        <div class="profile-avatar-current">
+          <div class="profile-avatar-current-icon" aria-hidden="true">{{ user.avatar_icon }}</div>
+          <div>
+            <strong>{{ user.username }}</strong>
+            <p>현재 프로필 · {{ user.avatar_icon }} {{ user.avatar_name }} · {{ user.point }}P</p>
+            {% if user.next_locked_avatar %}
+              <small>다음 해금: {{ user.next_locked_avatar.icon }} {{ user.next_locked_avatar.name }} · {{ user.next_locked_avatar.remaining }}P 더 필요</small>
+            {% else %}
+              <small>모든 동물 프로필을 해금했습니다.</small>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="profile-avatar-popup-grid">
+          {% for item in user.avatar_items %}
+            <form method="post" action="{% url 'mypage:avatar' %}" class="profile-avatar-popup-card {% if item.selected %}selected{% endif %} {% if not item.unlocked %}locked{% endif %}">
+              {% csrf_token %}
+              <input type="hidden" name="avatar_key" value="{{ item.key }}">
+              <div class="profile-avatar-popup-icon" aria-hidden="true">{{ item.icon }}</div>
+              <div class="profile-avatar-popup-info">
+                <strong>{{ item.name }}</strong>
+                <span>{{ item.required_point }}P 필요</span>
+                {% if item.unlocked %}
+                  <small>사용 가능</small>
+                {% else %}
+                  <small>{{ item.remaining }}P 더 필요</small>
+                {% endif %}
+              </div>
+              {% if item.selected %}
+                <button type="button" class="profile-avatar-select selected" disabled>선택 중</button>
+              {% elif item.unlocked %}
+                <button type="submit" class="profile-avatar-select">선택하기</button>
+              {% else %}
+                <button type="button" class="profile-avatar-select locked" disabled>잠김</button>
+              {% endif %}
+            </form>
+          {% endfor %}
+        </div>
+      </section>
+    </div>
+  {% endif %}
+
   {% block scripts %}{% endblock %}
+  <script src="{% static 'js/profile_avatar.js' %}?v=profile-avatar-popup-v45"></script>
 </body>
 </html>

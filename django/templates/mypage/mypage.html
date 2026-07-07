@@ -1,160 +1,19 @@
 {% extends "base.html" %}
 {% block title %}마이페이지 · WOOK'S CODING{% endblock %}
-
 {% block content %}
-<section class="game-page mypage-page avatar-page-v42">
-  <div class="page-hero compact-hero avatar-profile-hero">
-    <div class="avatar-hero-left">
-      <div class="profile-avatar-hero" aria-hidden="true">{{ user.avatar_icon }}</div>
-      <div>
-        <p class="eyebrow">MY PAGE</p>
-        <h1 class="page-title">{{ user.username }}님의 성장 대시보드</h1>
-        <p class="page-sub">포인트를 모아 동물 프로필을 해금하고 나만의 플레이어 이미지를 설정하세요.</p>
-      </div>
+<section class="game-page mypage-page">
+  {# PROFILE_AVATAR_POPUP_V45_MYPAGE: 기존 마이페이지 레이아웃 유지, 프로필 아이콘만 팝업 트리거로 변경 #}
+  <div class="game-topbar"><div class="game-window-dots"><span></span><span></span><span></span></div><div class="game-route">/player <b>›</b> dashboard <b>›</b> {{ user.username }}</div><div class="game-mode-pill">PLAYER DASHBOARD</div></div>
+  <div class="game-hero compact-hero player-hero-card"><div><p class="game-eyebrow">My Growth Dashboard</p><h1 class="game-title">{{ user.username }}님의 <span class="accent">성장 현황</span></h1><p class="game-sub">문제 풀이, 오답노트, 복습 기록을 게임 성장판처럼 확인합니다.</p></div><button type="button" class="player-avatar profile-avatar-page-trigger" data-avatar-modal-open aria-label="동물 프로필 변경">{{ user.avatar_icon }}</button></div>
+  <div class="mypage-shell">
+    <div class="game-stat-grid"><div class="game-stat-card"><span>총 풀이</span><strong>{{ summary.total_submissions }}</strong></div><div class="game-stat-card"><span>정답률</span><strong>{{ summary.accuracy }}%</strong></div><div class="game-stat-card"><span>오답노트</span><strong>{{ summary.wrong_note_count }}</strong></div><div class="game-stat-card"><span>복습 완료</span><strong>{{ summary.reviewed_count }}</strong></div></div>
+    <div class="mypage-layout">
+      <section style="display:grid; gap:18px;">
+        <section class="game-panel"><div class="game-panel-head"><h2>최근 학습 활동</h2><a class="text-link" href="{% url 'mypage:index' %}">전체 기록</a></div><div class="game-list">{% for s in submissions|slice:":6" %}<a class="game-row" href="{% url 'problems:detail' s.problem_id %}"><span>{{ s.problem.title|truncatechars:32 }}</span><span class="badge badge-status-{{ s.result }}">{{ s.get_result_display }}</span></a>{% empty %}<p class="game-empty">최근 제출이 없습니다.</p>{% endfor %}</div></section>
+        <section class="game-panel accent-cyan"><div class="game-panel-head"><h2>반복 실수 패턴</h2><p>오답노트 기반 약점 분석</p></div>{% if weak_patterns %}{% for row in weak_patterns %}<div class="pattern-row"><span>{{ row.error_pattern }}</span><strong class="game-chip amber">{{ row.count }}회</strong></div>{% endfor %}{% else %}<p class="game-empty">오답노트에 오류 유형이 쌓이면 표시됩니다.</p>{% endif %}<a class="game-btn ghost" href="{% url 'wrongnotes:list' %}" style="margin-top:14px;">오답노트 분석실로</a></section>
+      </section>
+      <aside style="display:grid; gap:18px;"><section class="game-panel accent-warning"><div class="game-panel-head"><h2>이번 주 미션</h2></div><div class="game-list">{% for um in user_missions|slice:":4" %}<div class="mission-row"><strong>{{ um.mission.title }}</strong><span class="hint-note">{{ um.progress_count }} / {{ um.mission.target_count }}</span><div class="progress-bar"><span style="width:{% widthratio um.progress_count um.mission.target_count 100 %}%"></span></div></div>{% empty %}<p class="game-empty">진행 중인 미션이 없습니다.</p>{% endfor %}</div></section><section class="game-panel"><div class="game-panel-head"><h2>복습 필요</h2></div><div class="game-list">{% for note in review_needed %}<a class="game-row" href="{% url 'wrongnotes:detail' note.id %}"><span>{{ note.problem.title|truncatechars:26 }}</span><span class="game-chip amber">복습</span></a>{% empty %}<p class="game-empty">복습할 오답노트가 없습니다.</p>{% endfor %}</div></section></aside>
     </div>
-    <div class="avatar-hero-point">
-      <span>현재 포인트</span>
-      <strong>{{ user.point }}P</strong>
-      <small>현재 프로필 · {{ user.avatar_name }}</small>
-    </div>
-  </div>
-
-  <section class="panel profile-panel avatar-profile-summary">
-    <div class="avatar-profile-main">
-      <div class="profile-avatar-large" aria-hidden="true">{{ user.avatar_icon }}</div>
-      <div>
-        <h2>{{ user.username }}</h2>
-        <p class="hint-note">선택 중인 프로필: <strong>{{ user.avatar_icon }} {{ user.avatar_name }}</strong></p>
-        {% if next_locked_avatar %}
-          <p class="avatar-next-note">다음 해금: {{ next_locked_avatar.icon }} {{ next_locked_avatar.name }} · {{ next_locked_avatar.remaining }}P 더 필요</p>
-        {% else %}
-          <p class="avatar-next-note clear">모든 동물 프로필을 해금했습니다.</p>
-        {% endif %}
-      </div>
-    </div>
-    <div class="profile-metrics">
-      <div><strong>{{ summary.total_submissions }}</strong><span>총 풀이 문제</span></div>
-      <div><strong>{{ summary.accuracy }}%</strong><span>정답률</span></div>
-      <div><strong>{{ summary.wrong_note_count }}</strong><span>오답노트</span></div>
-      <div><strong>{{ summary.reviewed_count }}</strong><span>복습 완료</span></div>
-    </div>
-  </section>
-
-  <section class="panel avatar-unlock-panel">
-    <div class="section-head">
-      <div>
-        <h2 class="section-title">동물 프로필 상점</h2>
-        <p class="hint-note">포인트 조건을 달성하면 잠금이 풀리고, 선택한 동물은 상단 아이디 옆에도 표시됩니다.</p>
-      </div>
-      <span class="avatar-shop-badge">POINT UNLOCK</span>
-    </div>
-
-    <div class="avatar-card-grid">
-      {% for item in avatar_items %}
-        <form method="post" action="{% url 'mypage:avatar' %}" class="avatar-card {% if item.selected %}selected{% endif %} {% if not item.unlocked %}locked{% endif %}">
-          {% csrf_token %}
-          <input type="hidden" name="avatar_key" value="{{ item.key }}">
-          <div class="avatar-card-icon" aria-hidden="true">{{ item.icon }}</div>
-          <div class="avatar-card-body">
-            <strong>{{ item.name }}</strong>
-            <span>{{ item.required_point }}P 필요</span>
-            {% if item.unlocked %}
-              <em>사용 가능</em>
-            {% else %}
-              <em>{{ item.remaining }}P 더 필요</em>
-            {% endif %}
-          </div>
-          {% if item.selected %}
-            <button type="button" class="avatar-select-btn selected" disabled>선택 중</button>
-          {% elif item.unlocked %}
-            <button type="submit" class="avatar-select-btn">선택하기</button>
-          {% else %}
-            <button type="button" class="avatar-select-btn locked" disabled>잠김</button>
-          {% endif %}
-        </form>
-      {% endfor %}
-    </div>
-  </section>
-
-  <div class="dashboard-grid">
-    <section class="panel">
-      <h2 class="section-title">나의 성장 현황</h2>
-      <div class="stat-row">
-        <div class="stat-card"><span class="stat-num">{{ summary.total_submissions }}</span><span class="stat-label">총 풀이</span></div>
-        <div class="stat-card"><span class="stat-num">{{ summary.success_count }}</span><span class="stat-label">정답</span></div>
-        <div class="stat-card"><span class="stat-num">{{ summary.wrong_count }}</span><span class="stat-label">오답</span></div>
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2 class="section-title">이번 주 목표</h2>
-      <div class="mini-list">
-        {% for um in user_missions|slice:":3" %}
-          <div class="mini-row">
-            <span>{{ um.mission.title }}</span>
-            <span>{{ um.progress_count }} / {{ um.mission.target_count }}</span>
-          </div>
-        {% empty %}
-          <p class="empty compact">진행 중인 미션이 없습니다.</p>
-        {% endfor %}
-      </div>
-    </section>
-  </div>
-
-  <div class="dashboard-grid">
-    <section class="panel">
-      <h2 class="section-title">자주 틀리는 유형</h2>
-      {% if weak_patterns %}
-        {% for row in weak_patterns %}
-          <div class="progress-row">
-            <span>{{ row.error_pattern }}</span>
-            <strong>{{ row.count }}</strong>
-          </div>
-        {% endfor %}
-      {% else %}
-        <p class="hint-note">오답노트에 오류 유형이 쌓이면 표시됩니다.</p>
-      {% endif %}
-      <a class="btn btn-ghost btn-block" href="{% url 'wrongnotes:list' %}">오답노트에서 자세히 보기</a>
-    </section>
-
-    <section class="panel">
-      <h2 class="section-title">최근 학습 활동</h2>
-      <div class="mini-list">
-        {% for s in submissions|slice:":5" %}
-          <a class="mini-row" href="{% url 'problems:detail' s.problem_id %}">
-            <span>{{ s.problem.title|truncatechars:28 }}</span>
-            <span class="badge badge-status-{{ s.result }}">{{ s.get_result_display }}</span>
-          </a>
-        {% empty %}
-          <p class="empty compact">최근 제출이 없습니다.</p>
-        {% endfor %}
-      </div>
-    </section>
-  </div>
-
-  <div class="dashboard-grid">
-    <section class="panel">
-      <h2 class="section-title">최근 복습 필요 기록</h2>
-      <div class="mini-list">
-        {% for note in review_needed %}
-          <a class="mini-row" href="{% url 'wrongnotes:list' %}">
-            <span>{{ note.problem.title|truncatechars:28 }}</span>
-            <span>복습 필요</span>
-          </a>
-        {% empty %}
-          <p class="empty compact">복습할 오답노트가 없습니다.</p>
-        {% endfor %}
-      </div>
-    </section>
-
-    <section class="panel">
-      <h2 class="section-title">계정 설정</h2>
-      <div class="mini-list">
-        <div class="mini-row"><span>표시명</span><span>{{ user.username }}</span></div>
-        <div class="mini-row"><span>동물 프로필</span><span>{{ user.avatar_icon }} {{ user.avatar_name }}</span></div>
-        <div class="mini-row"><span>보유 포인트</span><span>{{ user.point }}P</span></div>
-      </div>
-    </section>
   </div>
 </section>
 {% endblock %}
