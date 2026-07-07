@@ -4,13 +4,14 @@
   const statusText = document.getElementById("note-ask-status");
   const answerBox = document.getElementById("note-answer");
   const evidenceBox = document.getElementById("note-evidence");
+  const emptyGuide = document.getElementById("note-empty-guide");
   if (!questionInput || !askButton) return;
   const getCookie = (name) => (document.cookie || "").split(";").map(v=>v.trim()).find(v=>v.startsWith(`${name}=`))?.slice(name.length + 1) || "";
   const escapeHtml = (value) => String(value || "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
   const ask = async () => {
     const question = questionInput.value.trim();
     if (!question) { statusText.textContent = "질문을 입력하세요."; return; }
-    answerBox.hidden = true; evidenceBox.hidden = true; askButton.disabled = true; statusText.textContent = "오답노트 검색 중입니다.";
+    answerBox.hidden = true; evidenceBox.hidden = true; if (emptyGuide) emptyGuide.hidden = true; askButton.disabled = true; statusText.textContent = "오답노트 검색 중입니다.";
     try {
       const response = await fetch(window.location.pathname, { method:"POST", headers:{"Content-Type":"application/json", "X-CSRFToken":decodeURIComponent(getCookie("csrftoken")), "Accept":"application/json"}, body: JSON.stringify({ question }) });
       const data = await response.json(); if (!response.ok) throw new Error(data.error_message || "질문 처리에 실패했습니다.");
@@ -23,5 +24,6 @@
     finally { askButton.disabled = false; }
   };
   document.querySelectorAll(".question-preset").forEach((button) => button.addEventListener("click", () => { questionInput.value = button.dataset.question; ask(); }));
+  questionInput.addEventListener("keydown", (event) => { if ((event.ctrlKey || event.metaKey) && event.key === "Enter") { event.preventDefault(); ask(); } });
   askButton.addEventListener("click", ask);
 })();

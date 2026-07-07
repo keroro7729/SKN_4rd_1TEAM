@@ -1,15 +1,141 @@
 {% extends "base.html" %}
 {% block title %}WOOK'S CODING · 홈{% endblock %}
+
 {% block content %}
-<section class="game-page home-page">
-  <div class="game-topbar"><div class="game-window-dots"><span></span><span></span><span></span></div><div class="game-route">/home/wooks-coding / dashboard / start</div><div class="game-mode-pill">AI CODING RPG</div></div>
-  <div class="home-hero"><div><p class="game-eyebrow">AI CODING TEST PLATFORM</p><h1 class="game-title"><span class="accent">AI 오답 회고</span>로 성장하는<br>코딩 테스트 RPG</h1><p class="game-sub">문제를 퀘스트처럼 풀고, 실패한 코드는 오답노트와 RAG 근거로 다시 분석합니다.</p><div class="home-actions">{% if user.is_authenticated %}<a class="game-btn primary" href="{% url 'problems:list' %}">오늘의 퀘스트 시작</a><a class="game-btn ghost" href="{% url 'wrongnotes:list' %}">오답노트 분석</a>{% else %}<a class="game-btn primary" href="{% url 'accounts:signup' %}">학습 시작</a><a class="game-btn ghost" href="{% url 'accounts:login' %}">로그인</a>{% endif %}</div></div><div class="home-hero-card" aria-hidden="true"><div class="home-ai-core">AI</div></div></div>
-  <div class="home-feature-grid"><article class="game-panel home-feature"><div class="home-feature-icon">01</div><h2>단계별 AI 힌트</h2><p class="hint-note">정답 대신 사고 방향을 단계적으로 제공합니다.</p></article><article class="game-panel home-feature accent-cyan"><div class="home-feature-icon">02</div><h2>오답노트 RAG</h2><p class="hint-note">오답 근거와 반복 실수를 누적합니다.</p></article><article class="game-panel home-feature accent-purple"><div class="home-feature-icon">03</div><h2>과거 코드 회고</h2><p class="hint-note">현재 코드와 과거 실수를 비교합니다.</p></article><article class="game-panel home-feature accent-warning"><div class="home-feature-icon">04</div><h2>미션/포인트</h2><p class="hint-note">성장 지표를 마이페이지에서 확인합니다.</p></article></div>
+<section class="game-page home-page clean-dashboard">
+  <div class="game-topbar">
+    <div class="game-window-dots"><span></span><span></span><span></span></div>
+    <div class="game-route">/dashboard <b>›</b> learning-cockpit</div>
+    <div class="game-mode-pill">AI CODING RPG</div>
+  </div>
+
+  <section class="home-cockpit">
+    <div class="home-cockpit-copy">
+      <p class="game-eyebrow">LEARN · SOLVE · REVIEW</p>
+      <h1 class="game-title">문제를 풀고, 오답을 분석하고,<br><span class="accent">다음 풀이가 쉬워지는</span> 코딩 학습</h1>
+      <p class="game-sub">프로그래머스/리트코드처럼 바로 문제를 풀고, 틀린 코드는 게임형 오답노트와 AI RAG 근거로 다시 정리합니다.</p>
+      <div class="home-actions">
+        {% if user.is_authenticated %}
+          <a class="game-btn primary" href="{% url 'problems:list' %}">문제 바로 풀기</a>
+          <a class="game-btn ghost" href="{% url 'wrongnotes:list' %}">오답노트 확인</a>
+          <a class="game-btn ghost" href="{% url 'mypage:index' %}">성장 현황 보기</a>
+        {% else %}
+          <a class="game-btn primary" href="{% url 'accounts:signup' %}">무료로 시작하기</a>
+          <a class="game-btn ghost" href="{% url 'accounts:login' %}">로그인</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <aside class="home-cockpit-card" aria-label="학습 흐름">
+      <div class="cockpit-orb">AI</div>
+      <div class="cockpit-flow">
+        <div><span>01</span><strong>문제 풀이</strong><small>실행 · 제출</small></div>
+        <div><span>02</span><strong>오답 기록</strong><small>원인 · 코드</small></div>
+        <div><span>03</span><strong>AI 분석</strong><small>RAG 근거</small></div>
+        <div><span>04</span><strong>복습 성장</strong><small>포인트 · 미션</small></div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="home-quick-panels">
+    <article class="game-panel quick-panel accent-green">
+      <span class="panel-kicker">빠른 시작</span>
+      <h2>오늘 풀 문제를 바로 고르기</h2>
+      <p>난이도와 태그를 보고 한 문제씩 퀘스트처럼 진행합니다.</p>
+      <a class="game-mini-btn" href="{% url 'problems:list' %}">문제 목록</a>
+    </article>
+    <article class="game-panel quick-panel accent-cyan">
+      <span class="panel-kicker">오답 회고</span>
+      <h2>내 실수 패턴 찾기</h2>
+      <p>작성한 오답노트를 기반으로 자주 틀리는 이유를 확인합니다.</p>
+      <a class="game-mini-btn ghost" href="{% url 'wrongnotes:ask' %}">내 노트 질의</a>
+    </article>
+    <article class="game-panel quick-panel accent-warning">
+      <span class="panel-kicker">성장 관리</span>
+      <h2>학습 흐름 한눈에 보기</h2>
+      <p>최근 제출, 정답률, 복습 필요 노트를 대시보드로 확인합니다.</p>
+      <a class="game-mini-btn ghost" href="{% url 'mypage:index' %}">마이페이지</a>
+    </article>
+  </section>
+
+  <section class="home-guide-strip" aria-label="서비스 이용 흐름">
+    <div class="home-guide-step"><strong>문제 선택</strong><span>난이도·태그 기준으로 빠르게 탐색</span></div>
+    <div class="home-guide-step"><strong>코드 제출</strong><span>실행 결과와 실패 케이스 확인</span></div>
+    <div class="home-guide-step"><strong>오답노트</strong><span>현재 코드·과거 코드·결과를 함께 회고</span></div>
+    <div class="home-guide-step"><strong>AI 복습</strong><span>내 노트 근거로 취약 개념 분석</span></div>
+  </section>
+
   <div class="game-dashboard-grid home-dashboard">
-    <section class="game-panel game-span-4"><div class="game-panel-head"><h2>오늘의 추천 문제</h2><a class="text-link" href="{% url 'problems:list' %}">전체 보기</a></div><div class="game-list">{% for p in recommended_problems %}<a class="game-row" href="{% url 'problems:detail' p.id %}"><span>{{ p.id }}번 {{ p.title|truncatechars:28 }}</span><span class="game-chip cyan">{{ p.get_difficulty_display }}</span></a>{% empty %}<p class="game-empty">추천할 문제가 없습니다.</p>{% endfor %}</div></section>
-    <section class="game-panel game-span-4 accent-cyan"><div class="game-panel-head"><h2>공지사항</h2><a class="text-link" href="{% url 'notices:list' %}">전체 보기</a></div><div class="game-list">{% for n in notices %}<a class="game-row" href="{% url 'notices:detail' n.id %}"><span>{{ n.title|truncatechars:34 }}</span><span class="game-chip">{{ n.created_at|date:"m.d" }}</span></a>{% empty %}<p class="game-empty">등록된 공지사항이 없습니다.</p>{% endfor %}</div></section>
-    <section class="game-panel game-span-4 accent-purple"><div class="game-panel-head"><h2>오늘의 미션</h2></div><div class="game-list">{% for m in missions|slice:":4" %}<div class="game-row"><span>{{ m.title|truncatechars:28 }}</span><span class="game-chip amber">+{{ m.reward_point }}P</span></div>{% empty %}<p class="game-empty">진행 가능한 미션이 없습니다.</p>{% endfor %}</div></section>
-    {% if user.is_authenticated %}<section class="game-panel game-span-6"><div class="game-panel-head"><h2>최근 제출</h2><a class="text-link" href="{% url 'mypage:index' %}">마이페이지</a></div><div class="game-list">{% for s in recent_submissions %}<a class="game-row" href="{% url 'problems:detail' s.problem_id %}"><span>{{ s.problem.title|truncatechars:34 }}</span><span class="badge badge-status-{{ s.result }}">{{ s.get_result_display }}</span></a>{% empty %}<p class="game-empty">아직 제출 기록이 없습니다.</p>{% endfor %}</div></section><section class="game-panel game-span-6 accent-warning"><div class="game-panel-head"><h2>최근 오답노트</h2><a class="text-link" href="{% url 'wrongnotes:list' %}">전체 보기</a></div><div class="game-list">{% for note in recent_wrong_notes %}<a class="game-row" href="{% url 'wrongnotes:detail' note.id %}"><span>{{ note.problem.title|truncatechars:34 }}</span><span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span></a>{% empty %}<p class="game-empty">아직 오답노트가 없습니다.</p>{% endfor %}</div></section>{% endif %}
+    <section class="game-panel game-span-5">
+      <div class="game-panel-head">
+        <div><h2>추천 문제</h2><p>오늘 바로 시작하기 좋은 문제입니다.</p></div>
+        <a class="text-link" href="{% url 'problems:list' %}">전체 보기</a>
+      </div>
+      <div class="game-list dense-list">
+        {% for p in recommended_problems %}
+          <a class="game-row" href="{% url 'problems:detail' p.id %}">
+            <span>{{ p.id }}번 {{ p.title|truncatechars:34 }}</span>
+            <span class="game-chip cyan">{{ p.get_difficulty_display }}</span>
+          </a>
+        {% empty %}<p class="game-empty">추천할 문제가 없습니다.</p>{% endfor %}
+      </div>
+    </section>
+
+    {% if user.is_authenticated %}
+    <section class="game-panel game-span-4 accent-cyan">
+      <div class="game-panel-head">
+        <div><h2>최근 제출</h2><p>방금 푼 문제 결과입니다.</p></div>
+        <a class="text-link" href="{% url 'mypage:index' %}">기록</a>
+      </div>
+      <div class="game-list dense-list">
+        {% for s in recent_submissions|slice:":5" %}
+          <a class="game-row" href="{% url 'problems:detail' s.problem_id %}">
+            <span>{{ s.problem.title|truncatechars:28 }}</span>
+            <span class="badge badge-status-{{ s.result }}">{{ s.get_result_display }}</span>
+          </a>
+        {% empty %}<p class="game-empty">아직 제출 기록이 없습니다.</p>{% endfor %}
+      </div>
+    </section>
+
+    <section class="game-panel game-span-3 accent-warning">
+      <div class="game-panel-head">
+        <div><h2>복습 후보</h2><p>최근 오답노트입니다.</p></div>
+      </div>
+      <div class="game-list dense-list">
+        {% for note in recent_wrong_notes|slice:":4" %}
+          <a class="game-row" href="{% url 'wrongnotes:detail' note.id %}">
+            <span>{{ note.problem.title|truncatechars:24 }}</span>
+            <span class="game-chip amber">복습</span>
+          </a>
+        {% empty %}<p class="game-empty">아직 오답노트가 없습니다.</p>{% endfor %}
+      </div>
+    </section>
+    {% else %}
+    <section class="game-panel game-span-7 accent-cyan">
+      <div class="game-panel-head"><div><h2>WOOK'S CODING 핵심 기능</h2><p>회원가입 후 문제 풀이와 오답노트 기능을 사용할 수 있습니다.</p></div></div>
+      <div class="feature-pill-grid">
+        <span class="game-chip green">AI 단계별 힌트</span><span class="game-chip cyan">오답노트 RAG</span><span class="game-chip purple">과거 코드 회고</span><span class="game-chip amber">미션/포인트</span>
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="game-panel game-span-6">
+      <div class="game-panel-head"><div><h2>공지사항</h2><p>서비스 안내와 업데이트입니다.</p></div></div>
+      <div class="game-list dense-list">
+        {% for n in notices|slice:":4" %}
+          <div class="game-row"><span>{{ n.title|truncatechars:36 }}</span><span class="game-chip">{{ n.created_at|date:"m.d" }}</span></div>
+        {% empty %}<p class="game-empty">등록된 공지사항이 없습니다.</p>{% endfor %}
+      </div>
+    </section>
+
+    <section class="game-panel game-span-6 accent-purple">
+      <div class="game-panel-head"><div><h2>오늘의 미션</h2><p>짧게 달성할 수 있는 학습 목표입니다.</p></div></div>
+      <div class="game-list dense-list">
+        {% for m in missions|slice:":4" %}
+          <div class="game-row"><span>{{ m.title|truncatechars:32 }}</span><span class="game-chip amber">+{{ m.reward_point }}P</span></div>
+        {% empty %}<p class="game-empty">진행 가능한 미션이 없습니다.</p>{% endfor %}
+      </div>
+    </section>
   </div>
 </section>
 {% endblock %}

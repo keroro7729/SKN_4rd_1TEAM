@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}학습 기록 · WOOK'S CODING{% endblock %}
+
+{% block content %}
+<section class="game-page history-page clean-dashboard">
+  <div class="game-topbar">
+    <div class="game-window-dots"><span></span><span></span><span></span></div>
+    <div class="game-route">/player <b>›</b> history</div>
+    <div class="game-mode-pill">학습 로그</div>
+  </div>
+
+  <section class="game-hero compact-hero">
+    <div>
+      <p class="game-eyebrow">Learning History</p>
+      <h1 class="game-title">나의 <span class="accent">풀이 로그</span></h1>
+      <p class="game-sub">제출 기록을 문제, 결과, 알고리즘 기준으로 다시 확인합니다. 모바일에서는 카드형으로 읽기 쉽게 바뀝니다.</p>
+    </div>
+    <a class="game-btn ghost" href="{% url 'mypage:index' %}">마이페이지</a>
+  </section>
+
+  <div class="history-shell clean-shell">
+    <div class="game-stat-grid player-stat-grid">
+      <div class="game-stat-card"><span>총 풀이</span><strong>{{ summary.total }}</strong></div>
+      <div class="game-stat-card"><span>정답</span><strong>{{ summary.success }}</strong></div>
+      <div class="game-stat-card"><span>오답</span><strong>{{ summary.wrong }}</strong></div>
+      <div class="game-stat-card"><span>오답노트</span><strong>{{ summary.notes }}</strong></div>
+    </div>
+
+    <form class="game-panel history-filter clean-filter" method="get">
+      <div class="history-filter-grid">
+        <input class="game-input" type="text" name="q" value="{{ q }}" placeholder="문제 제목, 번호, 알고리즘 유형 검색">
+        <select class="game-input" name="result">
+          {% for value, label in result_filters %}
+            <option value="{{ value }}" {% if value == cur_result %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <button class="game-btn primary" type="submit">검색</button>
+      </div>
+    </form>
+
+    <section class="game-panel history-table-card clean-table-card">
+      <div class="game-panel-head"><div><h2>학습 기록 목록</h2><p>결과를 눌러 다시 풀 문제를 고르세요.</p></div></div>
+      <div class="game-table-wrap">
+        <table class="game-table clean-history-table">
+          <thead><tr><th>날짜</th><th>문제 정보</th><th>알고리즘</th><th>결과</th><th>실행 시간</th><th>작업</th></tr></thead>
+          <tbody>
+            {% for record in records %}
+              <tr>
+                <td data-label="날짜">{{ record.created_at|date:"Y.m.d H:i" }}</td>
+                <td data-label="문제"><strong>{{ record.problem.id }}번 {{ record.problem.title|truncatechars:32 }}</strong></td>
+                <td data-label="알고리즘">{% for tag in record.problem.tags.all %}<span class="game-chip">{{ tag.name }}</span>{% empty %}<span class="hint-note">-</span>{% endfor %}</td>
+                <td data-label="결과"><span class="badge badge-status-{{ record.result }}">{{ record.get_result_display }}</span></td>
+                <td data-label="실행 시간">{{ record.elapsed_ms|default:0 }}ms</td>
+                <td data-label="작업"><a class="game-mini-btn ghost" href="{% url 'problems:detail' record.problem_id %}">다시 풀기</a></td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="6"><p class="game-empty">학습 기록이 없습니다.</p></td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</section>
+{% endblock %}

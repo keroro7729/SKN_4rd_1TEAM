@@ -1,13 +1,154 @@
-.home-hero { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(330px,.9fr); gap:24px; align-items:center; padding: clamp(28px, 5vw, 58px); }
-.home-hero-card { position:relative; min-height: 330px; border:1px solid rgba(53,216,255,.24); border-radius: 26px; background: linear-gradient(140deg, rgba(53,216,255,.09), rgba(182,108,255,.08)), rgba(255,255,255,.03); overflow:hidden; display:grid; place-items:center; }
-.home-hero-card::before { content:""; position:absolute; inset:24px; border:1px dashed rgba(53,242,118,.22); border-radius:22px; }
-.home-ai-core { position:relative; width:190px; height:190px; border-radius:42px; display:grid; place-items:center; color:var(--green); font: 950 3.2rem/1 var(--font-code); border:1px solid rgba(53,242,118,.54); background: radial-gradient(circle, rgba(53,242,118,.2), rgba(53,216,255,.06)); box-shadow: 0 0 58px rgba(53,242,118,.18); }
-.home-ai-core::after { content:"RUN · RAG · LEVEL UP"; position:absolute; bottom:-52px; left:50%; transform:translateX(-50%); white-space:nowrap; color:var(--muted); font-size:.78rem; }
+.home-hero {
+  display:grid;
+  grid-template-columns:minmax(0,1.08fr) minmax(300px,.92fr);
+  gap:24px;
+  align-items:center;
+  padding: clamp(26px, 5vw, 58px);
+}
+.home-hero-card {
+  position:relative;
+  min-height: 330px;
+  border:1px solid rgba(53,216,255,.24);
+  border-radius: 26px;
+  background:
+    linear-gradient(140deg, rgba(53,216,255,.09), rgba(182,108,255,.08)),
+    rgba(255,255,255,.03);
+  overflow:hidden;
+  display:grid;
+  place-items:center;
+}
+.home-hero-card::before {
+  content:"";
+  position:absolute;
+  inset:24px;
+  border:1px dashed rgba(53,242,118,.22);
+  border-radius:22px;
+}
+.home-ai-core {
+  position:relative;
+  width:190px;
+  height:190px;
+  border-radius:42px;
+  display:grid;
+  place-items:center;
+  color:var(--green);
+  font: 950 3.2rem/1 var(--font-code);
+  border:1px solid rgba(53,242,118,.54);
+  background: radial-gradient(circle, rgba(53,242,118,.2), rgba(53,216,255,.06));
+  box-shadow: 0 0 58px rgba(53,242,118,.18);
+}
+.home-ai-core::after {
+  content:"RUN · RAG · LEVEL UP";
+  position:absolute;
+  bottom:-52px;
+  left:50%;
+  transform:translateX(-50%);
+  white-space:nowrap;
+  color:var(--muted);
+  font-size:.78rem;
+}
 .home-actions { display:flex; gap:12px; flex-wrap:wrap; margin-top: 26px; }
-.home-feature-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; padding:0 clamp(20px,4vw,42px) 20px; }
+.home-feature-grid {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:16px;
+  padding:0 clamp(20px,4vw,42px) 20px;
+}
 .home-feature { min-height:150px; }
-.home-feature-icon { width:42px; height:42px; display:grid; place-items:center; border-radius:14px; border:1px solid rgba(53,242,118,.28); color:var(--green); background:rgba(53,242,118,.08); margin-bottom:14px; }
+.home-feature-icon {
+  width:42px;
+  height:42px;
+  display:grid;
+  place-items:center;
+  border-radius:14px;
+  border:1px solid rgba(53,242,118,.28);
+  color:var(--green);
+  background:rgba(53,242,118,.08);
+  margin-bottom:14px;
+  font-family:var(--font-code);
+  font-weight:950;
+}
+.home-feature h2 { margin:0 0 8px; font-size:1.08rem; }
 .home-dashboard { padding:0 clamp(20px,4vw,42px) clamp(22px,4vw,42px); }
 .home-dashboard .game-panel { min-height: 100%; }
+.home-guide-strip {
+  display:grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap:10px;
+  margin-top:22px;
+}
+.home-guide-step {
+  padding:12px;
+  border:1px solid rgba(134,149,165,.16);
+  border-radius:14px;
+  background:rgba(255,255,255,.025);
+  color:var(--muted);
+  font-size:.86rem;
+}
+.home-guide-step strong { display:block; color:var(--cyan); margin-bottom:4px; }
 .home-notice-row { display:flex; justify-content:space-between; gap:12px; color:var(--muted); }
 .home-notice-row strong { color:var(--text); }
+
+/* ===== v12 home: clean landing/dashboard ===== */
+.home-cockpit {
+  display:grid;
+  grid-template-columns:minmax(0, 1fr) 380px;
+  gap:24px;
+  padding: clamp(26px, 4vw, 54px) var(--safe-x) 20px;
+  align-items:stretch;
+}
+.home-cockpit-copy { display:flex; flex-direction:column; justify-content:center; min-width:0; }
+.home-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:22px; }
+.home-cockpit-card {
+  position:relative;
+  display:grid;
+  gap:18px;
+  align-content:center;
+  min-height:340px;
+  padding:24px;
+  border:1px solid rgba(53,216,255,.26);
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 50% 16%, rgba(53,216,255,.16), transparent 35%),
+    rgba(255,255,255,.026);
+  overflow:hidden;
+}
+.cockpit-orb {
+  display:grid;
+  place-items:center;
+  width:122px; height:122px;
+  margin:0 auto;
+  border-radius:32px;
+  color:#05120a;
+  background:linear-gradient(135deg,var(--green),var(--cyan));
+  font:950 2.5rem/1 var(--font-code);
+  box-shadow:0 0 50px rgba(53,216,255,.22);
+}
+.cockpit-flow { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.cockpit-flow div {
+  padding:12px;
+  border:1px solid rgba(148,163,184,.16);
+  border-radius:14px;
+  background:rgba(5,10,16,.45);
+}
+.cockpit-flow span { color:var(--cyan); font-family:var(--font-code); font-weight:900; }
+.cockpit-flow strong { display:block; margin-top:6px; color:var(--text); }
+.cockpit-flow small { display:block; margin-top:3px; color:var(--muted); }
+.home-quick-panels {
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap:16px;
+  padding:0 var(--safe-x) 18px;
+}
+.quick-panel { min-height:170px; display:flex; flex-direction:column; align-items:flex-start; }
+.quick-panel h2 { margin:0 0 8px; font-size:1.15rem; }
+.quick-panel p { margin:0 0 18px; color:var(--muted); line-height:1.65; }
+.quick-panel .game-mini-btn { margin-top:auto; }
+.home-guide-strip {
+  margin:0 var(--safe-x) 18px;
+  border-radius:18px;
+  background:rgba(255,255,255,.02);
+  border:1px solid rgba(148,163,184,.14);
+}
+.home-guide-step span { display:block; margin-top:5px; color:var(--muted); font-size:.83rem; line-height:1.45; }
+.home-dashboard { padding:0 var(--safe-x) var(--safe-x); }

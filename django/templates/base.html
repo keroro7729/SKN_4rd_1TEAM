@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}WOOK'S CODING{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=account-management-v1">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}?v=front-fix-file-v31">
   {% block extra_head %}{% endblock %}
 </head>
 <body class="app-shell">
@@ -28,7 +28,7 @@
     </nav>
     {% if user.is_authenticated %}
       <div class="game-player-pill">
-        <span class="game-player-level">Lv {{ user.level }}</span>
+        <span class="game-player-level">Lv</span>
         <strong>{{ user.username }}</strong>
         <span>{{ user.point }}P</span>
         <form action="{% url 'accounts:logout' %}" method="post" class="logout-form">
@@ -49,7 +49,7 @@
   </main>
 
   <footer class="game-site-footer">
-    <span>WOOK'S CODING · AI 오답 분석 기반 코딩 테스트 RPG · SKN 4차 프로젝트</span>
+    <span>WOOK'S CODING · AI 오답 회고 기반 코딩 테스트 RPG · SKN 4차 프로젝트</span>
   </footer>
   {% block scripts %}{% endblock %}
 </body>
