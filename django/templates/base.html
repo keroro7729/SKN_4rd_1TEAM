@@ -20,7 +20,7 @@
       {% if user.is_authenticated %}
         <a href="{% url 'problems:list' %}">문제 풀이</a>
         <a href="{% url 'wrongnotes:list' %}">오답노트</a>
-        <a href="{% url 'mypage:history' %}">학습 기록</a>
+        <a href="{% url 'mypage:index' %}">학습 기록</a>
         <a href="{% url 'mypage:index' %}">마이페이지</a>
         {% if user.is_service_admin %}<a href="{% url 'adminpanel:dashboard' %}">운영</a>{% endif %}
       {% else %}

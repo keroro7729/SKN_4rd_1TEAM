@@ -60,16 +60,21 @@ class Submission(models.Model):
 
 
 class ExecutionJob(models.Model):
+    # code_eval(TC 생성 시스템 잡)은 사용자/제출과 무관 → nullable
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="jobs",
+        null=True,
+        blank=True,
         verbose_name="회원",
     )
     submission = models.ForeignKey(
         Submission,
         on_delete=models.CASCADE,
         related_name="jobs",
+        null=True,
+        blank=True,
         verbose_name="제출",
     )
     job_type = models.CharField(
