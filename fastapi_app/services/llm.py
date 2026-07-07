@@ -170,6 +170,86 @@ JSON only."""
     }
 
 
+_TUTOR_SYSTEM = (
+    "You are '미니튜터', a friendly Korean coding-learning tutor embedded in a small chat "
+    "popup. Keep answers SHORT and conversational (보통 2~5문장), in KOREAN. Personalize to "
+    "the learner using the given context: 현재 활동, 코딩 상태(내부 참고), 최근 오답 기록. "
+    "You may reference their recent mistakes to give targeted guidance. Never dump a full "
+    "paste-ready solution; nudge their thinking, explain concepts, and suggest next steps. "
+    "If the context is empty or the question is general, just answer helpfully. Do NOT reveal "
+    "the raw coding-state text to the user."
+)
+
+
+def _tutor_context_block(
+    activity: str,
+    coding_state: str,
+    recent_notes: list,
+    evidence: list[Evidence],
+    window_days: int,
+) -> str:
+    parts: list[str] = []
+    if activity:
+        parts.append(f"[현재 활동]\n{activity}")
+    if coding_state:
+        parts.append(coding_state)  # 이미 '사용자 비노출' 라벨 포함
+    if recent_notes:
+        lines = []
+        for note in recent_notes[:8]:
+            title = getattr(note, "title", "") or "오답노트"
+            pattern = getattr(note, "error_pattern", "") or ""
+            days = getattr(note, "days_ago", None)
+            summary = getattr(note, "summary", "") or ""
+            when = f"{days}일 전" if days is not None else ""
+            meta = " · ".join(x for x in (pattern, when) if x)
+            lines.append(f"- {title}" + (f" ({meta})" if meta else "") + (f": {summary}" if summary else ""))
+        parts.append(f"[최근 {window_days}일 오답 기록]\n" + "\n".join(lines))
+    if evidence:
+        hits = "\n".join(f"- note {e.note_id} {e.title or ''} (유사도 {e.score})" for e in evidence[:5])
+        parts.append(f"[질문과 관련된 과거 기록(RAG)]\n{hits}")
+    if not parts:
+        return ""
+    return (
+        "다음은 학습자 개인 맥락이다. 답변을 이 맥락에 맞춰 개인화하되, 원문을 그대로 노출하지 말 것.\n\n"
+        + "\n\n".join(parts)
+    )
+
+
+async def tutor_reply(
+    question: str,
+    history: list,
+    coding_state: str = "",
+    activity: str = "",
+    recent_notes: list | None = None,
+    evidence: list[Evidence] | None = None,
+    window_days: int = 30,
+) -> str:
+    """미니튜터: 대화 컨텍스트 + 현재 활동 + 코딩 상태 + 최근 오답(RAG)으로 간단 문답."""
+    recent_notes = recent_notes or []
+    evidence = evidence or []
+    messages = [{"role": "system", "content": _TUTOR_SYSTEM}]
+    context = _tutor_context_block(activity, coding_state, recent_notes, evidence, window_days)
+    if context:
+        messages.append({"role": "system", "content": context})
+    for turn in (history or [])[-6:]:  # 최근 6턴만 컨텍스트로
+        role = "assistant" if getattr(turn, "role", "user") == "assistant" else "user"
+        content = (getattr(turn, "content", "") or "").strip()
+        if content:
+            messages.append({"role": role, "content": content})
+    messages.append({"role": "user", "content": question})
+
+    try:
+        resp = await _get_client().chat.completions.create(
+            model=config.OPENAI_MODEL,
+            messages=messages,
+            temperature=0.5,
+            max_tokens=500,
+        )
+    except OpenAIError as exc:
+        raise LLMCallError(f"openai_error: {exc}") from exc
+    return (resp.choices[0].message.content or "").strip()
+
+
 _ASK_SYSTEM = (
     "You are a study assistant answering questions about the user's OWN past wrong-note "
     "records. Answer in KOREAN, grounded ONLY in the provided evidence notes; if evidence "

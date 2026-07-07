@@ -48,6 +48,7 @@ LLM_REQUEST_TYPE_CHOICES = [
     ("testcase_fix", "정답코드수정"),
     ("coding_state", "코딩상태요약"),
     ("ai_lab", "AI실험랩"),
+    ("tutor_chat", "미니튜터"),
 ]
 
 LLM_STATUS_CHOICES = [

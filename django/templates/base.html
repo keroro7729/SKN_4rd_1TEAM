@@ -51,6 +51,34 @@
   <footer class="game-site-footer">
     <span>WOOK'S CODING · AI 오답 회고 기반 코딩 테스트 RPG · SKN 4차 프로젝트</span>
   </footer>
+
+  {# 전역 미니튜터 챗봇: 좌하단 플로팅. 클릭 → 입력창, 질문 → 응답 말풍선. 개인화 위해 로그인 사용자 전용. #}
+  {% if user.is_authenticated %}
+  <div class="chatbot-widget" id="chatbot-widget" data-ask-url="{% url 'ai_proxy:tutor_ask' %}">
+    <div class="chatbot-panel" id="chatbot-panel" hidden>
+      <div class="chatbot-panel-head">
+        <span class="chatbot-head-avatar" aria-hidden="true">💬</span>
+        <span class="chatbot-head-text">
+          <span class="chatbot-panel-title">AI 도우미</span>
+          <span class="chatbot-panel-sub">무엇이든 간단히 물어보세요</span>
+        </span>
+        <button type="button" class="chatbot-close" id="chatbot-close" aria-label="닫기">×</button>
+      </div>
+      <div class="chatbot-answer-area" id="chatbot-answer-area">
+        <p class="chatbot-placeholder">궁금한 점을 입력하면 답변만 간단히 보여드려요.</p>
+      </div>
+      <form class="chatbot-input-row" id="chatbot-form" autocomplete="off">
+        <input type="text" id="chatbot-input" class="chatbot-input" placeholder="질문을 입력하세요..." maxlength="500" aria-label="질문 입력">
+        <button type="submit" class="chatbot-send" aria-label="보내기">➤</button>
+      </form>
+    </div>
+    <button type="button" class="chatbot-fab" id="chatbot-fab" aria-label="AI 도우미 열기" aria-expanded="false">
+      <span class="chatbot-fab-icon" aria-hidden="true">💬</span>
+    </button>
+  </div>
+  {% endif %}
+
   {% block scripts %}{% endblock %}
+  {% if user.is_authenticated %}<script src="{% static 'js/chatbot.js' %}?v=tutor-v2"></script>{% endif %}
 </body>
 </html>
