@@ -34,7 +34,7 @@
     align-items: flex-start;
     padding: 22px;
   }
-  .game-mode-pill { margin-left: 0; }
+  .game-mode-pill, .game-mode-pill-group { margin-left: 0; }
   .home-hero { grid-template-columns: 1fr; padding: 22px; }
   .home-hero-card { min-height: 230px; }
   .home-ai-core { width: 142px; height: 142px; border-radius: 32px; font-size: 2.4rem; }
@@ -135,6 +135,7 @@
   .game-content { padding: 8px; }
   .game-page.clean-dashboard { border-radius: 16px; }
   .game-topbar { margin:8px 8px 0; padding:9px; }
+  .game-mode-pill--sub { display:none; }
   .home-cockpit, .home-quick-panels, .home-dashboard, .clean-shell { padding-left: 10px; padding-right: 10px; }
   .home-cockpit { padding-top: 20px; }
   .home-actions, .hero-action-stack { display:grid; width:100%; grid-template-columns:1fr; }
