@@ -1,8 +1,13 @@
+{% load static %}
 {% extends "base.html" %}
 {% block title %}오답노트 · WOOK'S CODING{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/pages/wrongnote_library.css' %}?v=wrongnote-actions-v47">
+{% endblock %}
+
 {% block content %}
-{# WRONGNOTE_ACTIONS_V41: remove board-excluded stat and polish detail/remove buttons #}
+{# WRONGNOTE_ACTIONS_V47: remove board-excluded stat and polish detail/remove buttons #}
 <section class="game-page wrongnote-page clean-dashboard">
   <div class="game-topbar">
     <div class="game-window-dots"><span></span><span></span><span></span></div>

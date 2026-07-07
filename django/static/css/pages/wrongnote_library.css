@@ -447,3 +447,117 @@
     min-width: 0 !important;
   }
 }
+
+
+/* ===== WRONGNOTE_ACTIONS_V47: force clean detail/remove buttons ===== */
+.wrongnote-page .wrongnote-foot,
+.wrongnote-page .review-board-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  flex-wrap: wrap !important;
+}
+
+.wrongnote-page .review-action-group,
+.wrongnote-page .clean-action-group {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  flex-wrap: nowrap !important;
+}
+
+.wrongnote-page .inline-review-form {
+  display: inline-flex !important;
+  margin: 0 !important;
+}
+
+/* 실제 화면에 class가 빠져도 카드 하단 링크/버튼을 강제로 버튼화 */
+.wrongnote-page .wrongnote-foot a[href*="wrongnotes"],
+.wrongnote-page .wrongnote-foot a[href*="/wrongnotes/"],
+.wrongnote-page .wrongnote-foot .review-card-action,
+.wrongnote-page .wrongnote-foot form button,
+.wrongnote-page .review-action-group a,
+.wrongnote-page .review-action-group button {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  min-width: 112px !important;
+  min-height: 36px !important;
+  padding: 9px 14px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(53, 216, 255, .48) !important;
+  background: rgba(53, 216, 255, .09) !important;
+  color: #35d8ff !important;
+  text-decoration: none !important;
+  font-size: .82rem !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  box-shadow: 0 0 0 1px rgba(53,216,255,.06) inset !important;
+  transition: transform .16s ease, border-color .16s ease, background .16s ease, filter .16s ease !important;
+}
+
+.wrongnote-page .wrongnote-foot a[href*="wrongnotes"]:hover,
+.wrongnote-page .wrongnote-foot a[href*="/wrongnotes/"]:hover,
+.wrongnote-page .wrongnote-foot .review-card-action:hover,
+.wrongnote-page .wrongnote-foot form button:hover,
+.wrongnote-page .review-action-group a:hover,
+.wrongnote-page .review-action-group button:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.08) !important;
+}
+
+.wrongnote-page .wrongnote-foot form button,
+.wrongnote-page .review-card-action.remove,
+.wrongnote-page .review-action-group button {
+  border-color: rgba(255, 100, 115, .55) !important;
+  background: rgba(255, 100, 115, .10) !important;
+  color: #ff9ba6 !important;
+}
+
+.wrongnote-page .review-card-action.restore,
+.wrongnote-page .review-action-group .restore {
+  border-color: rgba(53, 242, 118, .55) !important;
+  background: rgba(53, 242, 118, .10) !important;
+  color: #35f276 !important;
+}
+
+.wrongnote-page .review-card-action .action-icon,
+.wrongnote-page .review-action-group .action-icon {
+  display: none !important;
+}
+
+/* 카드 하단 여백과 날짜 정렬 */
+.wrongnote-page .wrongnote-foot > span:first-child {
+  color: var(--muted, #82919f) !important;
+  font-size: .86rem !important;
+}
+
+@media (max-width: 720px) {
+  .wrongnote-page .wrongnote-foot,
+  .wrongnote-page .review-board-actions {
+    align-items: stretch !important;
+  }
+
+  .wrongnote-page .review-action-group,
+  .wrongnote-page .clean-action-group {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .wrongnote-page .wrongnote-foot a[href*="wrongnotes"],
+  .wrongnote-page .wrongnote-foot a[href*="/wrongnotes/"],
+  .wrongnote-page .wrongnote-foot .review-card-action,
+  .wrongnote-page .wrongnote-foot form button,
+  .wrongnote-page .review-action-group a,
+  .wrongnote-page .review-action-group button {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+}
