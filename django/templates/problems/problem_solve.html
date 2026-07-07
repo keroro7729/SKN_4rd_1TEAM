@@ -1,70 +1,101 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}{{ problem.title|truncatechars:30 }} · 문제 풀이{% endblock %}
+{% block title %}{{ problem.title|truncatechars:30 }} · 퀘스트 풀이{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
 {% endblock %}
 {% block content %}
 <form hidden>{% csrf_token %}</form>
-<section class="game-page solve-page solve-readable">
-  <div class="game-topbar">
+<section class="game-page solve-page solve-quest-mode" data-quest-stage="read">
+  <div class="game-topbar quest-topbar">
     <div class="game-window-dots"><span></span><span></span><span></span></div>
-    <div class="game-route">/quest-board <b>›</b> problem <b>›</b> #{{ problem.id }}</div>
-    <div class="game-mode-pill">정답 시 +20P</div>
+    <div class="game-route">/quest-board <b>›</b> coding-battle <b>›</b> #{{ problem.id }}</div>
+    <div class="game-mode-pill">CLEAR REWARD +20P</div>
   </div>
 
-  <header class="solve-header">
-    <div>
-      <p class="game-eyebrow">Quest Reader · Code Battle</p>
+  <header class="quest-hero">
+    <div class="quest-hero-main">
+      <p class="game-eyebrow">Coding Test RPG · Mission Briefing</p>
       <h1 class="game-title">#{{ problem.id }} {{ problem.title }}</h1>
       <div class="solve-meta-row">
         <span class="badge badge-{{ problem.difficulty }}">{{ problem.get_difficulty_display }}</span>
         {% for t in problem.tags.all %}<span class="game-chip cyan">{{ t.name }}</span>{% endfor %}
       </div>
     </div>
+    <div class="quest-reward-card" aria-label="퀘스트 보상">
+      <span class="reward-label">QUEST REWARD</span>
+      <strong>+20P</strong>
+      <small>정답 제출 시 획득</small>
+    </div>
     <div class="solve-header-actions">
-      <a class="game-btn ghost" href="{% url 'problems:list' %}">← 문제 목록</a>
+      <a class="game-btn ghost" href="{% url 'problems:list' %}">← 퀘스트 보드</a>
       <a id="wrong-note-header-link" class="game-btn ghost" href="{% url 'wrongnotes:list' %}">오답노트</a>
     </div>
   </header>
 
-  <div class="solve-layout readable-layout">
-    <section class="game-panel solve-pane problem-reader-pane" data-reader data-mode="full">
+  <section class="quest-stage-panel" aria-label="풀이 진행 단계">
+    <div class="quest-stage active" data-stage-step="reading">
+      <span class="stage-number">01</span>
+      <strong>문제 읽기</strong>
+      <small>조건·예제 확인</small>
+    </div>
+    <div class="quest-stage" data-stage-step="coding">
+      <span class="stage-number">02</span>
+      <strong>코드 작성</strong>
+      <small>풀이 구현</small>
+    </div>
+    <div class="quest-stage" data-stage-step="running">
+      <span class="stage-number">03</span>
+      <strong>실행 검증</strong>
+      <small>테스트 확인</small>
+    </div>
+    <div class="quest-stage" data-stage-step="clear">
+      <span class="stage-number">04</span>
+      <strong>클리어</strong>
+      <small>제출/회고</small>
+    </div>
+  </section>
+
+  <div class="solve-layout quest-layout">
+    <section class="game-panel solve-pane problem-reader-pane quest-briefing" data-reader data-mode="full">
       <div class="game-panel-head problem-reader-head">
         <div>
-          <h2>문제 읽기</h2>
-          <p>AI 요약 없이 원문을 섹션별로 나눠서 읽고, 코드 영역은 그대로 유지합니다.</p>
+          <h2>퀘스트 브리핑</h2>
+          <p>AI 요약 없이 문제 원문을 읽기 좋은 구역으로 나눠 제공합니다.</p>
         </div>
         <div class="reader-mode-toggle" aria-label="문제 읽기 모드">
           <button type="button" class="reader-mode active" data-problem-mode="full">전체</button>
-          <button type="button" class="reader-mode" data-problem-mode="problem">문제만</button>
-          <button type="button" class="reader-mode" data-problem-mode="examples">예제만</button>
+          <button type="button" class="reader-mode" data-problem-mode="problem">문제</button>
+          <button type="button" class="reader-mode" data-problem-mode="examples">예제</button>
         </div>
       </div>
 
-      <div class="reader-guide-card">
-        <div class="reader-guide-title">
-          <span class="game-chip green">READING HUD</span>
-          <span class="reader-guide-meta">긴 문제 전용</span>
+      <div class="quest-objective-strip">
+        <div class="objective-card">
+          <span>MISSION</span>
+          <strong>문제 조건 파악</strong>
         </div>
-        <ul>
-          <li>문제 패널만 따로 스크롤해서 코드 작성 화면이 밀리지 않습니다.</li>
-          <li>섹션 버튼으로 문제 설명, 제한사항, 예제를 바로 확인할 수 있습니다.</li>
-          <li>예제 입력은 복사해서 빠르게 실행 테스트할 수 있습니다.</li>
-        </ul>
+        <div class="objective-card">
+          <span>CHECK</span>
+          <strong>입력·출력 형식</strong>
+        </div>
+        <div class="objective-card">
+          <span>TEST</span>
+          <strong>예제 검증</strong>
+        </div>
       </div>
 
       <div class="reader-progress" aria-hidden="true"><span></span></div>
 
-      <nav class="problem-section-nav" aria-label="문제 섹션 이동">
-        <button type="button" data-scroll-target="problem-section-desc">문제</button>
-        {% if problem.constraints %}<button type="button" data-scroll-target="problem-section-constraints">제약</button>{% endif %}
+      <nav class="problem-section-nav quest-section-nav" aria-label="문제 섹션 이동">
+        <button type="button" data-scroll-target="problem-section-desc">문제 설명</button>
+        {% if problem.constraints %}<button type="button" data-scroll-target="problem-section-constraints">제한사항</button>{% endif %}
         {% if sample_cases %}<button type="button" data-scroll-target="problem-section-samples">예제</button>{% endif %}
         <button type="button" data-scroll-target="problem-section-checklist">풀이 체크</button>
       </nav>
 
-      <div class="problem-scroll" tabindex="0">
+      <div class="problem-scroll" tabindex="0" aria-label="문제 원문 스크롤 영역">
         <section id="problem-section-desc" class="reader-section reader-section-desc">
           <div class="reader-section-title"><span>01</span><h3>문제 설명</h3></div>
           <div class="problem-desc problem-desc-full">{{ problem.description|linebreaksbr }}</div>
@@ -103,21 +134,21 @@
 
         <section id="problem-section-checklist" class="reader-section reader-section-checklist">
           <div class="reader-section-title"><span>04</span><h3>풀이 전 체크</h3></div>
-          <div class="solve-check-grid">
-            <label><input type="checkbox"> 입력 범위와 예외 케이스 확인</label>
-            <label><input type="checkbox"> 시간 복잡도 예상</label>
-            <label><input type="checkbox"> 기저 조건/초기값 확인</label>
-            <label><input type="checkbox"> 출력 형식 확인</label>
+          <div class="solve-check-grid quest-check-grid">
+            <label><input type="checkbox" data-quest-check> 입력 범위와 예외 케이스 확인</label>
+            <label><input type="checkbox" data-quest-check> 시간 복잡도 예상</label>
+            <label><input type="checkbox" data-quest-check> 기저 조건/초기값 확인</label>
+            <label><input type="checkbox" data-quest-check> 출력 형식 확인</label>
           </div>
         </section>
       </div>
     </section>
 
-    <section class="game-panel solve-pane editor-pane" data-problem-id="{{ problem.id }}" data-run-url="{% url 'submissions:run' %}" data-submit-url="{% url 'submissions:submit' %}" data-result-url-template="/submissions/__ID__/result/" data-hint-url="{% url 'ai_proxy:hint' %}" data-wrongnote-list-url="{% url 'wrongnotes:list' %}">
-      <div class="editor-toolbar">
+    <section class="game-panel solve-pane editor-pane battle-console" data-problem-id="{{ problem.id }}" data-run-url="{% url 'submissions:run' %}" data-submit-url="{% url 'submissions:submit' %}" data-result-url-template="/submissions/__ID__/result/" data-hint-url="{% url 'ai_proxy:hint' %}" data-wrongnote-list-url="{% url 'wrongnotes:list' %}">
+      <div class="editor-toolbar battle-toolbar">
         <div>
-          <label class="section-title" for="code-editor">코드 작성</label>
-          <p class="hint-note">실행으로 빠르게 검증하고, 제출 결과는 오답노트 회고로 연결됩니다.</p>
+          <label class="section-title" for="code-editor">배틀 콘솔</label>
+          <p class="hint-note">코드를 작성하고 실행으로 검증하세요. 실패한 제출은 오답노트 회고로 이어집니다.</p>
         </div>
         <div class="editor-toolbar-right">
           <select class="game-input" aria-label="실행 언어"><option>Python 3</option></select>
@@ -125,20 +156,32 @@
           <button id="reset-code-btn" type="button" class="game-mini-btn ghost">초기화</button>
         </div>
       </div>
+      <div class="battle-metrics" aria-label="풀이 상태">
+        <div><span>READ</span><strong id="reader-percent">0%</strong></div>
+        <div><span>CHECK</span><strong id="check-count">0/4</strong></div>
+        <div><span>STATE</span><strong id="battle-state">READY</strong></div>
+      </div>
       <textarea id="code-editor" spellcheck="false" placeholder="# 여기에 코드를 작성하세요"></textarea>
       <div class="editor-actions">
         <button id="run-code-btn" type="button" class="game-btn ghost">▶ 실행</button>
         <button id="submit-btn" type="button" class="game-btn primary">제출하기</button>
-        <span class="editor-job-note">Read → Code → Run → Review</span>
+        <span class="editor-job-note">Read → Code → Run → Clear</span>
       </div>
       <div id="run-loading-box" class="result-area" hidden></div>
       <div id="run-error-box" class="result-area result-error" hidden></div>
       <div id="result-status-box" class="result-card" hidden></div>
     </section>
 
-    <aside class="game-panel hint-sidebar">
-      <div class="game-panel-head"><h2>AI 파트너 힌트</h2></div>
-      <p class="hint-note">문제 원문은 그대로 두고, 막히는 지점에서만 단계별 힌트를 요청하세요.</p>
+    <aside class="game-panel hint-sidebar ai-sidekick-panel">
+      <div class="game-panel-head"><h2>AI Sidekick</h2></div>
+      <p class="hint-note">정답을 바로 보여주지 않고, 막힌 지점에서 단계별 힌트만 제공합니다.</p>
+      <div class="sidekick-status">
+        <span class="sidekick-face">•‿•</span>
+        <div>
+          <strong>동행 중</strong>
+          <small>필요할 때만 힌트 요청</small>
+        </div>
+      </div>
       <div class="hint-accordion" id="hint-accordion">
         {% for level in "123" %}
           <div class="hint-step" data-level="{{ level }}">
@@ -155,7 +198,7 @@
     </aside>
   </div>
 
-  <section class="quest-journey" aria-label="학습 진행 상태">
+  <section class="quest-journey quest-battle-journey" aria-label="학습 진행 상태">
     <div class="quest-track">
       <div class="quest-ground"></div>
       <div class="quest-party">
@@ -184,5 +227,5 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
-<script src="{% static 'js/problem_solve.js' %}?v=game-reader-v15"></script>
+<script src="{% static 'js/problem_solve.js' %}?v=quest-battle-v16"></script>
 {% endblock %}

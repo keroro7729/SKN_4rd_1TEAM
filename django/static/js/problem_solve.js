@@ -5,12 +5,38 @@
   const solvePage = document.querySelector(".solve-page");
   const questLabel = document.getElementById("quest-status-label");
   const questText = document.getElementById("quest-status-text");
+  const battleState = document.getElementById("battle-state");
+  const stateLabelMap = {
+    reading: "READ",
+    coding: "CODE",
+    running: "RUN",
+    success: "CLEAR",
+    failed: "RETRY",
+    hint: "HINT",
+  };
+  const stageMap = {
+    reading: "reading",
+    coding: "coding",
+    hint: "coding",
+    running: "running",
+    success: "clear",
+    failed: "clear",
+  };
   const setQuestState = (state, label, text) => {
     if (!solvePage) return;
     solvePage.classList.remove("is-reading", "is-coding", "is-running", "is-success", "is-failed", "is-hint");
     if (state) solvePage.classList.add(`is-${state}`);
+    if (state) solvePage.dataset.questStage = stageMap[state] || state;
+    document.querySelectorAll("[data-stage-step]").forEach((step) => {
+      const activeStage = stageMap[state] || state;
+      step.classList.toggle("active", step.dataset.stageStep === activeStage);
+      step.classList.toggle("done", ["coding", "running", "clear"].includes(activeStage) && step.dataset.stageStep === "reading");
+      step.classList.toggle("done", ["running", "clear"].includes(activeStage) && step.dataset.stageStep === "coding");
+      step.classList.toggle("done", activeStage === "clear" && step.dataset.stageStep === "running");
+    });
     if (questLabel && label) questLabel.textContent = label;
     if (questText && text) questText.textContent = text;
+    if (battleState && state) battleState.textContent = stateLabelMap[state] || state.toUpperCase();
   };
 
   const codeTextarea = document.getElementById("code-editor");
@@ -35,14 +61,14 @@
   if (savedCode && !editor.value.trim()) {
     editor.value = savedCode;
     if (autosaveNote) autosaveNote.textContent = "임시 저장 복원됨";
-    setQuestState("coding", "코드 작성 중", "이전에 작성하던 코드를 불러왔습니다. 이어서 풀이해보세요.");
+    setQuestState("coding", "이어하기", "저장된 풀이를 복원했습니다. 이어서 코딩 배틀을 진행하세요.");
   } else {
-    setQuestState("reading", "문제 분석 중", "문제를 읽고 핵심 조건을 확인한 뒤 코드를 작성해보세요.");
+    setQuestState("reading", "브리핑 확인", "문제 원문을 읽고 조건·예제를 확인한 뒤 풀이를 시작하세요.");
   }
 
   let saveTimer = null;
   const persistCode = () => {
-    setQuestState("coding", "코드 작성 중", "코드를 작성하고 있습니다. 실행 버튼으로 빠르게 검증해보세요.");
+    setQuestState("coding", "코드 작성 중", "배틀 콘솔에서 풀이를 구현 중입니다. 실행 버튼으로 테스트를 확인하세요.");
     clearTimeout(saveTimer);
     saveTimer = setTimeout(() => {
       localStorage.setItem(storageKey, editor.value);
@@ -143,9 +169,9 @@
     statusBox.hidden = false;
 
     if (resultLooksSuccess(data)) {
-      setQuestState("success", "Quest Clear", "테스트를 통과했습니다. 제출 결과를 저장하고 다음 문제로 이동할 수 있습니다.");
+      setQuestState("success", "Quest Clear", "테스트를 통과했습니다. 다음 퀘스트로 이동하거나 풀이 기록을 확인하세요.");
     } else {
-      setQuestState("failed", "다시 도전", "통과하지 못한 케이스를 확인하고, 필요하면 오답노트로 실수 원인을 정리하세요.");
+      setQuestState("failed", "Retry Quest", "통과하지 못한 케이스를 확인하고, 오답노트로 실수 원인을 정리해보세요.");
     }
   };
 
@@ -184,7 +210,7 @@
   const createJob = async (url, queuedMessage) => {
     hide(errorBox, statusBox);
     showText(loadingBox, queuedMessage);
-    setQuestState("running", "대기열 등록", "코드를 실행 환경에 보내고 있습니다. 잠시만 기다려주세요.");
+    setQuestState("running", "런 타임 진입", "코드를 실행 환경에 보내고 있습니다. 테스트 결과를 기다려주세요.");
     runButton.disabled = true;
     submitButton.disabled = true;
     persistCode();
@@ -209,7 +235,7 @@
         hide(loadingBox);
       } else {
         showText(loadingBox, "결과 확인 중입니다.");
-        setQuestState("running", "채점 중", "테스트케이스를 순서대로 확인하고 있습니다.");
+        setQuestState("running", "테스트 배틀", "테스트케이스를 순서대로 확인하고 있습니다.");
         await pollResult(data.submission_id);
       }
     } catch (error) {
@@ -232,7 +258,7 @@
     hintNextButton.disabled = true;
     body.hidden = false;
     showText(body, "힌트를 생성 중입니다…");
-    setQuestState("hint", "AI 힌트 요청", "AI 파트너가 현재 코드와 문제를 기준으로 단계별 힌트를 준비합니다.");
+    setQuestState("hint", "Sidekick 호출", "AI 파트너가 현재 코드와 문제를 기준으로 단계별 힌트를 준비합니다.");
     try {
       const response = await fetch(pane.dataset.hintUrl, {
         method: "POST",
@@ -256,7 +282,7 @@
         toggle.querySelector(".lock-label").outerHTML = '<span class="chevron">▾</span>';
         unlockedHintLevel = level;
         hintNextButton.textContent = level >= 3 ? "모든 힌트를 확인했습니다" : "다음 힌트 요청";
-        setQuestState("hint", `힌트 ${level}단계 열림`, "힌트를 참고해서 풀이 방향을 다시 점검해보세요.");
+        setQuestState("hint", `힌트 ${level}단계 해금`, "힌트를 참고해서 풀이 방향을 다시 점검해보세요.");
       } else {
         showText(body, `힌트 생성 상태: ${data.message || data.status} · request_id ${data.request_id || "-"}`);
       }
@@ -274,7 +300,7 @@
     localStorage.removeItem(storageKey);
     if (autosaveNote) autosaveNote.textContent = "초기화됨";
     hide(errorBox, statusBox, loadingBox);
-    setQuestState("reading", "초기화 완료", "문제를 다시 확인하고 새 풀이를 시작하세요.");
+    setQuestState("reading", "새 도전", "문제를 다시 확인하고 새로운 풀이 루트를 시작하세요.");
   });
   hintNextButton?.addEventListener("click", () => requestHint(unlockedHintLevel + 1));
   document.querySelectorAll(".hint-step-toggle").forEach((toggle) => {
@@ -294,7 +320,7 @@
       reader.querySelectorAll("[data-problem-mode]").forEach((item) => item.classList.toggle("active", item === button));
       problemScroll?.scrollTo({top: 0, behavior: "smooth"});
       const modeLabel = button.textContent.trim();
-      setQuestState("reading", `${modeLabel} 읽기`, "필요한 문제 섹션만 골라 보고 코드 작성 흐름을 유지하세요.");
+      setQuestState("reading", `${modeLabel} 브리핑`, "필요한 문제 섹션만 골라 보고 코드 작성 흐름을 유지하세요.");
     });
   });
 
@@ -304,15 +330,30 @@
       if (!target || !problemScroll) return;
       const top = target.offsetTop - problemScroll.offsetTop - 8;
       problemScroll.scrollTo({top, behavior: "smooth"});
-      setQuestState("reading", "문제 확인 중", `${button.textContent.trim()} 섹션으로 이동했습니다.`);
+      setQuestState("reading", "브리핑 이동", `${button.textContent.trim()} 섹션으로 이동했습니다.`);
     });
   });
 
-  problemScroll?.addEventListener("scroll", () => {
+  const readerPercent = document.getElementById("reader-percent");
+  const updateReaderProgress = () => {
+    if (!problemScroll) return;
     const max = problemScroll.scrollHeight - problemScroll.clientHeight;
-    const pct = max > 0 ? Math.min(100, Math.round((problemScroll.scrollTop / max) * 100)) : 0;
+    const pct = max > 0 ? Math.min(100, Math.round((problemScroll.scrollTop / max) * 100)) : 100;
     progress?.style.setProperty("--reader-progress", `${pct}%`);
-  });
+    if (readerPercent) readerPercent.textContent = `${pct}%`;
+  };
+  problemScroll?.addEventListener("scroll", updateReaderProgress);
+  updateReaderProgress();
+
+  const checkCount = document.getElementById("check-count");
+  const updateQuestChecks = () => {
+    const checks = Array.from(document.querySelectorAll("[data-quest-check]"));
+    const done = checks.filter((item) => item.checked).length;
+    if (checkCount) checkCount.textContent = `${done}/${checks.length || 4}`;
+    if (done > 0) setQuestState("coding", "체크 진행", `풀이 전 체크 ${done}/${checks.length || 4}개를 확인했습니다.`);
+  };
+  document.querySelectorAll("[data-quest-check]").forEach((check) => check.addEventListener("change", updateQuestChecks));
+  updateQuestChecks();
 
   document.querySelectorAll(".copy-sample-btn").forEach((button) => {
     button.addEventListener("click", async () => {

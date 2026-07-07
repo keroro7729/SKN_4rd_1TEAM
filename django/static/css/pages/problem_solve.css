@@ -465,3 +465,274 @@
   .quest-status-box { display:grid; gap:4px; }
   .quest-flag { display:none; }
 }
+
+/* ===== v16 Quest Battle UX overrides =====
+   목적: 코딩 테스트를 게임 퀘스트처럼 접근하게 하되, 문제 원문 가독성은 유지합니다. */
+.solve-quest-mode {
+  --quest-glow: 0 0 28px rgba(53, 242, 118, 0.16);
+}
+.quest-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 8;
+  backdrop-filter: blur(18px);
+}
+.quest-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: end;
+  gap: 16px;
+  padding: 24px clamp(18px, 3vw, 34px) 14px;
+}
+.quest-hero-main {
+  min-width: 0;
+}
+.quest-reward-card {
+  min-width: 132px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 213, 74, 0.38);
+  border-radius: 18px;
+  background: linear-gradient(160deg, rgba(255, 213, 74, 0.16), rgba(13, 20, 27, 0.86));
+  box-shadow: 0 0 28px rgba(255, 213, 74, 0.10);
+  text-align: center;
+}
+.quest-reward-card .reward-label,
+.quest-reward-card small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.quest-reward-card strong {
+  display: block;
+  margin: 2px 0;
+  color: var(--amber, #ffd54a);
+  font-size: 1.55rem;
+  line-height: 1;
+}
+.quest-stage-panel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0 clamp(18px, 3vw, 34px) 18px;
+}
+.quest-stage {
+  position: relative;
+  min-height: 78px;
+  padding: 12px 14px 12px 52px;
+  border: 1px solid rgba(134,149,165,.16);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(14, 24, 34, .92), rgba(7, 13, 19, .88));
+  overflow: hidden;
+}
+.quest-stage::after {
+  content: "";
+  position: absolute;
+  inset: auto 12px 0 52px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(134,149,165,.16);
+}
+.quest-stage.active {
+  border-color: rgba(53, 216, 255, .48);
+  box-shadow: 0 0 28px rgba(53, 216, 255, .12);
+}
+.quest-stage.active::after {
+  background: linear-gradient(90deg, var(--cyan, #35d8ff), var(--green, #35f276));
+}
+.quest-stage.done {
+  border-color: rgba(53, 242, 118, .35);
+}
+.quest-stage.done::after {
+  background: var(--green, #35f276);
+}
+.quest-stage .stage-number {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: rgba(53, 216, 255, .12);
+  color: var(--cyan, #35d8ff);
+  font-weight: 900;
+  font-size: .78rem;
+}
+.quest-stage strong,
+.quest-stage small {
+  display: block;
+}
+.quest-stage strong {
+  color: var(--text);
+  font-size: .95rem;
+}
+.quest-stage small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: .75rem;
+}
+.quest-layout {
+  grid-template-columns: minmax(340px, .9fr) minmax(440px, 1.08fr) minmax(270px, .62fr);
+}
+.quest-briefing,
+.battle-console,
+.ai-sidekick-panel {
+  border-radius: 22px;
+  box-shadow: var(--quest-glow);
+}
+.quest-objective-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 0 16px 12px;
+}
+.objective-card {
+  padding: 10px;
+  border: 1px solid rgba(53, 242, 118, .18);
+  border-radius: 14px;
+  background: rgba(53, 242, 118, .05);
+}
+.objective-card span,
+.battle-metrics span {
+  display: block;
+  color: var(--muted);
+  font-size: .68rem;
+  letter-spacing: .08em;
+}
+.objective-card strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--text);
+  font-size: .82rem;
+}
+.quest-section-nav button {
+  border-radius: 999px;
+}
+.battle-toolbar {
+  padding-bottom: 8px;
+}
+.battle-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.battle-metrics div {
+  padding: 10px 12px;
+  border: 1px solid rgba(53, 216, 255, .18);
+  border-radius: 14px;
+  background: rgba(53, 216, 255, .055);
+}
+.battle-metrics strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--cyan, #35d8ff);
+  font-size: .98rem;
+}
+.quest-check-grid label {
+  transition: border-color .18s ease, transform .18s ease, background .18s ease;
+}
+.quest-check-grid label:has(input:checked) {
+  border-color: rgba(53, 242, 118, .55);
+  background: rgba(53, 242, 118, .11);
+  transform: translateY(-1px);
+}
+.sidekick-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(53, 216, 255, .18);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(53,216,255,.09), rgba(53,242,118,.05));
+}
+.sidekick-face {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: #eaf8ff;
+  color: #159b7c;
+  font-weight: 950;
+  box-shadow: 0 0 20px rgba(53, 216, 255, .22);
+}
+.sidekick-status strong,
+.sidekick-status small {
+  display: block;
+}
+.sidekick-status small {
+  color: var(--muted);
+  margin-top: 2px;
+}
+.quest-battle-journey {
+  margin-inline: clamp(18px, 3vw, 34px);
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid rgba(53, 242, 118, .20);
+  background: linear-gradient(180deg, rgba(10, 20, 28, .88), rgba(5, 10, 15, .92));
+}
+.solve-page[data-quest-stage="reading"] .quest-party {
+  animation-duration: 12s, .68s;
+}
+.solve-page[data-quest-stage="coding"] .quest-party {
+  animation-duration: 8s, .55s;
+}
+.solve-page[data-quest-stage="running"] .quest-party {
+  animation-duration: 3.2s, .38s;
+}
+.solve-page[data-quest-stage="clear"] .quest-party {
+  animation: none;
+  transform: translateX(58vw) scale(.52);
+}
+@media (max-width: 1280px) {
+  .quest-hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .quest-hero .solve-header-actions {
+    grid-column: 1 / -1;
+  }
+  .quest-layout {
+    grid-template-columns: minmax(310px, .95fr) minmax(420px, 1.05fr);
+  }
+}
+@media (max-width: 900px) {
+  .quest-hero,
+  .quest-stage-panel,
+  .quest-layout {
+    grid-template-columns: 1fr;
+  }
+  .quest-reward-card {
+    text-align: left;
+  }
+  .quest-stage-panel {
+    padding-inline: 14px;
+  }
+  .quest-stage {
+    min-height: 64px;
+  }
+  .quest-objective-strip,
+  .battle-metrics {
+    grid-template-columns: 1fr;
+  }
+  .quest-battle-journey {
+    margin-inline: 14px;
+  }
+}
+@media (max-width: 640px) {
+  .quest-hero {
+    padding-inline: 14px;
+  }
+  .quest-reward-card,
+  .solve-header-actions .game-btn {
+    width: 100%;
+  }
+  .quest-stage {
+    padding-left: 48px;
+  }
+  .objective-card strong,
+  .battle-metrics strong {
+    font-size: .9rem;
+  }
+}
