@@ -13,6 +13,7 @@ from routers import (
     diagnostics,
     health,
     hint,
+    lab,
     wrong_note,
     wrong_note_report,
 )
@@ -33,3 +34,4 @@ app.include_router(diagnostics.router)
 app.include_router(authoring.router)
 app.include_router(wrong_note_report.router)
 app.include_router(coding_state.router)
+app.include_router(lab.router)
