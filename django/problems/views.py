@@ -1,7 +1,4 @@
-"""문제 목록/풀이 화면 (STEP-03).
-
-권한: 로그인 필요(§6.1). 코드 실행(CodeRunView)·결과 조회는 STEP-04, Fetch 는 STEP-07.
-"""
+"""Problem list/detail views."""
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.views import View
@@ -16,11 +13,7 @@ from .models import Problem, ProblemFavorite
 
 
 class ProblemListView(LoginRequiredMixin, ListView):
-    """문제 목록 + 난이도/상태/검색/정렬 필터.
-
-    기획 변경(2026-07): 카테고리 드롭다운은 제거하고 난이도 하나로 통일했다.
-    상태 필터는 전체/미해결/오답제출/해결완료/즐겨찾기 5종으로 구성한다.
-    """
+    """Problem list with difficulty, status, search, and favorite filters."""
 
     template_name = "problems/problem_list.html"
     context_object_name = "problems"
@@ -54,9 +47,7 @@ class ProblemListView(LoginRequiredMixin, ListView):
                 submission_type="submit",
                 result__in=["wrong", "error", "timeout"],
             ).values_list("problem_id", flat=True)
-            favorite_ids = ProblemFavorite.objects.filter(user=user).values_list(
-                "problem_id", flat=True
-            )
+            favorite_ids = ProblemFavorite.objects.filter(user=user).values_list("problem_id", flat=True)
             if self.f_status == "unsolved":
                 qs = qs.exclude(id__in=solved_ids)
             elif self.f_status == "wrong":
@@ -71,13 +62,10 @@ class ProblemListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         user = self.request.user
-
         ctx["difficulties"] = DIFFICULTY_CHOICES
         ctx["cur_difficulty"] = self.f_difficulty
         ctx["cur_status"] = self.f_status
         ctx["q"] = self.f_q
-
-        # 상태 필터: 전체 / 미해결 / 오답 제출 / 해결 완료 / 즐겨찾기
         ctx["status_filters"] = [
             ("", "전체"),
             ("unsolved", "미해결"),
@@ -85,39 +73,20 @@ class ProblemListView(LoginRequiredMixin, ListView):
             ("solved", "해결 완료"),
             ("favorite", "즐겨찾기"),
         ]
-
-        # 상단 빠른 탭: 전체 + 난이도 4종 (select box와 동일한 축을 다른 UI로 한 번 더 제공)
-        menu_items = [
-            {"label": "전체", "difficulty": "", "active": not self.f_difficulty}
-        ]
+        ctx["menu_items"] = [{"label": "전체", "difficulty": "", "active": not self.f_difficulty}]
         for value, label in DIFFICULTY_CHOICES:
-            menu_items.append(
-                {
-                    "label": label,
-                    "difficulty": value,
-                    "active": self.f_difficulty == value,
-                }
-            )
-        ctx["menu_items"] = menu_items
+            ctx["menu_items"].append({"label": label, "difficulty": value, "active": self.f_difficulty == value})
 
-        favorite_ids = set(
-            ProblemFavorite.objects.filter(user=user).values_list("problem_id", flat=True)
-        )
-        ctx["favorite_ids"] = favorite_ids
-
+        favorite_ids = set(ProblemFavorite.objects.filter(user=user).values_list("problem_id", flat=True))
         user_submissions = Submission.objects.filter(user=user, submission_type="submit")
+        ctx["favorite_ids"] = favorite_ids
         ctx["quick_links"] = {
-            "solved_count": user_submissions.filter(result="success")
-            .values("problem_id").distinct().count(),
+            "solved_count": user_submissions.filter(result="success").values("problem_id").distinct().count(),
             "favorite_count": len(favorite_ids),
-            "recent_count": user_submissions.order_by("-created_at")
-            .values("problem_id").distinct()[:20].count(),
+            "recent_count": user_submissions.order_by("-created_at").values("problem_id").distinct()[:20].count(),
             "note_count": WrongNote.objects.filter(user=user).count(),
         }
-        ctx["recent_submissions"] = (
-            user_submissions.select_related("problem")
-            .order_by("-created_at")[:4]
-        )
+        ctx["recent_submissions"] = user_submissions.select_related("problem").order_by("-created_at")[:4]
         ctx["today_problem"] = (
             Problem.objects.filter(is_active=True)
             .select_related("category")
@@ -126,15 +95,12 @@ class ProblemListView(LoginRequiredMixin, ListView):
             .first()
         )
         if ctx.get("page_obj"):
-            ctx["pagination"] = build_pagination_context(
-                self.request,
-                ctx["page_obj"],
-            )
+            ctx["pagination"] = build_pagination_context(self.request, ctx["page_obj"])
         return ctx
 
 
 class ProblemDetailView(LoginRequiredMixin, DetailView):
-    """문제 풀이 화면 (문제 + 샘플 테스트케이스 + 코드 에디터 DOM)."""
+    """Problem detail and code execution page."""
 
     model = Problem
     template_name = "problems/problem_solve.html"
@@ -142,19 +108,34 @@ class ProblemDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx["sample_cases"] = self.object.test_cases.filter(is_sample=True)
-        ctx["is_favorited"] = ProblemFavorite.objects.filter(
-            user=self.request.user, problem=self.object
-        ).exists()
+        sample_cases = list(self.object.test_cases.filter(is_sample=True).order_by("id")[:3])
+        if len(sample_cases) < 3:
+            existing_ids = [case.id for case in sample_cases]
+            extra_cases = list(
+                self.object.test_cases.exclude(id__in=existing_ids).order_by("id")[: 3 - len(sample_cases)]
+            )
+            sample_cases.extend(extra_cases)
+
+        slots = []
+        for index in range(3):
+            case = sample_cases[index] if index < len(sample_cases) else None
+            slots.append(
+                {
+                    "index": index + 1,
+                    "case": case,
+                    "is_ready": case is not None,
+                    "label": "연동 완료" if case is not None else "RAG 연동 예정",
+                }
+            )
+
+        ctx["sample_cases"] = sample_cases
+        ctx["test_case_slots"] = slots
+        ctx["is_favorited"] = ProblemFavorite.objects.filter(user=self.request.user, problem=self.object).exists()
         return ctx
 
 
 class ToggleFavoriteView(LoginRequiredMixin, View):
-    """문제 목록/풀이 화면의 ☆ 버튼용 즐겨찾기 토글 API.
-
-    POST만 허용한다. 이미 즐겨찾기면 삭제(해제), 없으면 생성(등록)한다.
-    응답: {"is_favorite": true|false}
-    """
+    """Toggle one problem as favorite for the authenticated user."""
 
     def post(self, request, pk):
         problem = Problem.objects.filter(pk=pk, is_active=True).first()

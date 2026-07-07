@@ -1,5 +1,4 @@
-"""Bootstrap PostgreSQL schema and seed data for the split-server deployment."""
-
+"""Bootstrap PostgreSQL schema and seed data for local or RDS deployment."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -15,8 +14,8 @@ from gamification.models import Mission
 from notices.models import Notice
 from problems.models import Problem, ProblemCategory, ProblemTag, TestCase
 
-
 DEFAULT_CSV = "/app/data/django/seed/problem_dataset.csv"
+LOCAL_DB_HOSTS = {"", "postgres", "localhost", "127.0.0.1", "host.docker.internal"}
 
 
 @dataclass(frozen=True)
@@ -26,55 +25,21 @@ class SeedResult:
 
 
 class Command(BaseCommand):
-    help = (
-        "Initialize the PostgreSQL-backed service database: migrate, verify tables, "
-        "and seed base/problem data. ChromaDB vectors are intentionally excluded."
-    )
+    help = "Initialize the connected PostgreSQL database with schema and seed data."
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            "--skip-migrate",
-            action="store_true",
-            help="Skip django migrations and only verify/seed the existing schema.",
-        )
-        parser.add_argument(
-            "--problem-csv",
-            default=DEFAULT_CSV,
-            help=f"Problem CSV path inside the django container. Default: {DEFAULT_CSV}",
-        )
-        parser.add_argument(
-            "--difficulty",
-            default="auto",
-            help="Difficulty assigned to imported problem rows. Use auto to infer from source_file.",
-        )
-        parser.add_argument(
-            "--no-sync-problems",
-            action="store_true",
-            help="Do not import new problem rows from the CSV.",
-        )
-        parser.add_argument(
-            "--no-seed-base-data",
-            action="store_true",
-            help="Do not seed base Mission/Notice rows.",
-        )
-        parser.add_argument(
-            "--seed-smoke-testcase",
-            action="store_true",
-            help="Create one operational smoke problem with sample test cases.",
-        )
-        parser.add_argument(
-            "--require-rds",
-            action="store_true",
-            help="Fail when POSTGRES_HOST points to a local/docker postgres host.",
-        )
-        parser.add_argument(
-            "--print-tables",
-            action="store_true",
-            help="Print the PostgreSQL table list after verification.",
-        )
+        parser.add_argument("--skip-migrate", action="store_true")
+        parser.add_argument("--problem-csv", default=DEFAULT_CSV)
+        parser.add_argument("--difficulty", default="auto")
+        parser.add_argument("--no-sync-problems", action="store_true")
+        parser.add_argument("--no-seed-base-data", action="store_true")
+        parser.add_argument("--seed-smoke-testcase", action="store_true")
+        parser.add_argument("--require-rds", action="store_true")
+        parser.add_argument("--target", choices=("auto", "local", "rds"), default="auto")
+        parser.add_argument("--print-tables", action="store_true")
 
     def handle(self, *args, **options):
-        self._validate_database(options["require_rds"])
+        target = self._validate_database(options["require_rds"], options["target"])
 
         if not options["skip_migrate"]:
             self.stdout.write("Applying migrations...")
@@ -82,12 +47,9 @@ class Command(BaseCommand):
 
         missing_tables = self._missing_managed_tables()
         if missing_tables:
-            raise CommandError(
-                "Missing PostgreSQL tables after migration: " + ", ".join(missing_tables)
-            )
+            raise CommandError("Missing PostgreSQL tables after migration: " + ", ".join(missing_tables))
 
         results: list[SeedResult] = []
-
         if not options["no_seed_base_data"]:
             results.extend(self._seed_base_data())
 
@@ -96,12 +58,7 @@ class Command(BaseCommand):
             if not csv_path.exists():
                 raise CommandError(f"Problem CSV not found: {csv_path}")
             before = Problem.objects.count()
-            call_command(
-                "load_problems",
-                str(csv_path),
-                difficulty=options["difficulty"],
-                verbosity=1,
-            )
+            call_command("load_problems", str(csv_path), difficulty=options["difficulty"], target=target, verbosity=1)
             results.append(SeedResult("problems_imported_or_existing", Problem.objects.count() - before))
 
         if options["seed_smoke_testcase"]:
@@ -109,19 +66,23 @@ class Command(BaseCommand):
 
         self._print_summary(results, print_tables=options["print_tables"])
 
-    def _validate_database(self, require_rds: bool) -> None:
+    def _db_kind(self) -> str:
+        host = (settings.DATABASES["default"].get("HOST") or "").strip().lower()
+        return "local" if host in LOCAL_DB_HOSTS else "rds"
+
+    def _validate_database(self, require_rds: bool, target: str) -> str:
         if connection.vendor != "postgresql":
             raise CommandError(f"PostgreSQL is required, current vendor={connection.vendor}")
-
+        actual = self._db_kind()
         host = settings.DATABASES["default"].get("HOST", "")
-        local_hosts = {"postgres", "localhost", "127.0.0.1", ""}
-        if require_rds and host in local_hosts:
-            raise CommandError(
-                "POSTGRES_HOST must point to the RDS endpoint when --require-rds is used."
-            )
-
+        if require_rds and actual != "rds":
+            raise CommandError("POSTGRES_HOST must point to the RDS endpoint when --require-rds is used.")
+        if target != "auto" and target != actual:
+            raise CommandError(f"Target mismatch: requested={target}, connected={actual}, host={host}")
         self.stdout.write(f"Database vendor: {connection.vendor}")
         self.stdout.write(f"Database host: {host}")
+        self.stdout.write(f"Database target: {actual}")
+        return actual
 
     def _missing_managed_tables(self) -> list[str]:
         existing = set(connection.introspection.table_names())
@@ -159,11 +120,7 @@ class Command(BaseCommand):
                 "is_published": True,
             },
         )
-
-        return [
-            SeedResult("missions_created", mission_created),
-            SeedResult("notices_created", int(notice_created)),
-        ]
+        return [SeedResult("missions_created", mission_created), SeedResult("notices_created", int(notice_created))]
 
     @transaction.atomic
     def _seed_smoke_testcase(self) -> SeedResult:
@@ -171,10 +128,7 @@ class Command(BaseCommand):
             slug="operational-check",
             defaults={"name": "운영점검", "order": 999, "is_active": True},
         )
-        tag, _ = ProblemTag.objects.get_or_create(
-            slug="smoke-test",
-            defaults={"name": "Smoke Test"},
-        )
+        tag, _ = ProblemTag.objects.get_or_create(slug="smoke-test", defaults={"name": "Smoke Test"})
         problem, _ = Problem.objects.get_or_create(
             title="운영 점검용 두 수 합",
             defaults={
@@ -188,7 +142,7 @@ class Command(BaseCommand):
         problem.tags.add(tag)
 
         created = 0
-        cases = [("1 2\n", "3\n"), ("10 -3\n", "7\n")]
+        cases = [("1 2\n", "3\n"), ("10 -3\n", "7\n"), ("0 0\n", "0\n")]
         for input_data, expected_output in cases:
             _, is_created = TestCase.objects.get_or_create(
                 problem=problem,
@@ -209,10 +163,8 @@ class Command(BaseCommand):
             "Mission": Mission.objects.count(),
             "Notice": Notice.objects.count(),
         }
-
         for result in results:
             self.stdout.write(f"{result.name}: {result.count}")
-
         self.stdout.write("PostgreSQL table count: " + str(len(table_names)))
         if print_tables:
             self.stdout.write("PostgreSQL tables:")

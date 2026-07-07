@@ -67,6 +67,8 @@ INSTALLED_APPS = [
     # STEP-03 화면(view 계층) 앱
     "mypage",
     "adminpanel",
+    # AI 내부 참고값
+    "codingstate",
 ]
 
 MIDDLEWARE = [

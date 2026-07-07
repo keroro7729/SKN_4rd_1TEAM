@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block title %}공지사항 · WOOK'S CODING{% endblock %}
+{% block content %}
+<section class="game-page notice-page"><div class="game-hero compact-hero"><div><p class="game-eyebrow">Notice</p><h1 class="game-title">공지사항</h1><p class="game-sub">서비스 운영 안내와 업데이트 내용을 확인합니다.</p></div></div><section class="game-panel"><div class="game-list">{% for notice in notices %}<a class="game-row" href="{% url 'notices:detail' notice.id %}"><span>{{ notice.title }}</span><span class="game-chip">{{ notice.created_at|date:"Y-m-d" }}</span></a>{% empty %}<p class="game-empty">등록된 공지사항이 없습니다.</p>{% endfor %}</div>{% if is_paginated %}<nav class="pagination">{% if page_obj.has_previous %}<a class="page-link" href="?page={{ page_obj.previous_page_number }}">이전</a>{% endif %}<span class="page-link page-current">{{ page_obj.number }}</span>{% if page_obj.has_next %}<a class="page-link" href="?page={{ page_obj.next_page_number }}">다음</a>{% endif %}</nav>{% endif %}</section></section>
+{% endblock %}
