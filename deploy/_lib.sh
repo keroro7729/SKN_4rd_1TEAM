@@ -40,12 +40,17 @@ require() {
 
 # warn_placeholder KEY bad1 [bad2 ...] : 예시/기본값 그대로면 경고(중단은 아님)
 warn_placeholder() {
-  local key="$1"; shift
-  local val; val="$(get_env "$key")"
-  local bad
-  for bad in "$@"; do
-    [ "$val" = "$bad" ] && echo "  ⚠ $key 가 예시/기본값('$bad') 입니다. 운영값으로 교체하세요."
-  done
+    local key="$1"; shift
+    local val; val="$(get_env "$key")"
+
+    local bad
+    for bad in "$@"; do
+        if [ "$val" = "$bad" ]; then
+            echo "  ⚠ $key 가 예시/기본값('$bad') 입니다. 운영값으로 교체하세요."
+        fi
+    done
+
+    return 0
 }
 
 # 운영은 DJANGO_DEBUG 가 False 여야 함. (빈 값/미설정도 코드상 False 로 동작 → 허용)
