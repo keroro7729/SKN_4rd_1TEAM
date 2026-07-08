@@ -6,11 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}WOOK'S CODING{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/style.css' %}?v=v55-profile-full-restore">
-  <link rel="stylesheet" href="{% static 'css/pages/profile_avatar.css' %}?v=profile-frame-v58">
+  <link rel="stylesheet" href="{% static 'css/pages/profile_avatar.css' %}?v=profile-frame-restore-v62">
   {% block extra_head %}{% endblock %}
-  <link rel="stylesheet" href="{% static 'css/pages/layout_overflow_fix.css' %}?v=layout-overflow-fix-v58">
+  <link rel="stylesheet" href="{% static 'css/pages/layout_overflow_fix.css' %}?v=layout-overflow-fix-restore-v62">
 </head>
 <body class="app-shell">
+{# RESTORE_STABLE_DESIGN_V62_BASE #}
 {# PROFILE_DESIGN_RESTORE_V55_BASE #}
   <header class="game-site-header">
     <a class="game-logo" href="{% url 'home' %}" aria-label="WOOK'S CODING 홈">
@@ -122,6 +123,6 @@
   {% endif %}
 
   {% block scripts %}{% endblock %}
-  <script src="{% static 'js/profile_avatar.js' %}?v=profile-frame-v58"></script>
+  <script src="{% static 'js/profile_avatar.js' %}?v=profile-frame-restore-v62"></script>
 </body>
 </html>
