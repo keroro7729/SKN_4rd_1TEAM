@@ -1,12 +1,15 @@
 {% extends "base.html" %}
 {% load static %}
+{# PROBLEM_SOLVE_ROBOT_SIDEKICK_V55: 레벨별 색상 로봇 프로필 #}
 {% block title %}{{ problem.title|truncatechars:30 }} · 문제 풀이{% endblock %}
 {% block extra_head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<link rel="stylesheet" href="{% static 'css/pages/problem_solve.css' %}?v=robot-sidekick-v55">
 {% endblock %}
 
 {% block content %}
+{# PROBLEM_SOLVE_ROBOT_SIDEKICK_V55: AI 코치 프로필을 동물 대신 로봇으로 고정 #}
 <form hidden>{% csrf_token %}</form>
 
 <section class="game-page solve-page solve-three-split" data-quest-stage="reading">
@@ -153,7 +156,7 @@
         <div class="mini-track">
           <div class="mini-party">
             <span class="mini-avatar">&lt;/&gt;</span>
-            <span class="mini-ai">AI</span>
+            {% if user.is_authenticated %}<span class="mini-ai robot-mini-avatar robot-coach-level-{{ user.level_number }}" aria-hidden="true"><i></i></span>{% else %}<span class="mini-ai robot-mini-avatar robot-coach-level-1" aria-hidden="true"><i></i></span>{% endif %}
           </div>
           <span class="mini-flag">⚑</span>
         </div>
@@ -172,13 +175,31 @@
         </div>
       </div>
 
-      <div class="sidekick-status">
-        <span class="sidekick-face">•‿•</span>
-        <div>
-          <strong>힌트 파트너</strong>
-          <small>정답 대신 사고 방향만 제공</small>
+      {% if user.is_authenticated %}
+      <div class="sidekick-status robot-coach-card robot-coach-level-{{ user.level_number }}">
+        <span class="sidekick-face robot-coach-avatar robot-coach-level-{{ user.level_number }}" aria-hidden="true">
+          <span class="robot-eye robot-eye-left"></span>
+          <span class="robot-eye robot-eye-right"></span>
+          <span class="robot-mouth"></span>
+        </span>
+        <div class="robot-coach-meta">
+          <strong>AI Coach</strong>
+          <small>Lv.{{ user.level_number }}</small>
         </div>
       </div>
+      {% else %}
+      <div class="sidekick-status robot-coach-card robot-coach-level-1">
+        <span class="sidekick-face robot-coach-avatar robot-coach-level-1" aria-hidden="true">
+          <span class="robot-eye robot-eye-left"></span>
+          <span class="robot-eye robot-eye-right"></span>
+          <span class="robot-mouth"></span>
+        </span>
+        <div class="robot-coach-meta">
+          <strong>AI Coach</strong>
+          <small>Lv.1</small>
+        </div>
+      </div>
+      {% endif %}
 
       <div class="sidekick-guide">
         <strong>사용 흐름</strong>
@@ -213,5 +234,5 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
-<script src="{% static 'js/problem_solve.js' %}?v=three-split-v17"></script>
+<script src="{% static 'js/problem_solve.js' %}?v=robot-sidekick-v55"></script>
 {% endblock %}

@@ -1,24 +1,21 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}계정정보 확인 · WOOK'S CODING{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/pages/account_management.css' %}?v=account-management-v55">{% endblock %}
 {% block content %}
 <section class="game-page account-page">
-  <div class="account-narrow">
-    <section class="game-panel">
-      <div class="game-panel-head">
-        <div>
-          <h1>계정정보 확인</h1>
-          <p>개인정보 보호를 위해 현재 비밀번호를 한 번 더 입력해주세요.</p>
-        </div>
-      </div>
-      <form method="post" class="account-form" novalidate>
+  <div class="account-shell narrow">
+    <div class="game-topbar"><div class="game-window-dots"><span></span><span></span><span></span></div><div class="game-route">/mypage <b>›</b> account <b>›</b> verify</div><div class="game-mode-pill">SECURITY CHECK</div></div>
+    <section class="game-panel account-panel">
+      <p class="game-eyebrow">PASSWORD VERIFY</p>
+      <h1>계정정보 접근 확인</h1>
+      <p class="game-sub">개인정보 보호를 위해 현재 비밀번호를 한 번 더 확인합니다.</p>
+      <form method="post" class="account-form">
         {% csrf_token %}
-        <label for="{{ form.password.id_for_label }}">비밀번호</label>
-        {{ form.password }}
-        {% if form.password.errors %}<p class="form-error">{{ form.password.errors|striptags }}</p>{% endif %}
-        <div class="account-action-row">
-          <a class="game-btn ghost" href="{% url 'mypage:index' %}">취소</a>
-          <button class="game-btn primary" type="submit">확인</button>
-        </div>
+        <label class="account-field"><span>현재 비밀번호</span>{{ form.password }}</label>
+        {% if form.password.errors %}<p class="field-error">{{ form.password.errors|striptags }}</p>{% endif %}
+        {% if form.non_field_errors %}<p class="field-error">{{ form.non_field_errors|striptags }}</p>{% endif %}
+        <div class="account-actions"><a class="game-btn ghost" href="{% url 'mypage:index' %}">돌아가기</a><button class="game-btn primary" type="submit">확인하고 계정정보 보기</button></div>
       </form>
     </section>
   </div>

@@ -15,6 +15,48 @@
   const analysisBox = document.getElementById("ai-analysis");
   const analysisEmpty = document.getElementById("analysis-empty");
   const historyView = document.getElementById("history-code-view");
+  const feedbackCloseButtons = Array.from(document.querySelectorAll("[data-feedback-close]"));
+
+  // v36: AI 피드백은 본문 아래에 펼치지 않고 항상 body 직속 팝업으로만 띄운다.
+  if (feedbackResult) {
+    feedbackResult.hidden = true;
+    feedbackResult.classList.remove("is-open");
+    feedbackResult.setAttribute("aria-hidden", "true");
+    if (feedbackResult.parentElement !== document.body) {
+      document.body.appendChild(feedbackResult);
+    }
+  }
+
+  const openFeedbackModal = () => {
+    if (!feedbackResult) return;
+    feedbackResult.hidden = false;
+    feedbackResult.removeAttribute("aria-hidden");
+    feedbackResult.classList.add("is-open");
+    document.documentElement.classList.add("wn2-modal-open");
+    document.body.classList.add("wn2-modal-open");
+    const closeButton = feedbackResult.querySelector(".wn2-modal-close");
+    setTimeout(() => closeButton?.focus(), 0);
+  };
+
+  const closeFeedbackModal = () => {
+    if (!feedbackResult) return;
+    feedbackResult.classList.remove("is-open");
+    feedbackResult.hidden = true;
+    feedbackResult.setAttribute("aria-hidden", "true");
+    document.documentElement.classList.remove("wn2-modal-open");
+    document.body.classList.remove("wn2-modal-open");
+    saveBtn?.focus();
+  };
+
+  feedbackCloseButtons.forEach((button) => {
+    button.addEventListener("click", closeFeedbackModal);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && feedbackResult && !feedbackResult.hidden) {
+      closeFeedbackModal();
+    }
+  });
 
   const getCookie = (name) => {
     const found = (document.cookie || "")
@@ -151,7 +193,7 @@
 
     saveBtn.disabled = true;
     statusText.textContent = "저장 및 AI 분석 요청 중입니다.";
-    feedbackResult.hidden = false;
+    openFeedbackModal();
     savedReflection.textContent = comment;
     renderSimilar([]);
     analysisBox.hidden = true;
@@ -178,7 +220,6 @@
       renderSimilar(ai.similar_notes || []);
       renderAnalysis(ai.analysis || {}, ai.errors || []);
       statusText.textContent = `저장 완료 · note_id ${data.wrong_note_id} · ${data.status}`;
-      feedbackResult.scrollIntoView({ behavior: "smooth", block: "nearest" });
     } catch (error) {
       statusText.textContent = error.message;
       analysisEmpty.textContent = "AI 분석을 불러오지 못했습니다.";

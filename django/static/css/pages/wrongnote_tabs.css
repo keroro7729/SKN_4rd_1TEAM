@@ -1188,42 +1188,223 @@ main.content:has(.wrongnote-page.wn2-page) {
 }
 
 
-/* ===== v31 FILE FIX: 회고 작성 포인트 내부 스크롤 제거 =====
-   기존 CSS보다 항상 늦게 읽히도록 파일 맨 아래에 배치.
-   템플릿에도 inline style을 추가했기 때문에 캐시/우선순위 문제를 같이 방지한다.
-*/
-.game-page.wrongnote-page.wn2-page .wn2-guide-box,
-.game-page.wrongnote-page.wn2-page .wn2-guide-no-scroll {
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  overflow: visible !important;
-  overflow-x: visible !important;
-  overflow-y: visible !important;
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+/* ===== v35: AI feedback opens as popup modal, not below the form ===== */
+html.wn2-modal-open,
+body.wn2-modal-open {
+  overflow: hidden !important;
 }
 
-.game-page.wrongnote-page.wn2-page .wn2-guide-box::-webkit-scrollbar,
-.game-page.wrongnote-page.wn2-page .wn2-guide-no-scroll::-webkit-scrollbar,
-.game-page.wrongnote-page.wn2-page .wn2-guide-box *::-webkit-scrollbar,
-.game-page.wrongnote-page.wn2-page .wn2-guide-no-scroll *::-webkit-scrollbar {
-  width: 0 !important;
-  height: 0 !important;
+.wn2-feedback-modal[hidden] {
   display: none !important;
 }
 
-.game-page.wrongnote-page.wn2-page .wn2-guide-box ul,
-.game-page.wrongnote-page.wn2-page .wn2-guide-box li {
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  overflow: visible !important;
+.wn2-feedback-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 28px !important;
 }
 
-@media (min-width: 861px) {
-  .game-page.wrongnote-page.wn2-page .wn2-reflection-panel {
-    overflow: visible !important;
-    overflow-y: visible !important;
+.wn2-modal-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border: 0 !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(53, 216, 255, .14), transparent 36%),
+    rgba(0, 4, 10, .78) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.wn2-modal-card {
+  position: relative !important;
+  z-index: 1 !important;
+  width: min(1080px, calc(100vw - 42px)) !important;
+  max-height: min(82dvh, 820px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  border: 1px solid rgba(53, 216, 255, .28) !important;
+  border-radius: 22px !important;
+  overflow: hidden !important;
+  background:
+    linear-gradient(180deg, rgba(53, 242, 118, .08), transparent 34%),
+    rgba(12, 18, 27, .98) !important;
+  box-shadow: 0 28px 90px rgba(0,0,0,.62), 0 0 0 1px rgba(255,255,255,.04) inset !important;
+}
+
+.wn2-modal-head {
+  flex: 0 0 auto !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 18px !important;
+  padding: 22px 24px 18px !important;
+  border-bottom: 1px solid rgba(148, 163, 184, .16) !important;
+  background: rgba(255,255,255,.026) !important;
+}
+
+.wn2-modal-head h2 {
+  margin: 5px 0 8px !important;
+  color: var(--text-strong) !important;
+  font-size: clamp(1.28rem, 2.4vw, 1.85rem) !important;
+  letter-spacing: -.045em !important;
+}
+
+.wn2-modal-head .wrongnote-comment {
+  margin: 0 !important;
+  color: var(--muted) !important;
+  line-height: 1.55 !important;
+  word-break: keep-all !important;
+}
+
+.wn2-modal-close {
+  width: 42px !important;
+  height: 42px !important;
+  flex: 0 0 auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid rgba(255, 100, 115, .32) !important;
+  border-radius: 14px !important;
+  color: var(--danger) !important;
+  background: rgba(255, 100, 115, .08) !important;
+  font-size: 1.6rem !important;
+  line-height: 1 !important;
+  cursor: pointer !important;
+}
+
+.wn2-modal-body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+  padding: 22px 24px !important;
+}
+
+.wn2-modal-body.feedback-stack,
+.wn2-modal-body.wn2-feedback-stack {
+  display: grid !important;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr) !important;
+  gap: 16px !important;
+}
+
+.wn2-modal-body .feedback-card {
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+.wn2-modal-body .analysis-grid {
+  grid-template-columns: 1fr !important;
+}
+
+.wn2-modal-foot {
+  flex: 0 0 auto !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  padding: 16px 24px 20px !important;
+  border-top: 1px solid rgba(148, 163, 184, .16) !important;
+  background: rgba(255,255,255,.018) !important;
+}
+
+@media (max-width: 860px) {
+  .wn2-feedback-modal {
+    padding: 12px !important;
+    align-items: end !important;
+  }
+
+  .wn2-modal-card {
+    width: 100% !important;
+    max-height: 88dvh !important;
+    border-radius: 18px 18px 0 0 !important;
+  }
+
+  .wn2-modal-head,
+  .wn2-modal-body,
+  .wn2-modal-foot {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .wn2-modal-body.feedback-stack,
+  .wn2-modal-body.wn2-feedback-stack {
+    grid-template-columns: 1fr !important;
+  }
+
+  .wn2-modal-foot {
+    flex-direction: column !important;
+  }
+}
+
+
+/* ===== v36 HARD FIX: AI feedback result must be popup modal only ===== */
+#feedback-result.feedback-result {
+  margin: 0 !important;
+}
+
+#feedback-result.feedback-result:not(.is-open),
+#feedback-result.wn2-feedback-modal[hidden] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+#feedback-result.wn2-feedback-modal.is-open {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483000 !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  padding: 28px !important;
+  overflow: hidden !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  background: transparent !important;
+}
+
+#feedback-result.wn2-feedback-modal.is-open .wn2-modal-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  display: block !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  border: 0 !important;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(53, 216, 255, .18), transparent 36%),
+    rgba(0, 4, 10, .82) !important;
+  backdrop-filter: blur(9px) !important;
+}
+
+#feedback-result.wn2-feedback-modal.is-open .wn2-modal-card {
+  position: relative !important;
+  z-index: 1 !important;
+  width: min(1120px, calc(100vw - 44px)) !important;
+  max-height: min(84dvh, 840px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+#feedback-result.wn2-feedback-modal.is-open .wn2-modal-body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+}
+
+@media (max-width: 860px) {
+  #feedback-result.wn2-feedback-modal.is-open {
+    padding: 12px !important;
+    align-items: end !important;
+  }
+  #feedback-result.wn2-feedback-modal.is-open .wn2-modal-card {
+    width: 100% !important;
+    max-height: 88dvh !important;
+    border-radius: 18px 18px 0 0 !important;
   }
 }

@@ -1,0 +1,292 @@
+/* GLOBAL_LAYOUT_OVERFLOW_FIX_V56
+   공통 잘림/넘침 보정용 오버라이드
+   - account / auth / wrongnote / problem solve / profile popup 반응형 보강
+*/
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+img, svg, video, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.game-content,
+.game-page,
+.clean-dashboard,
+.auth-page,
+.account-page,
+.wrongnote-page,
+.mypage-page {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.game-topbar,
+.compact-hero,
+.game-panel-head,
+.account-header-row,
+.solve-compact-header,
+.wrongnote-card-head,
+.wrongnote-foot,
+.account-quick-actions,
+.review-action-group,
+.game-player-pill {
+  min-width: 0;
+}
+
+.game-topbar {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.game-route,
+.game-sub,
+.game-title,
+.game-panel-head p,
+.account-field-grid strong,
+.account-log-row small,
+.wrongnote-card-title,
+.wrongnote-comment,
+.answer-card,
+.auth-copy {
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.game-mode-pill,
+.reward-pill,
+.account-email-chip,
+.game-chip,
+.badge,
+.review-card-action {
+  max-width: 100%;
+}
+
+/* account */
+.account-shell {
+  width: min(1440px, 100%);
+  max-width: 100%;
+  padding: 32px 16px 48px;
+}
+
+.account-grid {
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+}
+
+.account-panel,
+.account-form,
+.account-field,
+.account-field input,
+.account-log-panel {
+  min-width: 0;
+}
+
+.account-link-actions,
+.account-actions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.account-log-row {
+  grid-template-columns: 140px 92px 96px minmax(0, 1fr);
+}
+
+/* auth */
+.auth-page {
+  width: min(1180px, 100%);
+  max-width: 100%;
+  padding-inline: 16px;
+}
+
+.auth-shell {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+}
+
+.auth-hero-panel,
+.auth-form-panel,
+.auth-feature-list,
+.auth-step-list {
+  min-width: 0;
+}
+
+/* wrongnote */
+.wrongnote-shell {
+  padding-inline: 16px;
+}
+
+.wrongnote-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+}
+
+.wrongnote-side-stack {
+  min-width: 0;
+}
+
+.review-board-actions {
+  align-items: center;
+}
+
+.review-action-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.inline-review-form {
+  margin: 0;
+}
+
+.review-card-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+/* problem solve */
+.solve-three-layout {
+  grid-template-columns: minmax(280px, 0.95fr) minmax(340px, 1.15fr) minmax(250px, 0.72fr);
+}
+
+.problem-column,
+.code-column,
+.sidekick-column {
+  min-width: 0;
+}
+
+/* profile avatar modal */
+.profile-avatar-modal {
+  padding: 16px;
+}
+
+.profile-avatar-modal-card {
+  width: min(920px, 100%);
+  max-width: 100%;
+}
+
+.profile-avatar-popup-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profile-avatar-popup-card,
+.profile-avatar-popup-info,
+.profile-avatar-current {
+  min-width: 0;
+}
+
+/* level/profile frame가 다시 보이도록 안전 보정 */
+.profile-frame {
+  position: relative;
+  overflow: visible;
+}
+
+.profile-frame-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.profile-frame-level-1 .profile-frame-ring { box-shadow: 0 0 0 2px rgba(53, 216, 255, 0.45); }
+.profile-frame-level-2 .profile-frame-ring { box-shadow: 0 0 0 2px rgba(53, 242, 118, 0.55), 0 0 18px rgba(53, 242, 118, 0.18); }
+.profile-frame-level-3 .profile-frame-ring { box-shadow: 0 0 0 2px rgba(255, 213, 74, 0.6), 0 0 18px rgba(255, 213, 74, 0.18); }
+.profile-frame-level-4 .profile-frame-ring { box-shadow: 0 0 0 2px rgba(192, 132, 252, 0.7), 0 0 20px rgba(192, 132, 252, 0.18); }
+.profile-frame-level-5 .profile-frame-ring { box-shadow: 0 0 0 2px rgba(255, 122, 189, 0.7), 0 0 22px rgba(255, 122, 189, 0.2); }
+
+@media (max-width: 1320px) {
+  .account-grid,
+  .auth-shell,
+  .wrongnote-layout,
+  .ask-layout,
+  .solve-three-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .wrongnote-side-stack {
+    position: static;
+    top: auto;
+  }
+
+  .problem-column,
+  .code-column,
+  .sidekick-column,
+  .ask-sidebar,
+  .ask-main {
+    height: auto;
+    min-height: 0;
+  }
+
+  .solve-three-split {
+    --split-height: auto;
+  }
+}
+
+@media (max-width: 920px) {
+  .account-field-grid,
+  .account-link-actions,
+  .account-actions,
+  .auth-feature-list,
+  .wrongnote-search-line {
+    grid-template-columns: 1fr !important;
+  }
+
+  .account-log-row {
+    grid-template-columns: 1fr;
+  }
+
+  .game-topbar {
+    align-items: flex-start;
+  }
+
+  .game-mode-pill {
+    margin-left: 0;
+  }
+
+  .profile-avatar-popup-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .account-shell,
+  .auth-page,
+  .wrongnote-shell {
+    padding-inline: 12px;
+  }
+
+  .account-panel,
+  .auth-hero-panel,
+  .auth-form-panel,
+  .wrongnote-card,
+  .profile-avatar-modal-card {
+    border-radius: 20px;
+  }
+
+  .profile-avatar-popup-grid,
+  .auth-feature-list {
+    grid-template-columns: 1fr;
+  }
+
+  .review-action-group,
+  .inline-review-form,
+  .review-card-action,
+  .game-btn,
+  .game-mini-btn {
+    width: 100%;
+  }
+
+  .review-board-actions {
+    align-items: stretch;
+  }
+
+  .game-player-pill {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}

@@ -1,13 +1,15 @@
-"""Forms for MyPage account management."""
+from __future__ import annotations
+
 from django import forms
-from django.contrib.auth import authenticate
 from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 
 
 class AccountPasswordConfirmForm(forms.Form):
     password = forms.CharField(
         label="비밀번호",
-        widget=forms.PasswordInput(attrs={"class": "game-input", "autocomplete": "current-password"}),
+        widget=forms.PasswordInput(attrs={"autocomplete": "current-password", "placeholder": "현재 비밀번호"}),
     )
 
     def __init__(self, *args, user=None, **kwargs):
@@ -16,42 +18,43 @@ class AccountPasswordConfirmForm(forms.Form):
 
     def clean_password(self):
         password = self.cleaned_data["password"]
-        if self.user is None:
-            raise forms.ValidationError("사용자 정보를 확인할 수 없습니다.")
-        authenticated = authenticate(username=self.user.get_username(), password=password)
-        if authenticated is None:
-            raise forms.ValidationError("비밀번호가 일치하지 않습니다.")
+        if not self.user or not self.user.check_password(password):
+            raise ValidationError("비밀번호가 올바르지 않습니다.")
         return password
 
 
 class AccountEmailChangeForm(forms.Form):
     email = forms.EmailField(
-        label="이메일",
-        max_length=254,
-        widget=forms.EmailInput(attrs={"class": "game-input", "autocomplete": "email"}),
+        label="새 이메일",
+        required=True,
+        widget=forms.EmailInput(attrs={"placeholder": "새 이메일 주소", "autocomplete": "email"}),
     )
 
     def __init__(self, *args, user=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.user = user
-        if user is not None and not self.is_bound:
-            self.fields["email"].initial = user.email
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip()
+        if self.user and email == (self.user.email or ""):
+            raise ValidationError("현재 이메일과 동일합니다.")
+        UserModel = get_user_model()
+        if UserModel.objects.exclude(pk=getattr(self.user, "pk", None)).filter(email=email).exists():
+            raise ValidationError("이미 다른 계정에서 사용 중인 이메일입니다.")
+        return email
 
 
 class AccountPasswordChangeForm(PasswordChangeForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs.update({"class": "game-input"})
+    pass
 
 
 class AccountDeleteConfirmForm(forms.Form):
     password = forms.CharField(
-        label="비밀번호",
-        widget=forms.PasswordInput(attrs={"class": "game-input", "autocomplete": "current-password"}),
+        label="비밀번호 재입력",
+        widget=forms.PasswordInput(attrs={"autocomplete": "current-password", "placeholder": "현재 비밀번호"}),
     )
-    confirm_delete = forms.BooleanField(
-        label="탈퇴 시 모든 정보가 삭제됨을 확인했습니다.",
+    confirm = forms.BooleanField(
+        label="회원 탈퇴 내용을 확인했습니다.",
         required=True,
     )
 
@@ -61,9 +64,6 @@ class AccountDeleteConfirmForm(forms.Form):
 
     def clean_password(self):
         password = self.cleaned_data["password"]
-        if self.user is None:
-            raise forms.ValidationError("사용자 정보를 확인할 수 없습니다.")
-        authenticated = authenticate(username=self.user.get_username(), password=password)
-        if authenticated is None:
-            raise forms.ValidationError("비밀번호가 일치하지 않습니다.")
+        if not self.user or not self.user.check_password(password):
+            raise ValidationError("비밀번호가 올바르지 않습니다.")
         return password
