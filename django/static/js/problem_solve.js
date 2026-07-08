@@ -188,7 +188,11 @@
   });
 
   const pollResult = async (submissionId) => {
-    for (let i = 0; i < 20; i += 1) {
+    // 최초 1회 TC 자동생성(수십 초 소요 가능)을 고려해 벽시계 예산으로 대기한다.
+    const POLL_INTERVAL_MS = 700;
+    const MAX_WAIT_MS = 180000; // 3분
+    const started = Date.now();
+    while (Date.now() - started < MAX_WAIT_MS) {
       const response = await fetch(pane.dataset.resultUrlTemplate.replace("__ID__", submissionId), {
         headers: {"Accept": "application/json"},
       });
@@ -200,9 +204,14 @@
         hide(loadingBox);
         return;
       }
-      setQuestState("running", "채점 중", `테스트케이스를 확인하고 있습니다. ${i + 1}/20`);
-      showText(loadingBox, `채점 중입니다. Job: ${data.job_status} · ${i + 1}/20`);
-      await new Promise((resolve) => setTimeout(resolve, 700));
+      if (data.job_status === "generating") {
+        setQuestState("running", "테스트케이스 생성", "이 문제의 테스트케이스를 처음 만드는 중입니다. 최초 1회만 시간이 걸립니다…");
+        showText(loadingBox, "테스트케이스를 생성하는 중입니다. 최초 1회만 시간이 걸려요…");
+      } else {
+        setQuestState("running", "채점 중", "테스트케이스를 순서대로 확인하고 있습니다.");
+        showText(loadingBox, `채점 중입니다. Job: ${data.job_status}`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
     }
     throw new Error("결과 대기 시간이 초과되었습니다. Worker 상태를 확인하세요.");
   };

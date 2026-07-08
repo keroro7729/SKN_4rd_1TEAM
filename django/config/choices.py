@@ -28,6 +28,7 @@ JOB_TYPE_CHOICES = [
     ("code_run", "코드실행"),
     ("code_submit", "코드제출"),
     ("code_eval", "코드평가"),  # 시스템: 코드+입력을 실행해 출력만 캡처(비교 없음) — TC 생성 에이전트
+    ("testcase_gen", "테스트케이스생성"),  # 시스템 마커: 문제당 최초 1회 TC 자동생성 진행상태(워커 대상 아님, Django 스레드가 처리)
 ]
 
 JOB_STATUS_CHOICES = [
