@@ -6,14 +6,17 @@
   <div class="game-topbar">
     <div class="game-window-dots"><span></span><span></span><span></span></div>
     <div class="game-route">/dashboard <b>›</b> learning-cockpit</div>
-    <div class="game-mode-pill">AI CODING RPG</div>
+    <div class="game-mode-pill-group">
+      <div class="game-mode-pill">AI CODING RPG</div>
+      <div class="game-mode-pill game-mode-pill--sub">HINT · RAG · LEVEL UP</div>
+    </div>
   </div>
 
   <section class="home-cockpit">
     <div class="home-cockpit-copy">
       <p class="game-eyebrow">LEARN · SOLVE · REVIEW</p>
-      <h1 class="game-title">문제를 풀고, 오답을 분석하고,<br><span class="accent">다음 풀이가 쉬워지는</span> 코딩 학습</h1>
-      <p class="game-sub">프로그래머스/리트코드처럼 바로 문제를 풀고, 틀린 코드는 게임형 오답노트와 AI RAG 근거로 다시 정리합니다.</p>
+      <h1 class="game-title">막히면 <span class="accent">힌트</span>, 틀리면 <span class="accent">AI 분석</span>,<br>풀수록 <span class="accent">레벨업</span></h1>
+      <p class="game-sub">혼자 끙끙대지 마세요. 정답을 바로 주는 대신 단계별 힌트로 스스로 풀도록 돕고, 틀린 문제는 AI가 근거를 찾아 오답노트로 정리해드립니다. 풀이마다 포인트를 얻고 프로필을 성장시키며 학습 습관을 이어가세요.</p>
       <div class="home-actions">
         {% if user.is_authenticated %}
           <a class="game-btn primary" href="{% url 'problems:list' %}">문제 바로 풀기</a>
@@ -29,10 +32,10 @@
     <aside class="home-cockpit-card" aria-label="학습 흐름">
       <div class="cockpit-orb">AI</div>
       <div class="cockpit-flow">
-        <div><span>01</span><strong>문제 풀이</strong><small>실행 · 제출</small></div>
-        <div><span>02</span><strong>오답 기록</strong><small>원인 · 코드</small></div>
-        <div><span>03</span><strong>AI 분석</strong><small>RAG 근거</small></div>
-        <div><span>04</span><strong>복습 성장</strong><small>포인트 · 미션</small></div>
+        <div><span>01</span><strong>문제 풀이</strong><small>막히면 단계별 힌트</small></div>
+        <div><span>02</span><strong>오답 기록</strong><small>코드 · 결과 자동 저장</small></div>
+        <div><span>03</span><strong>AI 분석</strong><small>RAG 근거로 오답 원인 진단</small></div>
+        <div><span>04</span><strong>복습 성장</strong><small>포인트 획득 · 레벨업</small></div>
       </div>
     </aside>
   </section>
@@ -41,19 +44,19 @@
     <article class="game-panel quick-panel accent-green">
       <span class="panel-kicker">빠른 시작</span>
       <h2>오늘 풀 문제를 바로 고르기</h2>
-      <p>난이도와 태그를 보고 한 문제씩 퀘스트처럼 진행합니다.</p>
+      <p>난이도와 태그는 물론, 막히는 순간 단계별 힌트로 끝까지 스스로 풀어보세요.</p>
       <a class="game-mini-btn" href="{% url 'problems:list' %}">문제 목록</a>
     </article>
     <article class="game-panel quick-panel accent-cyan">
       <span class="panel-kicker">오답 회고</span>
       <h2>내 실수 패턴 찾기</h2>
-      <p>작성한 오답노트를 기반으로 자주 틀리는 이유를 확인합니다.</p>
+      <p>작성한 오답노트를 RAG 기반 AI가 분석해, 내가 자주 틀리는 이유와 취약 개념을 근거와 함께 짚어드립니다.</p>
       <a class="game-mini-btn ghost" href="{% url 'wrongnotes:ask' %}">내 노트 질의</a>
     </article>
     <article class="game-panel quick-panel accent-warning">
       <span class="panel-kicker">성장 관리</span>
       <h2>학습 흐름 한눈에 보기</h2>
-      <p>포인트, 레벨, 오답 회고 흐름을 한눈에 확인합니다.</p>
+      <p>최근 제출, 정답률, 포인트·레벨 성장 현황을 대시보드로 확인하세요.</p>
       <a class="game-mini-btn ghost" href="{% url 'mypage:index' %}">마이페이지</a>
     </article>
   </section>
@@ -62,10 +65,19 @@
     <div class="home-guide-step"><strong>문제 선택</strong><span>난이도·태그 기준으로 빠르게 탐색</span></div>
     <div class="home-guide-step"><strong>코드 제출</strong><span>실행 결과와 실패 케이스 확인</span></div>
     <div class="home-guide-step"><strong>오답노트</strong><span>현재 코드·과거 코드·결과를 함께 회고</span></div>
-    <div class="home-guide-step"><strong>AI 복습</strong><span>내 노트 근거로 취약 개념 분석</span></div>
+    <div class="home-guide-step"><strong>AI 복습</strong><span>RAG 근거로 취약 개념 분석 → 맞춤 복습 추천</span></div>
   </section>
 
-  <div class="game-dashboard-grid home-dashboard home-dashboard-simple">
+  <div class="game-dashboard-grid home-dashboard">
+    {% if not user.is_authenticated %}
+    <section class="game-panel game-span-12 accent-cyan">
+      <div class="game-panel-head"><div><h2>WOOK'S CODING 핵심 기능</h2><p>회원가입 후 문제 풀이와 오답노트 기능을 사용할 수 있습니다.</p></div></div>
+      <div class="feature-pill-grid">
+        <span class="game-chip green">AI 단계별 힌트</span><span class="game-chip cyan">오답노트 RAG</span><span class="game-chip purple">과거 코드 회고</span><span class="game-chip amber">미션/포인트</span>
+      </div>
+    </section>
+    {% endif %}
+
     <section class="game-panel game-span-6">
       <div class="game-panel-head">
         <div>
@@ -94,14 +106,10 @@
       </div>
       <div class="game-list dense-list">
         {% for m in missions|slice:":4" %}
-          <div class="game-row">
-            <span>{{ m.title|truncatechars:32 }}</span>
-            <span class="game-chip amber">+{{ m.reward_point }}P</span>
-          </div>
-        {% empty %}
-          <p class="game-empty">진행 가능한 미션이 없습니다.</p>
-        {% endfor %}
+          <div class="game-row"><span>{{ m.title|truncatechars:32 }}</span><span class="game-chip amber">+{{ m.reward_point }}P</span></div>
+        {% empty %}<p class="game-empty">미션을 완료하면 포인트를 얻고 프로필 동물을 해금할 수 있어요!</p>{% endfor %}
       </div>
+      <p class="mission-teaser">문제를 풀수록 포인트가 쌓이고, 강아지 → 여우 → 판다 → 드래곤까지 프로필이 진화합니다.</p>
     </section>
   </div>
 </section>

@@ -5,9 +5,6 @@ from django.views.generic import TemplateView
 
 from gamification.models import Mission
 from notices.models import Notice
-from problems.models import Problem
-from submissions.models import Submission
-from wrongnotes.models import WrongNote
 
 
 class HomeView(TemplateView):
@@ -19,26 +16,6 @@ class HomeView(TemplateView):
         ctx = super().get_context_data(**kwargs)
         ctx["notices"] = Notice.objects.filter(is_published=True)[:5]
         ctx["missions"] = Mission.objects.filter(is_active=True)[:5]
-        ctx["recommended_problems"] = (
-            Problem.objects.filter(is_active=True)
-            .select_related("category")
-            .prefetch_related("tags")
-            .order_by("id")[:3]
-        )
-        if self.request.user.is_authenticated:
-            ctx["recent_wrong_notes"] = (
-                WrongNote.objects.filter(user=self.request.user)
-                .select_related("problem")
-                .order_by("-created_at")[:3]
-            )
-            ctx["recent_submissions"] = (
-                Submission.objects.filter(
-                    user=self.request.user,
-                    submission_type="submit",
-                )
-                .select_related("problem")
-                .order_by("-created_at")[:3]
-            )
         return ctx
 
 
