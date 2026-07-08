@@ -135,6 +135,20 @@
   font-weight: 900;
   white-space: nowrap;
 }
+.game-mode-pill-group {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.game-mode-pill-group .game-mode-pill { margin-left: 0; }
+.game-mode-pill--sub {
+  color: var(--muted);
+  border-color: rgba(148,163,184,0.24);
+  background: rgba(255,255,255,0.03);
+  font-weight: 700;
+  font-size: 0.78rem;
+}
 .game-page {
   position: relative;
   overflow: hidden;

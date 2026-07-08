@@ -55,6 +55,13 @@ docker compose up --build
 - 서비스 접속: **http://localhost/** (Nginx → Django)
 - Django 관리자: http://localhost/admin/
 - 관리자 계정 생성: `docker compose exec django python manage.py createsuperuser`
+- **문제 데이터셋 적재**(CSV → PostgreSQL): 관리자 생성 후 아래 한 줄로 문제를 적재합니다.
+  ```bash
+  docker compose run --rm django python manage.py load_problems
+  ```
+  - 시드 CSV `volumes/data/django/seed/problem_dataset.csv`를 읽어 제목·알고리즘 분류·난이도를 **룰 기반으로 자동 생성**해 적재합니다.
+  - 처음부터 새로 적재하려면 `... load_problems --reset` (기존 문제 전체 삭제 후 재적재).
+  - 옵션: `--max-title N`(제목 최대 길이, 기본 50) · `--difficulty auto|basic|beginner|intermediate|advanced` · `--target auto|local|rds`.
 - FastAPI/ChromaDB/Worker/PostgreSQL은 **내부 네트워크 전용**(외부 미노출).
 
 ---
@@ -80,9 +87,14 @@ pip install -r requirements.txt
 
 python manage.py migrate
 python manage.py createsuperuser
+
+# 문제 데이터셋 적재 (CSV → PostgreSQL). 로컬은 CSV 경로를 직접 지정
+python manage.py load_problems ..\volumes\data\django\seed\problem_dataset.csv --target local
+
 python manage.py runserver          # http://127.0.0.1:8000/
 ```
 - 홈 `/` · 로그인 `/accounts/login/` · 회원가입 `/accounts/signup/` · 관리자 `/admin/`
+- `load_problems`는 제목·알고리즘 분류·난이도를 룰 기반으로 자동 생성합니다. `--reset`으로 재적재, `--max-title`로 제목 길이 조정.
 
 ### 2) FastAPI (AI/RAG) — 포트 8001
 ```powershell

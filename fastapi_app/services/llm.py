@@ -106,46 +106,148 @@ JSON 객체 {{"content": string}} 형태로만 답하라(content 는 한국어).
 
 
 _ANALYZE_SYSTEM = (
-    "You are a Korean coding-education coach. Given a learner's failed submission code "
-    "and their self-retrospection, produce a concise, constructive analysis in KOREAN. "
-    "Do NOT reveal a full solution; guide the thinking. Reply ONLY with a JSON object."
+    "You are a Korean coding-education coach. Given a problem, a learner's failed "
+    "submission code, and their self-retrospection, produce a structured, constructive "
+    "analysis in KOREAN. Never reveal a full, paste-ready solution; guide the thinking. "
+    "Reply ONLY with a single JSON object."
 )
 
 
 async def analyze_wrong_note(
-    code: str, comment: str, evidence: list[Evidence], coding_state: str = ""
+    code: str,
+    comment: str,
+    evidence: list[Evidence],
+    coding_state: str = "",
+    problem_title: str = "",
+    tags: list[str] | None = None,
+    problem_statement: str = "",
 ) -> dict:
-    """오답을 문제핵심/오답원인/풀이과정/주의사항 4섹션으로 분석.
+    """오답을 6섹션으로 분석: 문제핵심·풀이과정·오답원인·개선사항·AI피드백·다음체크리스트.
 
     coding_state: 사용자 코딩 상태(AI 내부 참고값). 있으면 학습자 수준/약점에 맞춰 분석한다.
     """
+    tags = tags or []
     ref = ""
     if evidence:
         ref = "\n참고(과거 유사 오답): " + ", ".join(
             f"note {e.note_id}({e.title or ''})" for e in evidence
         )
     ctx = f"\n\n{coding_state}\n(위 상태를 참고해 학습자 수준·약점에 맞춰 분석하되, 이 내용을 사용자에게 그대로 노출하지는 말 것.)" if coding_state else ""
-    user = f"""제출 코드:
+    stmt = (problem_statement or "").strip()
+    if len(stmt) > 1500:
+        stmt = stmt[:1500] + " …(생략)"
+    user = f"""문제: {problem_title or '(제목 없음)'}
+태그: {', '.join(tags) or '(없음)'}
+문제 설명:
+{stmt or '(제공되지 않음)'}
+
+제출 코드:
 ```
 {code or '(코드 없음)'}
 ```
 사용자 회고:
 {comment or '(작성하지 않음)'}{ref}{ctx}
 
-아래 키를 가진 JSON 객체로만 답하라(모두 한국어, 정답 직접 노출 금지):
-- "problem_core": 이 문제/코드에서 핵심적으로 다뤄야 할 개념 한두 줄.
-- "cause": 이 코드가 틀렸을 가능성이 높은 원인.
-- "solution": 정답을 직접 주지 말고, 올바른 접근/풀이 과정을 단계적으로 안내.
-- "caution": 다음에 같은 실수를 피하기 위한 주의사항.
+아래 키를 가진 JSON 객체로만 답하라(모두 한국어, 붙여넣기용 정답 코드 금지):
+- "problem_core": string — 이 문제에서 핵심적으로 이해해야 할 요구사항/개념을 2~3문장으로.
+- "solution": string — 이 문제의 정석적인 풀이 접근법을 단계적으로 설명(정답 코드는 직접 주지 말 것).
+- "cause": string — 제출 코드에서 잘못된 부분과 오답의 직접적인 원인을 구체적으로 지목.
+- "improvement": string — 코드를 구체적으로 어떻게 고쳐서 다시 시도하면 되는지 안내(어느 부분을 어떻게).
+- "ai_feedback": string — 학습자의 학습을 개선하기 위한 자유 형식 피드백(격려·학습 방향 등).
+- "next_checklist": string[] — 다음 풀이 전에 먼저 점검/생각해야 할 체크리스트 2~4개(자주 하는 실수 위주, 각 항목 짧게).
 JSON only."""
     data = await _chat_json(_ANALYZE_SYSTEM, user)
     log.info(json.dumps({"event": "analyze", "model": config.OPENAI_MODEL}, ensure_ascii=False))
+    checklist = data.get("next_checklist")
+    checklist = [str(x) for x in checklist if str(x).strip()][:4] if isinstance(checklist, list) else []
     return {
         "problem_core": str(data.get("problem_core") or ""),
-        "cause": str(data.get("cause") or ""),
         "solution": str(data.get("solution") or ""),
-        "caution": str(data.get("caution") or ""),
+        "cause": str(data.get("cause") or ""),
+        "improvement": str(data.get("improvement") or ""),
+        "ai_feedback": str(data.get("ai_feedback") or ""),
+        "next_checklist": checklist,
     }
+
+
+_TUTOR_SYSTEM = (
+    "You are '미니튜터', a friendly Korean coding-learning tutor embedded in a small chat "
+    "popup. Keep answers SHORT and conversational (보통 2~5문장), in KOREAN. Personalize to "
+    "the learner using the given context: 현재 활동, 코딩 상태(내부 참고), 최근 오답 기록. "
+    "You may reference their recent mistakes to give targeted guidance. Never dump a full "
+    "paste-ready solution; nudge their thinking, explain concepts, and suggest next steps. "
+    "If the context is empty or the question is general, just answer helpfully. Do NOT reveal "
+    "the raw coding-state text to the user."
+)
+
+
+def _tutor_context_block(
+    activity: str,
+    coding_state: str,
+    recent_notes: list,
+    evidence: list[Evidence],
+    window_days: int,
+) -> str:
+    parts: list[str] = []
+    if activity:
+        parts.append(f"[현재 활동]\n{activity}")
+    if coding_state:
+        parts.append(coding_state)  # 이미 '사용자 비노출' 라벨 포함
+    if recent_notes:
+        lines = []
+        for note in recent_notes[:8]:
+            title = getattr(note, "title", "") or "오답노트"
+            pattern = getattr(note, "error_pattern", "") or ""
+            days = getattr(note, "days_ago", None)
+            summary = getattr(note, "summary", "") or ""
+            when = f"{days}일 전" if days is not None else ""
+            meta = " · ".join(x for x in (pattern, when) if x)
+            lines.append(f"- {title}" + (f" ({meta})" if meta else "") + (f": {summary}" if summary else ""))
+        parts.append(f"[최근 {window_days}일 오답 기록]\n" + "\n".join(lines))
+    if evidence:
+        hits = "\n".join(f"- note {e.note_id} {e.title or ''} (유사도 {e.score})" for e in evidence[:5])
+        parts.append(f"[질문과 관련된 과거 기록(RAG)]\n{hits}")
+    if not parts:
+        return ""
+    return (
+        "다음은 학습자 개인 맥락이다. 답변을 이 맥락에 맞춰 개인화하되, 원문을 그대로 노출하지 말 것.\n\n"
+        + "\n\n".join(parts)
+    )
+
+
+async def tutor_reply(
+    question: str,
+    history: list,
+    coding_state: str = "",
+    activity: str = "",
+    recent_notes: list | None = None,
+    evidence: list[Evidence] | None = None,
+    window_days: int = 30,
+) -> str:
+    """미니튜터: 대화 컨텍스트 + 현재 활동 + 코딩 상태 + 최근 오답(RAG)으로 간단 문답."""
+    recent_notes = recent_notes or []
+    evidence = evidence or []
+    messages = [{"role": "system", "content": _TUTOR_SYSTEM}]
+    context = _tutor_context_block(activity, coding_state, recent_notes, evidence, window_days)
+    if context:
+        messages.append({"role": "system", "content": context})
+    for turn in (history or [])[-6:]:  # 최근 6턴만 컨텍스트로
+        role = "assistant" if getattr(turn, "role", "user") == "assistant" else "user"
+        content = (getattr(turn, "content", "") or "").strip()
+        if content:
+            messages.append({"role": role, "content": content})
+    messages.append({"role": "user", "content": question})
+
+    try:
+        resp = await _get_client().chat.completions.create(
+            model=config.OPENAI_MODEL,
+            messages=messages,
+            temperature=0.5,
+            max_tokens=500,
+        )
+    except OpenAIError as exc:
+        raise LLMCallError(f"openai_error: {exc}") from exc
+    return (resp.choices[0].message.content or "").strip()
 
 
 _ASK_SYSTEM = (

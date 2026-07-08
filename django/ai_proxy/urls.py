@@ -11,4 +11,5 @@ urlpatterns = [
     path("wrong-note/analyze/", views.wrong_note_analyze, name="wrong_note_analyze"),
     path("wrong-note/embed/", views.wrong_note_embed, name="wrong_note_embed"),
     path("wrong-note/ask/", views.note_ask, name="note_ask"),
+    path("tutor/ask/", views.tutor_ask, name="tutor_ask"),
 ]

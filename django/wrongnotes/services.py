@@ -34,12 +34,15 @@ def build_wrong_note_payload(note) -> dict:
     from codingstate.services import get_prompt_context
 
     tags = [tag.name for tag in note.tags.all()]
+    category = note.problem.category.name if note.problem.category_id else ""
     return {
         "wrong_note_id": note.id,
         "user_id": note.user_id,
         "problem_id": note.problem_id,
         "submission_id": note.submission_id,
         "problem_title": note.problem.title,
+        "problem_statement": note.problem.description,
+        "category": category,  # v1 검색: topic 청크(카테고리) 추가 고려
         "tags": tags,
         "user_comment": note.comment,
         "submitted_code": note.submission.code,
@@ -49,34 +52,41 @@ def build_wrong_note_payload(note) -> dict:
     }
 
 
-def build_wrong_note_index_content(note) -> str:
-    """Build the text stored in ChromaDB for wrong-note RAG."""
-    tags = ", ".join(tag.name for tag in note.tags.all())
-    submission = note.submission
+def build_wrong_note_sections(note):
+    """RAG v1 인덱싱용 섹션 구성.
+
+    매칭에 방해되는 정보(문제 원문·제출 코드·난이도·에러·결과)는 **제외**하고,
+    회고(retrospection) + AI 생성 코멘트(문제핵심/풀이/원인/개선/피드백/체크)만 섹션으로 넘긴다.
+    카테고리·알고리즘 분류는 topic 청크로 FastAPI 가 추가 고려한다.
+    반환: (sections: dict[str,str], category: str, algo_tags: list[str])
+    """
     analysis = note.ai_analysis.get("analysis", {}) if note.ai_analysis else {}
-    parts = [
-        f"문제명: {note.problem.title}",
-        f"난이도: {note.problem.difficulty}",
-        f"태그: {tags}",
-        f"사용자 코멘트: {note.comment}",
-        f"제출 결과: {submission.result}",
-        f"오류 메시지: {submission.error_message or ''}",
-        f"제출 코드: {submission.code or ''}",
-        f"문제 핵심: {analysis.get('problem_core', '')}",
-        f"오답 원인: {analysis.get('cause', '')}",
-        f"풀이 과정: {analysis.get('solution', '')}",
-        f"주의사항: {analysis.get('caution', '')}",
-    ]
-    return "\n".join(part for part in parts if part.strip())
+    sections = {}
+    if note.comment:
+        sections["retrospection"] = note.comment
+    for key in ("problem_core", "solution", "cause", "improvement", "ai_feedback"):
+        value = (analysis.get(key) or "").strip()
+        if value:
+            sections[key] = value
+    checklist = analysis.get("next_checklist") or []
+    if checklist:
+        sections["checklist"] = " / ".join(str(item) for item in checklist)
+
+    category = note.problem.category.name if note.problem.category_id else ""
+    algo_tags = [tag.name for tag in note.tags.all()]
+    return sections, category, algo_tags
 
 
 def embed_wrong_note(note) -> dict:
-    """Index a saved wrong note through FastAPI and update local vector metadata."""
+    """Index a saved wrong note through FastAPI (v1: 섹션 멀티 청킹) and update vector meta."""
+    sections, category, algo_tags = build_wrong_note_sections(note)
     payload = {
         "wrong_note_id": note.id,
         "user_id": note.user_id,
-        "content": build_wrong_note_index_content(note),
         "problem_title": note.problem.title,
+        "category": category,
+        "algo_tags": algo_tags,
+        "sections": sections,
     }
     result = call_fastapi(
         user=note.user,
@@ -132,9 +142,11 @@ def analyze_wrong_note(note) -> dict:
         )
         result["analysis"] = {
             "problem_core": analyze.get("problem_core", ""),
-            "cause": analyze.get("cause", ""),
             "solution": analyze.get("solution", ""),
-            "caution": analyze.get("caution", ""),
+            "cause": analyze.get("cause", ""),
+            "improvement": analyze.get("improvement", ""),
+            "ai_feedback": analyze.get("ai_feedback", ""),
+            "next_checklist": analyze.get("next_checklist", []),
             "evidence": analyze.get("evidence", []),
         }
         result["analysis_status"] = analyze.get("status")

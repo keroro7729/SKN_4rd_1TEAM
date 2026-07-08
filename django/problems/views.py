@@ -131,7 +131,40 @@ class ProblemDetailView(LoginRequiredMixin, DetailView):
         ctx["sample_cases"] = sample_cases
         ctx["test_case_slots"] = slots
         ctx["is_favorited"] = ProblemFavorite.objects.filter(user=self.request.user, problem=self.object).exists()
+        ctx.update(self._pre_solve_checklist())
         return ctx
+
+    def _pre_solve_checklist(self):
+        """지난 오답노트에서 생성된 '다음 풀이 전 체크'를 문제풀이 페이지로 가져온다.
+
+        1순위: 같은 문제의 최근 오답노트, 없으면 전체 최근 오답노트에서 최신 체크리스트.
+        """
+        user = self.request.user
+
+        def pick(note):
+            if note and note.ai_analysis:
+                items = note.ai_analysis.get("analysis", {}).get("next_checklist", [])
+                if items:
+                    return list(items), note
+            return None
+
+        same = (
+            WrongNote.objects.filter(user=user, problem=self.object)
+            .order_by("-created_at")
+            .first()
+        )
+        found = pick(same)
+        source = "this_problem"
+        if not found:
+            source = "recent"
+            for note in WrongNote.objects.filter(user=user).order_by("-created_at")[:10]:
+                found = pick(note)
+                if found:
+                    break
+        if not found:
+            return {"pre_solve_checklist": [], "pre_solve_note": None, "pre_solve_source": ""}
+        items, note = found
+        return {"pre_solve_checklist": items, "pre_solve_note": note, "pre_solve_source": source}
 
 
 class ToggleFavoriteView(LoginRequiredMixin, View):

@@ -14,6 +14,7 @@ from routers import (
     health,
     hint,
     lab,
+    tutor,
     wrong_note,
     wrong_note_report,
 )
@@ -35,3 +36,4 @@ app.include_router(authoring.router)
 app.include_router(wrong_note_report.router)
 app.include_router(coding_state.router)
 app.include_router(lab.router)
+app.include_router(tutor.router)

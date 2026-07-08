@@ -130,13 +130,18 @@
       similarBox.hidden = true;
       return;
     }
-    similarBox.innerHTML = similarNotes.map((note) => `
-      <article class="evidence-card">
-        <strong>note_id ${escapeHtml(note.note_id || "-")}</strong>
-        <span>source ${escapeHtml(note.source || "wrong_notes")}</span>
-        <span>score ${escapeHtml(note.score || "-")}</span>
-      </article>
-    `).join("");
+    similarBox.innerHTML = similarNotes.map((note) => {
+      const id = note.note_id;
+      const title = escapeHtml(note.title || "오답노트");
+      const score = Number(note.score);
+      const scoreText = Number.isFinite(score) ? score.toFixed(2) : escapeHtml(note.score || "-");
+      const inner = `
+        <span class="similar-note-title">${title}</span>
+        <span class="game-chip amber">score ${scoreText}</span>`;
+      return id
+        ? `<a class="evidence-card similar-note-link" href="/wrongnotes/${encodeURIComponent(id)}/">${inner}</a>`
+        : `<article class="evidence-card">${inner}</article>`;
+    }).join("");
     similarBox.hidden = false;
     similarEmpty.hidden = true;
   };
@@ -145,16 +150,32 @@
     if (!analysisBox || !analysisEmpty) return;
     const rows = [
       ["문제 핵심", analysis.problem_core],
-      ["오답 원인", analysis.cause],
       ["풀이 과정", analysis.solution],
-      ["주의사항", analysis.caution],
+      ["오답 원인", analysis.cause],
+      ["개선 사항", analysis.improvement],
     ];
-    analysisBox.innerHTML = rows.map(([title, body]) => `
+    let html = rows.map(([title, body]) => `
       <article class="analysis-card">
         <strong>${title}</strong>
         <p>${escapeHtml(body || "아직 분석 결과가 없습니다.")}</p>
       </article>
     `).join("");
+    if (analysis.ai_feedback) {
+      html += `
+        <article class="analysis-card analysis-card-wide">
+          <strong>AI 피드백</strong>
+          <p>${escapeHtml(analysis.ai_feedback)}</p>
+        </article>`;
+    }
+    const checklist = Array.isArray(analysis.next_checklist) ? analysis.next_checklist : [];
+    if (checklist.length) {
+      html += `
+        <article class="analysis-card analysis-card-wide">
+          <strong>다음 풀이 전 체크</strong>
+          <ul class="check-list-clean">${checklist.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </article>`;
+    }
+    analysisBox.innerHTML = html;
     if (errors.length) {
       analysisBox.innerHTML += `<pre class="result-pre result-error-text">${escapeHtml(errors.map((error) => `${error.stage}: ${error.message}`).join("\n"))}</pre>`;
     }
