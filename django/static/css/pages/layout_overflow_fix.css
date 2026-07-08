@@ -290,3 +290,73 @@ img, svg, video, canvas {
     justify-content: flex-end;
   }
 }
+
+
+/* AVATAR_SHOP_LAYOUT_OVERRIDE_V57
+   layout_overflow_fix.css가 뒤에서 로드되어도 상점이 다시 3열로 돌아가지 않도록 최종 덮어쓰기 */
+@media (min-width: 1321px) {
+  .profile-avatar-modal-card {
+    width: min(1500px, calc(100vw - 36px)) !important;
+    max-width: 1500px !important;
+  }
+
+  .profile-avatar-popup-grid,
+  .avatar-shop-grid,
+  .profile-avatar-grid,
+  .animal-shop-grid {
+    grid-template-columns: repeat(7, minmax(128px, 1fr)) !important;
+  }
+}
+
+@media (max-width: 1320px) and (min-width: 921px) {
+  .profile-avatar-popup-grid,
+  .avatar-shop-grid,
+  .profile-avatar-grid,
+  .animal-shop-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 920px) and (min-width: 561px) {
+  .profile-avatar-popup-grid,
+  .avatar-shop-grid,
+  .profile-avatar-grid,
+  .animal-shop-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+
+/* AVATAR_SHOP_LAST_OVERRIDE_V58
+   layout_overflow_fix.css는 base에서 가장 뒤에 로드되므로 여기서 최종 강제 */
+.profile-avatar-modal-card {
+  width: min(1560px, calc(100vw - 28px)) !important;
+  max-width: 1560px !important;
+}
+
+.profile-avatar-popup-grid {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  grid-template-columns: none !important;
+  gap: 10px !important;
+  overflow-x: visible !important;
+  padding: 0 18px 18px !important;
+}
+
+.profile-avatar-popup-card {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  min-height: 196px !important;
+  padding: 12px 8px !important;
+}
+
+@media (max-width: 980px) {
+  .profile-avatar-popup-grid {
+    overflow-x: auto !important;
+  }
+
+  .profile-avatar-popup-card {
+    flex: 0 0 132px !important;
+  }
+}
