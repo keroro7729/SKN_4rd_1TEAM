@@ -51,7 +51,7 @@
       <span class="panel-kicker">오답 회고</span>
       <h2>내 실수 패턴 찾기</h2>
       <p>작성한 오답노트를 RAG 기반 AI가 분석해, 내가 자주 틀리는 이유와 취약 개념을 근거와 함께 짚어드립니다.</p>
-      <a class="game-mini-btn ghost" href="{% url 'wrongnotes:ask' %}">내 노트 질의</a>
+      <a class="game-mini-btn ghost" href="{% url 'wrongnotes:list' %}">오답노트 보기</a>
     </article>
     <article class="game-panel quick-panel accent-warning">
       <span class="panel-kicker">성장 관리</span>
@@ -68,49 +68,5 @@
     <div class="home-guide-step"><strong>AI 복습</strong><span>RAG 근거로 취약 개념 분석 → 맞춤 복습 추천</span></div>
   </section>
 
-  <div class="game-dashboard-grid home-dashboard">
-    {% if not user.is_authenticated %}
-    <section class="game-panel game-span-12 accent-cyan">
-      <div class="game-panel-head"><div><h2>WOOK'S CODING 핵심 기능</h2><p>회원가입 후 문제 풀이와 오답노트 기능을 사용할 수 있습니다.</p></div></div>
-      <div class="feature-pill-grid">
-        <span class="game-chip green">AI 단계별 힌트</span><span class="game-chip cyan">오답노트 RAG</span><span class="game-chip purple">과거 코드 회고</span><span class="game-chip amber">미션/포인트</span>
-      </div>
-    </section>
-    {% endif %}
-
-    <section class="game-panel game-span-6">
-      <div class="game-panel-head">
-        <div>
-          <h2>공지사항</h2>
-          <p>서비스 안내와 업데이트를 확인합니다.</p>
-        </div>
-      </div>
-      <div class="game-list dense-list">
-        {% for n in notices|slice:":4" %}
-          <div class="game-row">
-            <span>{{ n.title|truncatechars:36 }}</span>
-            <span class="game-chip">{{ n.created_at|date:"m.d" }}</span>
-          </div>
-        {% empty %}
-          <p class="game-empty">등록된 공지사항이 없습니다.</p>
-        {% endfor %}
-      </div>
-    </section>
-
-    <section class="game-panel game-span-6 accent-purple">
-      <div class="game-panel-head">
-        <div>
-          <h2>오늘의 미션</h2>
-          <p>짧게 달성할 수 있는 학습 목표입니다.</p>
-        </div>
-      </div>
-      <div class="game-list dense-list">
-        {% for m in missions|slice:":4" %}
-          <div class="game-row"><span>{{ m.title|truncatechars:32 }}</span><span class="game-chip amber">+{{ m.reward_point }}P</span></div>
-        {% empty %}<p class="game-empty">미션을 완료하면 포인트를 얻고 프로필 동물을 해금할 수 있어요!</p>{% endfor %}
-      </div>
-      <p class="mission-teaser">문제를 풀수록 포인트가 쌓이고, 강아지 → 여우 → 판다 → 드래곤까지 프로필이 진화합니다.</p>
-    </section>
-  </div>
 </section>
 {% endblock %}

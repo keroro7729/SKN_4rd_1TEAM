@@ -14,6 +14,7 @@
   const similarEmpty = document.getElementById("similar-empty");
   const analysisBox = document.getElementById("ai-analysis");
   const analysisEmpty = document.getElementById("analysis-empty");
+  const feedbackLoading = document.getElementById("feedback-loading");
   const historyView = document.getElementById("history-code-view");
   const feedbackCloseButtons = Array.from(document.querySelectorAll("[data-feedback-close]"));
 
@@ -118,7 +119,9 @@
       document.querySelectorAll(".history-item").forEach((item) => item.classList.remove("is-active"));
       btn.classList.add("is-active");
       const template = document.getElementById(btn.dataset.codeTemplate);
-      historyView.textContent = template ? template.textContent.trim() : "코드가 없습니다.";
+      // <template> 요소의 내용은 .content(DocumentFragment)에 들어있어 textContent 가 비어있다.
+      const code = template ? (template.content || template).textContent.trim() : "";
+      historyView.textContent = code || "코드가 없습니다.";
     });
   });
 
@@ -197,8 +200,9 @@
     savedReflection.textContent = comment;
     renderSimilar([]);
     analysisBox.hidden = true;
-    analysisEmpty.hidden = false;
+    analysisEmpty.hidden = true;
     analysisEmpty.textContent = "AI 분석 결과를 기다리는 중입니다.";
+    if (feedbackLoading) feedbackLoading.hidden = false;
 
     try {
       const response = await fetch(window.location.pathname, {
@@ -222,8 +226,10 @@
       statusText.textContent = `저장 완료 · note_id ${data.wrong_note_id} · ${data.status}`;
     } catch (error) {
       statusText.textContent = error.message;
+      analysisEmpty.hidden = false;
       analysisEmpty.textContent = "AI 분석을 불러오지 못했습니다.";
     } finally {
+      if (feedbackLoading) feedbackLoading.hidden = true;
       saveBtn.disabled = false;
     }
   });

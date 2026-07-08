@@ -3,7 +3,7 @@
 {% block title %}오답노트 작성 · WOOK'S CODING{% endblock %}
 
 {% block extra_head %}
-<link rel="stylesheet" href="{% static 'css/pages/wrongnote_tabs.css' %}?v=wrongnote-feedback-modal-v36">
+<link rel="stylesheet" href="{% static 'css/pages/wrongnote_tabs.css' %}?v=wrongnote-feedback-modal-v37">
 {% endblock %}
 
 
@@ -264,6 +264,10 @@
         </header>
 
         <div class="feedback-stack wn2-feedback-stack wn2-modal-body">
+          <div id="feedback-loading" class="feedback-loading" hidden>
+            <div class="feedback-loading-bar" role="progressbar" aria-label="AI 분석 진행 중"><span></span></div>
+            <p class="feedback-loading-text">AI가 유사 오답노트를 찾고 오답 원인을 분석하고 있습니다…<br>잠시만 기다려주세요.</p>
+          </div>
           <article class="feedback-card">
             <h3>유사 오답노트 RAG</h3>
             <div id="similar-notes" class="evidence-list" hidden></div>
@@ -287,5 +291,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'js/wrongnote_form.js' %}?v=wrongnote-feedback-modal-v36"></script>
+<script src="{% static 'js/wrongnote_form.js' %}?v=wrongnote-feedback-modal-v37"></script>
 {% endblock %}

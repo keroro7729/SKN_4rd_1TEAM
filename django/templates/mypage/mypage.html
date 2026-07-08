@@ -21,7 +21,6 @@
       <p class="game-sub">현재 Lv.{{ user.level_number }} {{ user.level_name }} · {{ user.point }}P · 프로필을 누르면 동물 상점이 열립니다.</p>
       <div class="account-quick-actions">
         <a class="account-edit-btn" href="{% url 'mypage:account_verify' %}">회원 정보 수정</a>
-        <span class="account-email-chip">{{ user.email|default:"이메일 미등록" }}</span>
       </div>
     </div>
     <button type="button" class="player-avatar profile-avatar-page-trigger profile-frame profile-frame-level-{{ user.level_number }}" data-avatar-modal-open aria-label="동물 프로필 변경">

@@ -415,6 +415,48 @@
   gap: 12px;
   margin-top: 12px;
 }
+
+/* AI 피드백 생성 대기 로딩바 */
+.feedback-loading {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 12px;
+  padding: 20px 16px;
+  border: 1px solid rgba(148,163,184,.15);
+  border-radius: 14px;
+  background: rgba(4, 9, 14, .42);
+  text-align: center;
+}
+.feedback-loading-bar {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(148,163,184,.18);
+}
+.feedback-loading-bar > span {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 40%;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--green), var(--cyan));
+  animation: feedback-loading-slide 1.15s ease-in-out infinite;
+}
+.feedback-loading-text {
+  margin: 0;
+  color: var(--muted);
+  font-size: .9rem;
+  line-height: 1.6;
+}
+@keyframes feedback-loading-slide {
+  0%   { left: -40%; }
+  100% { left: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feedback-loading-bar > span { animation-duration: 2.4s; }
+}
 .feedback-card {
   padding: 14px;
   border: 1px solid rgba(148,163,184,.15);

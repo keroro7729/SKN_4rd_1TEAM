@@ -14,7 +14,7 @@ from config.pagination import build_pagination_context
 from gamification.services import record_user_action
 from submissions.models import Submission
 
-from .models import WrongNote, WrongNoteQueryLog
+from .models import WrongNote
 from .services import FastAPIClientError, analyze_wrong_note, call_fastapi, embed_wrong_note
 
 
@@ -259,73 +259,6 @@ class WrongNoteCreateView(LoginRequiredMixin, TemplateView):
                 "list_url": "/wrongnotes/",
             },
             status=201,
-        )
-
-
-class NoteAskView(LoginRequiredMixin, TemplateView):
-    """Ask questions against the authenticated user's wrong notes."""
-
-    template_name = "wrongnotes/note_ask.html"
-
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx["recent_logs"] = WrongNoteQueryLog.objects.filter(
-            user=self.request.user
-        ).order_by("-created_at")[:5]
-        ctx["initial_question"] = (self.request.GET.get("q") or "").strip()
-        ctx["suggested_questions"] = [
-            "내가 어떤 문제 유형에서 자주 틀렸지?",
-            "최근 반복되는 실수 패턴은?",
-            "그래프 문제 약점 정리해줘",
-        ]
-        return ctx
-
-    def post(self, request, *args, **kwargs):
-        try:
-            payload = json.loads(request.body.decode("utf-8") or "{}")
-        except json.JSONDecodeError:
-            return JsonResponse(
-                {"ok": False, "error_message": "invalid_json"},
-                status=400,
-            )
-
-        question = (payload.get("question") or "").strip()
-        if not question:
-            return JsonResponse(
-                {"ok": False, "error_message": "질문을 입력하세요."},
-                status=400,
-            )
-
-        try:
-            result = call_fastapi(
-                user=request.user,
-                request_type="note_ask",
-                path="/ai/wrong-note/ask",
-                payload={"user_id": request.user.id, "question": question},
-            )
-        except FastAPIClientError as exc:
-            return JsonResponse(
-                {"ok": False, "error_message": str(exc)},
-                status=502,
-            )
-
-        log = WrongNoteQueryLog.objects.create(
-            user=request.user,
-            query=question,
-            answer=result.get("answer", ""),
-            evidence_note_ids=result.get("evidence_note_ids", []),
-            scores=result.get("scores", []),
-        )
-        return JsonResponse(
-            {
-                "ok": True,
-                "query_log_id": log.id,
-                "status": result.get("status"),
-                "answer": log.answer,
-                "evidence_note_ids": log.evidence_note_ids,
-                "scores": log.scores,
-                "request_id": result.get("request_id"),
-            }
         )
 
 

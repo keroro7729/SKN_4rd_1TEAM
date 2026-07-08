@@ -9,7 +9,7 @@ from gamification.models import PointLog
 from problems.models import Problem, ProblemCategory
 from submissions.models import Submission
 
-from .models import WrongNote, WrongNoteQueryLog
+from .models import WrongNote
 
 
 class WrongNoteCreateTests(TestCase):
@@ -129,29 +129,6 @@ class WrongNoteCreateTests(TestCase):
         response = self.client.get(reverse("wrongnotes:detail", args=[note.id]))
 
         self.assertEqual(response.status_code, 404)
-
-    @patch("wrongnotes.views.call_fastapi")
-    def test_note_ask_saves_query_log(self, mock_call):
-        mock_call.return_value = {
-            "status": "success",
-            "answer": "근거 답변",
-            "evidence_note_ids": [1],
-            "scores": [0.9],
-            "request_id": "test-request",
-        }
-
-        response = self.client.post(
-            reverse("wrongnotes:ask"),
-            data=json.dumps({"question": "내가 자주 틀리는 부분은?"}),
-            content_type="application/json",
-        )
-
-        self.assertEqual(response.status_code, 200)
-        body = response.json()
-        self.assertTrue(body["ok"])
-        query_log = WrongNoteQueryLog.objects.get(pk=body["query_log_id"])
-        self.assertEqual(query_log.answer, "근거 답변")
-        self.assertEqual(query_log.evidence_note_ids, [1])
 
     def test_review_wrong_note_awards_points_once(self):
         note = WrongNote.objects.create(
