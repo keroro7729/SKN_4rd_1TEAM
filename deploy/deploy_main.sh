@@ -4,7 +4,7 @@
 #   사용: deploy/deploy_main.sh [branch] [-y]
 #     branch : 배포 대상 브랜치 (기본 main)
 #     -y     : 커밋 안 된 변경이 있어도 강제로 reset --hard 진행
-set -euo pipefail
+set -Eeuo pipefail
 
 COMPOSE_FILE="compose/main.yml"
 BRANCH="main"
@@ -21,6 +21,7 @@ done
 cd "$(dirname "$0")/.."
 # shellcheck source=deploy/_lib.sh
 . "deploy/_lib.sh"
+install_error_trap   # 이제부터 어떤 실패도 '조용히' 넘어가지 않고 위치를 출력한다
 
 echo "▶ [APP] repo=$(pwd) | branch=$BRANCH | compose=$COMPOSE_FILE"
 
@@ -41,4 +42,5 @@ require_debug_false
 env_check_end
 
 compose_up "$COMPOSE_FILE"
+verify_app "$COMPOSE_FILE"
 echo "✔ [APP] 배포 완료 — http://<앱서버 도메인/EIP>/"

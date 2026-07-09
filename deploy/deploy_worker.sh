@@ -4,7 +4,7 @@
 #   사용: deploy/deploy_worker.sh [branch] [-y]
 #     branch : 배포 대상 브랜치 (기본 main)
 #     -y     : 커밋 안 된 변경이 있어도 강제로 reset --hard 진행
-set -euo pipefail
+set -Eeuo pipefail
 
 COMPOSE_FILE="compose/worker.yml"
 BRANCH="main"
@@ -20,6 +20,7 @@ done
 cd "$(dirname "$0")/.."
 # shellcheck source=deploy/_lib.sh
 . "deploy/_lib.sh"
+install_error_trap   # 실패를 조용히 넘기지 않고 위치를 출력
 
 echo "▶ [WORKER] repo=$(pwd) | branch=$BRANCH | compose=$COMPOSE_FILE"
 
