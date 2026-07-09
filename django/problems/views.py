@@ -10,6 +10,7 @@ from submissions.models import Submission
 from wrongnotes.models import WrongNote
 
 from .models import Problem, ProblemFavorite
+from .services.recommend import recommend_problems
 
 
 class ProblemListView(LoginRequiredMixin, ListView):
@@ -87,6 +88,7 @@ class ProblemListView(LoginRequiredMixin, ListView):
             "note_count": WrongNote.objects.filter(user=user).count(),
         }
         ctx["recent_submissions"] = user_submissions.select_related("problem").order_by("-created_at")[:4]
+        ctx["recommended_problems"] = recommend_problems(user, limit=5)
         ctx["today_problem"] = (
             Problem.objects.filter(is_active=True)
             .select_related("category")

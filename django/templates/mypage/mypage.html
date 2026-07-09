@@ -87,16 +87,20 @@
         </section>
 
         <section class="game-panel accent-warning">
-          <div class="game-panel-head"><h2>이번 주 미션</h2></div>
+          <div class="game-panel-head">
+            <div>
+              <h2>추천 문제</h2>
+              <p>취약 유형 우선 · 아직 안 푼 문제</p>
+            </div>
+          </div>
           <div class="game-list">
-            {% for um in user_missions|slice:":4" %}
-              <div class="mission-row">
-                <strong>{{ um.mission.title }}</strong>
-                <span class="hint-note">{{ um.progress_count }} / {{ um.mission.target_count }}</span>
-                <div class="progress-bar"><span style="width:{% widthratio um.progress_count um.mission.target_count 100 %}%"></span></div>
-              </div>
+            {% for rec in recommended_problems %}
+              <a class="game-row" href="{% url 'problems:detail' rec.problem.id %}">
+                <span>{{ rec.problem.title|truncatechars:26 }}</span>
+                <span class="game-chip {% if rec.reason == '취약 유형 보강' %}amber{% else %}cyan{% endif %}">{{ rec.reason }}</span>
+              </a>
             {% empty %}
-              <p class="game-empty">진행 중인 미션이 없습니다.</p>
+              <p class="game-empty">추천할 문제가 없어요. 새 문제에 도전해보세요!</p>
             {% endfor %}
           </div>
         </section>

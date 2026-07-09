@@ -53,7 +53,7 @@
     </section>
 
     <aside class="problem-side-stack clean-side-stack">
-      <section class="game-panel accent-cyan"><div class="game-panel-head"><div><h2>추천 퀘스트</h2><p>바로 시작하기 좋은 문제입니다.</p></div></div><div class="game-list dense-list">{% for p in recommended_problems %}<a class="game-row" href="{% url 'problems:detail' p.id %}"><span>{{ p.id }}번 {{ p.title|truncatechars:24 }}</span><span class="game-chip">{{ p.category.name }}</span></a>{% empty %}<p class="game-empty">추천할 문제가 없습니다.</p>{% endfor %}</div></section>
+      <section class="game-panel accent-cyan"><div class="game-panel-head"><div><h2>추천 퀘스트</h2><p>취약 유형 우선 · 아직 안 푼 문제</p></div></div><div class="game-list dense-list">{% for rec in recommended_problems %}<a class="game-row" href="{% url 'problems:detail' rec.problem.id %}"><span>{{ rec.problem.id }}번 {{ rec.problem.title|truncatechars:22 }}</span><span class="game-chip {% if rec.reason == '취약 유형 보강' %}amber{% else %}cyan{% endif %}">{{ rec.reason }}</span></a>{% empty %}<p class="game-empty">추천할 문제가 없어요. 새 문제에 도전해보세요!</p>{% endfor %}</div></section>
       <section class="game-panel accent-warning"><div class="game-panel-head"><div><h2>최근 오답노트</h2><p>복습 후 다시 풀어보세요.</p></div></div><div class="game-list dense-list">{% for note in recent_wrong_notes %}<a class="game-row" href="{% url 'wrongnotes:detail' note.id %}"><span>{{ note.problem.title|truncatechars:26 }}</span><span class="badge badge-status-{{ note.status }}">{{ note.get_status_display }}</span></a>{% empty %}<p class="game-empty">아직 오답노트가 없습니다.</p>{% endfor %}</div></section>
     </aside>
   </div>

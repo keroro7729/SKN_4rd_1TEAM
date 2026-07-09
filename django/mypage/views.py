@@ -15,6 +15,7 @@ from django.views.generic import FormView, TemplateView
 
 from accounts.models import AccountChangeLog
 from gamification.models import PointLog, UserMission
+from problems.services.recommend import recommend_problems
 from submissions.models import Submission
 from wrongnotes.models import WrongNote
 
@@ -133,6 +134,7 @@ class MyPageView(LoginRequiredMixin, TemplateView):
             .select_related("problem")
             .order_by("-created_at")[:5]
         )
+        ctx["recommended_problems"] = recommend_problems(user, limit=4)
         return ctx
 
 
