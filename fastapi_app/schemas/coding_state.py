@@ -14,6 +14,7 @@ class CodingStateRequest(BaseModel):
 class CodingStateResponse(InternalResponse):
     status: LLMStatus = LLMStatus.success
     summary: str = ""
+    thinking_profile: str = ""
     level: str = ""
     strengths: List[str] = []
     weaknesses: List[str] = []

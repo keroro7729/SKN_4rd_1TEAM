@@ -59,6 +59,30 @@ WOOK'S CODING — AI 기반 코딩 학습 웹앱 (SKN 4차 프로젝트). 문제
 - ⚠️ `postgres`가 host에 `5432` 노출 중 → **EC2 배포 시 닫을 것**.
 - 상세: `llm_wiki/4. WOOKS_CODING_데이터_소유권_및_의존구조_v0.1.md`
 
+## coding_state (사용자 상태 메모리) ⚠️
+
+AI가 사용자별 학습 상태를 요약해 보관하는 **공유 컨텍스트(메모리)**. 힌트·튜터·오답분석의 개인화 기반. `codingstate` 앱(`CodingState` 모델, 사용자당 1행 `OneToOne`). **사용자에게 직접 노출 금지** — AI 프롬프트 참고용.
+
+- **필드**: `summary`(진단 요약) · **`thinking_profile`(사고 추적 메모리: 사고/디버깅 방식)** · `level`(입문/초급/중급/고급) · `strengths`/`weaknesses`/`recurring_mistakes`/`recommended_focus`(JSON list) · `stats_snapshot`(집계 원본) · `source_submission_count`(staleness 기준) · **`refresh_count`(갱신 횟수)**.
+- **입력(사고 추적)**: 집계 통계 + **`recent_code`(최근 제출 코드 스니펫) · `retrospections`(오답 회고 코멘트·AI `cause` 원문) · `recent_questions`(미니튜터 질문, `LLMRequestLog`)** + 롤링 메모리(`previous_summary`·`previous_thinking`). 크기 제한: 코드 600자·회고 300자·질문 200자, 최근 N건.
+- **흐름**: Django `gather_stats`(결정적 집계 + 위 사고 입력) → `refresh()`가 직전 메모리 첨부 → FastAPI `/ai/coding-state/summarize`(`gpt-4o-mini`, JSON, **롤링/델타 갱신**) → `update_or_create` 저장 → `get_prompt_context(user)`로 힌트/튜터/오답분석 payload의 `coding_state` 키에 주입(`thinking_profile` 포함).
+- **갱신 트리거**: ① 실시간 훅 `ensure_fresh(user)`(오답노트 완료 시, 신규 제출 5건 게이트) ② **배치** `codingstate.services.batch_refresh(...)` = 신규 활동 쌓인 사용자만 골라 갱신(스케줄/오프라인). 명령: `python manage.py refresh_coding_state --stale [--min-new N] [--limit N]` / `--all`(강제) / `<user_id>`(단일).
+- ⚠️ `refresh()`/`batch_refresh()`는 사용자당 FastAPI(LLM) **동기 호출(최대 90s)** → **요청 스레드에서 배치 호출 금지**, 크론/관리 명령 전용. `batch_refresh`는 집계 2쿼리로 stale 판별 후 `limit`으로 LLM 호출 수 상한.
+- 상세: `llm_wiki/11. WOOKS_CODING_AI_Agent_구조_및_핵심기술_v0.1.md` §4.2.
+
+### coding_state 고도화 — 구현 완료 항목
+
+아래는 모두 **구현됨**(사고 추적 메모리 + 요약 메모리 연속성):
+
+1. ✅ **제출 코드 반영** — `gather_stats._recent_code`(최근 4건, 600자 truncate) → 코딩 스타일·패턴 추론.
+2. ✅ **질문 로그 반영** — `_recent_questions`(`LLMRequestLog` `tutor_chat` 최근 5건) → 막히는 지점·오해 추적.
+3. ✅ **오답 회고 원문 기반** — `_retrospections`(회고 코멘트 + AI `cause` 원문).
+4. ✅ **사고 과정 추론** — FastAPI가 위 입력으로 `thinking_profile`(가설 세우는 방식·디버깅 습관·개념 공백) 생성.
+5. ✅ **요약 메모리 연속성(rolling)** — `previous_summary`/`previous_thinking`를 프롬프트에 넣어 **변화점 위주 델타 갱신**(처음부터 새로 쓰지 않음).
+6. ✅ **시스템 프롬프트 강화** — 근거 인용·직전 대비 변화점 우선·희박 데이터 과장 금지·메모리 일관성.
+
+> ⚠️ 로그/코드가 프롬프트에 들어가므로 **PII·payload 크기** 주의(현재 truncate로 제한). 향후: 정답 diff 기반 코드 요약, 질문 클러스터링, `thinking_profile` 신뢰도 표기 등은 추가 고도화 여지.
+
 ## 볼륨(호스트 바인드 마운트) 디렉토리 — `volumes/`
 
 호스트에 보존되는 바인드 마운트는 모두 `volumes/` 아래로 모은다(named volume 인 pgdata/chromadata/staticfiles 와 별개).
@@ -150,5 +174,6 @@ docker compose down                # (down -v : DB까지 삭제)
 - `8. ...테스트케이스_생성_에이전트_v0.1.md` — 정답코드/제너레이터 기반 TC 생성 에이전트(worker code_eval 위임, dry-run)
 - `9. ...오답노트_AI리포트_useflow_및_RAG설계_v0.1.md` — 오답노트 작성/AI리포트 분리, **2단계 RAG 에이전트**, WrongNoteReport 모델·RAG 문서구조 초안
 - `10. ...오답노트_RAG_리트리빙_고도화_v0_vs_v1_성능평가.md` — 리트리빙 v1(섹션 멀티청킹+mean/max 집계, 노이즈 제외, OpenAI 임베딩) 구현·**성능평가**. RAG 임베딩은 `text-embedding-3-small`(해시 폴백), 컬렉션은 임베더별 버저닝(`wrong_note_embeddings-<sig>`). 평가: `python -m services.rag_eval`
+- `11. ...AI_Agent_구조_및_핵심기술_v0.1.md` — 5개 Agent(테스트케이스·coding_state·힌트·오답노트+RAG·미니튜터) 실측 구조·협업. **LangGraph 미사용**(직접 OpenAI+절차적 오케스트레이션), coding_state 상세는 §4.2.
 - 지시문 v0.7 §5는 Django 앱을 레포 루트에 두는 구조였으나, **venv 분리 위해 `django/` 하위로 승격**함.
   app 이름·endpoint path 등 내부 규칙은 지시문을 그대로 따른다.

@@ -15,6 +15,7 @@ class CodingState(models.Model):
         verbose_name="회원",
     )
     summary = models.TextField("AI 요약", blank=True)
+    thinking_profile = models.TextField("사고 추적 메모리", blank=True)
     level = models.CharField("추정 수준", max_length=30, blank=True)
     strengths = models.JSONField("강점", default=list, blank=True)
     weaknesses = models.JSONField("약점", default=list, blank=True)
@@ -22,6 +23,7 @@ class CodingState(models.Model):
     recommended_focus = models.JSONField("학습 방향", default=list, blank=True)
     stats_snapshot = models.JSONField("집계 스냅샷", default=dict, blank=True)
     source_submission_count = models.PositiveIntegerField("기준 제출 수", default=0)
+    refresh_count = models.PositiveIntegerField("갱신 횟수", default=0)
     model = models.CharField("모델", max_length=64, blank=True)
     created_at = models.DateTimeField("생성", auto_now_add=True)
     updated_at = models.DateTimeField("갱신", auto_now=True)
