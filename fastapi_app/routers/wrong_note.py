@@ -4,8 +4,6 @@ from fastapi import APIRouter, Depends
 import config
 from schemas.common import LLMStatus
 from schemas.wrong_note import (
-    NoteAskRequest,
-    NoteAskResponse,
     WrongNoteAnalyzeRequest,
     WrongNoteAnalyzeResponse,
     WrongNoteEmbedRequest,
@@ -105,43 +103,4 @@ async def embed(req: WrongNoteEmbedRequest, ctx=Depends(verify_internal)):
         request_id=ctx["request_id"],
         status=LLMStatus.success,
         **out,
-    )
-
-
-@router.post("/ask", response_model=NoteAskResponse)
-async def ask(req: NoteAskRequest, ctx=Depends(verify_internal)):
-    """내 노트에 물어보기 (본인 노트만, 근거 note_id 포함)."""
-    evidence = chroma.search_user_notes(req.user_id, req.question)
-    if not evidence:
-        log_ai_event("note_ask", user_id=req.user_id, hits=0)
-        return NoteAskResponse(
-            request_id=ctx["request_id"],
-            status=LLMStatus.empty,
-            message="not_enough_evidence",
-            answer="",
-            evidence_note_ids=[],
-            scores=[],
-        )
-    try:
-        answer = await llm.answer_from_notes(req.question, evidence)
-    except (LLMNotImplementedError, LLMCallError) as exc:
-        msg = "not_implemented" if isinstance(exc, LLMNotImplementedError) else str(exc)
-        log_ai_event(
-            "note_ask", user_id=req.user_id, hits=len(evidence), status="failed"
-        )
-        return NoteAskResponse(
-            request_id=ctx["request_id"],
-            status=LLMStatus.failed,
-            message=msg,
-            answer="",
-            evidence_note_ids=[e.note_id for e in evidence],
-            scores=[e.score for e in evidence],
-        )
-    log_ai_event("note_ask", user_id=req.user_id, hits=len(evidence))
-    return NoteAskResponse(
-        request_id=ctx["request_id"],
-        status=LLMStatus.success if evidence else LLMStatus.empty,
-        answer=answer,
-        evidence_note_ids=[e.note_id for e in evidence],
-        scores=[e.score for e in evidence],
     )

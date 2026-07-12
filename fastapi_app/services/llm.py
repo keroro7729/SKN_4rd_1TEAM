@@ -1,8 +1,4 @@
-"""OpenAI 연동 (오답노트 분석·내 노트 질의). 힌트는 아직 미구현(스텁).
-
-analyze_wrong_note / answer_from_notes 는 실제 OpenAI 호출.
-generate_hint 는 STEP-06 담당 전까지 not_implemented.
-"""
+"""OpenAI 연동 (힌트·오답노트 분석·미니튜터 등). 전부 실제 OpenAI 호출."""
 from __future__ import annotations
 
 import json
@@ -250,24 +246,3 @@ async def tutor_reply(
     return (resp.choices[0].message.content or "").strip()
 
 
-_ASK_SYSTEM = (
-    "You are a study assistant answering questions about the user's OWN past wrong-note "
-    "records. Answer in KOREAN, grounded ONLY in the provided evidence notes; if evidence "
-    "is thin, say so honestly. Never fabricate note contents."
-)
-
-
-async def answer_from_notes(question: str, evidence: list[Evidence]) -> str:
-    """내 오답노트 근거 기반 자연어 답변 (근거 없는 단정 금지)."""
-    ev = "\n".join(
-        f"- note_id {e.note_id} ({e.title or ''}) score {e.score}" for e in evidence
-    ) or "(근거 노트 없음)"
-    user = f"""질문: {question}
-
-근거가 되는 내 오답노트 목록:
-{ev}
-
-위 근거를 바탕으로 한국어로 답하라. 근거가 부족하면 솔직히 밝혀라.
-JSON 객체 {{"answer": string}} 형태로만 답하라."""
-    data = await _chat_json(_ASK_SYSTEM, user)
-    return str(data.get("answer") or "")

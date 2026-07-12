@@ -63,16 +63,3 @@ class WrongNoteEmbedResponse(InternalResponse):
     embedding_id: Optional[str] = None
     indexed_at: Optional[str] = None
     chunk_count: int = 0
-
-
-# --- /ai/wrong-note/ask (내 노트에 물어보기) ---
-class NoteAskRequest(BaseModel):
-    user_id: int
-    question: str
-
-
-class NoteAskResponse(InternalResponse):
-    status: LLMStatus = LLMStatus.success
-    answer: str = ""
-    evidence_note_ids: List[int] = Field(default_factory=list)
-    scores: List[float] = Field(default_factory=list)

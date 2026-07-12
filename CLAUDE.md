@@ -217,16 +217,18 @@ docker compose down                # (down -v : DB까지 삭제)
 | `/analyze` ← RAG 근거 주입 | ⚠️ 부분 | search/analyze 독립 호출, analyze 프롬프트엔 `evidence=[]` |
 | 자동화 테스트 | ⚠️ 부분 | django 6개 앱만 `tests.py`, FastAPI·worker·4개 앱 없음 |
 
-### 정리 대상 (미사용 · 고아 · stale)
+### 정리 대상 (미사용 · 고아 · stale) — 2026-07 처리 완료
 
-> 신규 작업이나 발표 前 정리 권장. 실측 확인됨.
+| # | 항목 | 처리 |
+|---|---|---|
+| 1 | `fastapi_app/agents/langgraph_agents.py` (미사용 스텁) | ✅ **삭제**(`agents/` 패키지 통째 제거, import처 0 확인) |
+| 2 | `fastapi_app/services/prompts.py` (미사용 스텁) | ✅ **삭제**(import처 0, 실제 프롬프트는 `llm.py` 등에 하드코딩) |
+| 3 | `health.py`의 `llm_status:"not_implemented"`·`rag_status:"vector_index_only"` | ✅ **실제 상태 반영**(`OPENAI_API_KEY`·`RAG_EMBED_BACKEND` 기반 동적 산출 + `embed_model/backend` 추가) |
+| 4 | `/ai/wrong-note/report` (2단계 RAG, Django 미배선 고아) | ⏸️ **기능 보존 + 미배선 명시**(라우터 docstring에 백로그 표기). 웹 배선은 FR-RAG-004로 잔존 |
+| 5 | `/ai/wrong-note/ask` (내 노트 질의) | ✅ **완전 제거** — 미니튜터(`tutor/chat`)로 대체된 기능. FastAPI(엔드포인트·`NoteAsk*` 스키마·`llm.answer_from_notes`·`_ASK_SYSTEM`·lab `ask.*` 노드) + Django(`ai_proxy` url·`note_ask` view) 삭제. `config/choices.py`의 `("note_ask","내노트질의")` 라벨은 **과거 LLMRequestLog 표시용으로 존치**(마이그레이션 churn 회피). ⚠️ 요구사항 정의서 §6.2·FR-RAG-003이 아직 이 기능을 참조 → 문서 동기화 필요 |
+| 6 | `05_테스트계획및결과보고서`의 "FastAPI + LangGraph" 오기 | ✅ **정정**("LangGraph 미사용 · 절차적") |
 
-1. **`fastapi_app/agents/langgraph_agents.py`** — `NotImplementedError` 스텁, `main.py`에서 import조차 안 됨. **완전 사문(死文)** → 삭제 또는 "미사용" 주석 명시.
-2. **`fastapi_app/services/prompts.py`** — 어디서도 import 안 됨(실제 프롬프트는 `llm.py`·`authoring.py`·`coding_state.py`·`wrong_note_report.py`에 하드코딩). → 삭제 또는 실제 사용처로 통합.
-3. **`fastapi_app/routers/health.py`의 `llm_status:"not_implemented"`, `rag_status:"vector_index_only"`** — 옛 하드코딩 문자열. LLM/RAG 실제 동작 중 → 실제 상태로 갱신.
-4. **`/ai/wrong-note/report`(2단계 RAG 리포트)** — `main.py` 등록됐으나 **Django 호출자 없음(고아)**. 배선하거나 명시적 보류 표기.
-5. **`/ai/wrong-note/ask`** — 프론트 UI는 제거됐으나 `ai_proxy` 프록시 라우트(`wrong-note/ask/`)+FastAPI 엔드포인트 잔존 → 유지/삭제 결정.
-6. **`05_..._테스트계획및결과보고서`의 "FastAPI + LangGraph" 오기** — 문서 11과 맞춰 정정.
+> 참고: `services/lab.py`의 "그래프(get_graph)"는 AI 실험실(FR-ADM-003)용 **손수 만든 서술 그래프**(실제 서비스 프롬프트 import)로, 삭제한 LangGraph 스텁과 무관하게 **정상 사용 중**이다.
 
 ---
 
@@ -244,10 +246,31 @@ docker compose down                # (down -v : DB까지 삭제)
 - [ ] `health.py` 상태 문자열을 실제 구현 기준으로 갱신.
 - [ ] `/report`·`/ask` 고아 엔드포인트: 배선 or 보류 결정.
 
-**C. 테스트 보강 (최소한)**
-- [ ] **FastAPI 스모크 테스트** — `/ai/health`, 주요 라우터 인증(`verify_internal`) 401, 스키마 검증(현재 fastapi_app 테스트 0).
-- [ ] Django 미커버 앱(`accounts`·`mypage`) 핵심 경로 최소 테스트.
-- [ ] (선택) worker 채점 로직 단위 테스트.
+**C. 테스트 보강 (최소한) — 추가할 테스트 코드 명세**
+
+> 원칙: **외부 의존(OpenAI 실호출·ChromaDB 서버·Worker 컨테이너)은 모킹/순수함수로 대체**해 CI에서 키·네트워크 없이 재현. 실제 OpenAI 통합 검증은 수동(문서 05) 유지. 인수기준(요구사항 §9-1 "전체 Django 자동 테스트 성공")과 연결.
+
+*현황*: Django 6개 앱 `tests.py` 존재(ai_proxy·codingstate·gamification·problems·submissions·wrongnotes) / **FastAPI·worker·accounts·mypage·notices·adminpanel 0건.**
+
+**C-1. FastAPI (신규 `fastapi_app/tests/`, pytest + Starlette `TestClient`) — 0건 → 신규**
+- [ ] `test_health.py` — `GET /ai/health` 200, `llm_status`·`embed_backend`·`model` 키 존재, **인증 헤더 없이 통과**(health만 예외) 확인.
+- [ ] `test_security.py` — `verify_internal`: `X-Internal-API-Key` 불일치 시 **401**, `X-Request-ID` 누락 시 **400**(health 외 라우터 1개 대표, 예 `/ai/hint`).
+- [ ] `test_request_schema.py` — pydantic 검증: 필수 필드 누락 body → **422**(예 `/ai/hint`, `/ai/wrong-note/analyze`).
+- [ ] `test_chroma_units.py` — **순수 함수 단위**(OpenAI 불필요, 해시 폴백): `chunk_text`(≤160자 팩킹), `build_note_chunks`(회고+AI섹션+topic만·노이즈 제외), `aggregate_section_sims`(`0.5·mean+0.5·max`) 계산.
+- [ ] `test_rag_isolation.py` (선택) — `RAG_EMBED_BACKEND=hash`로 결정적 임베딩 → `search_notes`가 **다른 user_id 노트 미반환**(격리) 스모크.
+- [ ] LLM 생성 계층: OpenAI 클라이언트 **monkeypatch**로 JSON 응답 주입 → `generate_hint`/`analyze_wrong_note`가 계약 dict 반환. 키 없을 때 `no_api_key`/`LLMNotImplementedError` 경로만이라도 검증.
+
+**C-2. Django 신규 앱 (미커버 → 신규 `tests.py`)**
+- [ ] `accounts/tests.py` — 회원가입 폼 검증·유저 생성(FR-AUTH-001), 로그인/로그아웃(FR-AUTH-002), **비로그인 보호 URL → `LOGIN_URL` 리다이렉트**, 일반유저의 `/adminpanel/` **접근 거부**(FR-AUTH-003).
+- [ ] `mypage/tests.py` — 계정 민감화면 **재인증 게이트**(FR-ACC-001), 마이페이지 집계 표시(FR-MYPAGE-001), 아바타 **해금 포인트 조건**(FR-ACC-003).
+
+**C-3. Django 기존 앱 확장 (LLM/CRUD 예외 커버리지)**
+- [ ] `ai_proxy/tests.py` 확장 — **`call_fastapi` 모킹**으로: 성공 시 `{status,data}` 통과 / **타임아웃·HTTPError → 502 + status 매핑**(평가 "LLM API 연동 테스트: 호출 성공·실패·타임아웃" 대응) / 필수필드 누락 **400** / 비로그인 **302·403** / `require_POST`.
+- [ ] `submissions/tests.py` 확장 — run·submit → **Submission + ExecutionJob 생성**, 결과 폴링 상태 전이(pending→running→종결), 채점 `exact`/`line_trim`/`float`.
+- [ ] `wrongnotes/tests.py` 확장 — **소유자 격리**(FR-WN-006, 타 유저 노트 접근 차단), 복습 포인트 **멱등**(FR-WN-004 / FR-GAME-002).
+- [ ] `gamification/tests.py` 확장 — 포인트 멱등, 레벨/아바타 **해금 경계**(0·50·100·200·350·500·800P, FR-GAME-003).
+
+**실행**: Django `python manage.py test` · FastAPI `pytest`(신규 `fastapi_app/requirements-dev.txt`에 `pytest`·`httpx` 추가). (선택) worker 채점 비교 로직 단위 테스트.
 
 **D. 기능 완성도 (선택 고도화)**
 - [ ] `/analyze`에 `/search` RAG 근거 실제 주입(현재 `evidence=[]`).

@@ -182,17 +182,6 @@ def wrong_note_embed(request):
 
 @login_required
 @require_POST
-def note_ask(request):
-    return _proxy_post(
-        request,
-        request_type="note_ask",
-        fastapi_path="/ai/wrong-note/ask",
-        required=("question",),
-    )
-
-
-@login_required
-@require_POST
 def tutor_ask(request):
     """미니튜터: 대화 이력 + 현재 활동 + 코딩 상태 + 최근 7~30일 오답을 모아 FastAPI 호출."""
     payload, error_response = _load_json(request)

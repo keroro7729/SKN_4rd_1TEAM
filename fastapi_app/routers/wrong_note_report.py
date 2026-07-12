@@ -1,6 +1,10 @@
 """오답노트 AI 리포트 API (POST /ai/wrong-note/report).
 
 기존 wrong_note 라우터를 건드리지 않도록 별도 파일로 분리(변경영향 최소화).
+
+⚠️ 상태(2026-07): 구현 완료 + main.py 등록되어 동작하나, **아직 Django(ai_proxy)에서
+호출되지 않는 미배선(백로그) 엔드포인트**다. 2단계 RAG 리포트(요구사항 FR-RAG-004)의
+웹 UI 배선은 향후 작업. 삭제하지 말 것 — 기능은 완성되어 있고 배선만 남았다.
 """
 from fastapi import APIRouter, Depends
 

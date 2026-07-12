@@ -14,7 +14,7 @@ from openai import AsyncOpenAI, OpenAIError
 import config
 from services.authoring import _FIX_SYSTEM, _GEN_SYSTEM
 from services.coding_state import _SYSTEM as CS_SYSTEM
-from services.llm import _ANALYZE_SYSTEM, _ASK_SYSTEM, _HINT_SYSTEM
+from services.llm import _ANALYZE_SYSTEM, _HINT_SYSTEM
 from services.wrong_note_report import _SYSTEM as WNR_SYSTEM
 
 
@@ -54,8 +54,6 @@ AGENTS = [
      "nodes": ["tc.generate", "tc.eval_generator", "tc.eval_solution", "tc.fix"],
      "edges": [["tc.generate", "tc.eval_generator"], ["tc.eval_generator", "tc.eval_solution"],
                ["tc.eval_solution", "tc.fix"], ["tc.fix", "tc.eval_solution"]]},
-    {"id": "note_ask", "label": "내 노트 질의",
-     "nodes": ["ask.retrieve", "ask.answer"], "edges": [["ask.retrieve", "ask.answer"]]},
 ]
 
 
@@ -128,18 +126,11 @@ NODES = {
         ),
         "sample": {"problem_title": "이분탐색 최소 파라미터", "difficulty": "중급", "tags": "binary_search", "result": "wrong", "submitted_code": "lo,hi=0,n\nwhile lo<hi:\n mid=(lo+hi)//2", "user_comment": "경계 처리에서 무한루프가 났다.", "similar": "(없음)"},
     },
-    "ask.answer": {
-        "agent": "note_ask", "label": "내 노트 답변", "kind": "llm", "output": "json", "runnable": True,
-        "system": _ASK_SYSTEM,
-        "user_template": "질문: {question}\n근거 노트: {evidence}\n\nJSON {{\"answer\": string}} 로만 답하라(한국어, 근거 부족 시 솔직히).",
-        "sample": {"question": "내가 자주 틀리는 유형은?", "evidence": "- note 12 (DP 계단) score 0.7"},
-    },
     # --- 비-LLM 노드(그래프 보기 전용) ---
     "wnr.retrieve1": {"agent": "wrong_note_report", "label": "1차 리트리빙(회고)", "kind": "retrieval", "runnable": False},
     "wnr.retrieve2": {"agent": "wrong_note_report", "label": "최종 리트리빙", "kind": "retrieval", "runnable": False},
     "tc.eval_generator": {"agent": "testcase_gen", "label": "생성기 실행(Worker)", "kind": "worker", "runnable": False},
     "tc.eval_solution": {"agent": "testcase_gen", "label": "정답코드 실행(Worker)", "kind": "worker", "runnable": False},
-    "ask.retrieve": {"agent": "note_ask", "label": "노트 검색(Chroma)", "kind": "retrieval", "runnable": False},
 }
 
 

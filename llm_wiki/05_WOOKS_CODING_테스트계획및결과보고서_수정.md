@@ -49,7 +49,7 @@
 |---|---|
 | OS | Ubuntu Server on AWS EC2 |
 | Backend | Django 5 |
-| AI Server | FastAPI + LangGraph |
+| AI Server | FastAPI (LangGraph 미사용 · 절차적 오케스트레이션) |
 | Database | AWS RDS PostgreSQL |
 | Vector DB | ChromaDB |
 | Code Runner | Docker Worker + Python 3.11 |
