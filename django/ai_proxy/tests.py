@@ -1,11 +1,14 @@
 import json
+import socket
+import urllib.error
+from io import BytesIO
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from logs.models import LLMRequestLog
+from logs.models import ErrorLog, LLMRequestLog
 
 from .client import AIProxyResult, call_fastapi
 
@@ -99,3 +102,65 @@ class AIProxyViewTests(TestCase):
         self.assertEqual(body["data"]["content"], "hint text")
         sent_payload = mock_call.call_args.kwargs["payload"]
         self.assertEqual(sent_payload["user_id"], self.user.id)
+
+
+class _RawResponse:
+    """urlopen 컨텍스트 매니저를 흉내내는 임의 바디 응답."""
+
+    def __init__(self, body: bytes):
+        self._body = body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def read(self):
+        return self._body
+
+
+class AIProxyClientErrorTests(TestCase):
+    """LLM API 연동 예외 경로 검증 (호출 실패·타임아웃·형식 오류 → 상태 매핑 + 로그)."""
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="ai-proxy-error-user", password="pass12345",
+        )
+
+    def _call(self):
+        return call_fastapi(
+            user=self.user, request_type="hint", path="/ai/hint",
+            payload={"user_id": self.user.id, "problem_id": 1, "hint_level": 1},
+        )
+
+    @patch("ai_proxy.client.urllib.request.urlopen")
+    def test_timeout_maps_to_timeout_status_and_logs(self, mock_urlopen):
+        mock_urlopen.side_effect = socket.timeout("timed out")
+        result = self._call()
+        self.assertEqual(result.status, "timeout")
+        self.assertEqual(LLMRequestLog.objects.get(request_type="hint").status, "timeout")
+        self.assertTrue(ErrorLog.objects.filter(path="/ai/hint").exists())
+
+    @patch("ai_proxy.client.urllib.request.urlopen")
+    def test_http_error_maps_to_failed(self, mock_urlopen):
+        mock_urlopen.side_effect = urllib.error.HTTPError(
+            "http://fastapi:8001/ai/hint", 500, "Server Error", {},
+            BytesIO(b'{"detail": "boom"}'),
+        )
+        result = self._call()
+        self.assertEqual(result.status, "failed")
+        self.assertEqual(result.error_type, "HTTP_500")
+        self.assertEqual(LLMRequestLog.objects.get(request_type="hint").status, "failed")
+
+    @patch("ai_proxy.client.urllib.request.urlopen")
+    def test_invalid_json_response_maps_to_failed(self, mock_urlopen):
+        mock_urlopen.return_value = _RawResponse(b"not-json")
+        result = self._call()
+        self.assertEqual(result.status, "failed")
+
+    @patch("ai_proxy.client.urllib.request.urlopen")
+    def test_stub_response_downgraded_to_failed(self, mock_urlopen):
+        mock_urlopen.return_value = _RawResponse(b'{"status": "success", "content": "[stub] todo"}')
+        result = self._call()
+        self.assertEqual(result.status, "failed")
