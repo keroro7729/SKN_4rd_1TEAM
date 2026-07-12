@@ -232,45 +232,30 @@ docker compose down                # (down -v : DB까지 삭제)
 
 ---
 
-## 남은 작업 Plan (백로그)
+## 작업 이력 & 남은 작업 (2026-07 갱신)
 
-> 진행 시 각 항목이 어느 산출물/평가기준에 대응하는지 병기. 상세 착수는 별도 지시로.
+### ✅ 완료
 
-**A. 문서/산출물 정리 (평가 대응 — 진행 중)**
-- [x] **CLAUDE.md 현행화** — STEP 상태·llm_wiki 활용도·남은 작업 Plan (이 문서).
-- [ ] **평가계획서 대응 산출물 초안** — 화면설계서 / LLM 연동 웹앱 설명 / 시스템 구성도, 평가기준 매핑.
-- [ ] `05_테스트계획및결과보고서` 오기(LangGraph 등) 정정 + 자동화 테스트 결과 반영.
+**A. 산출물 최종화 (`llm_wiki/산출물/`, 외부 제출용)**
+- [x] CLAUDE.md 현행화(STEP 상태·llm_wiki 활용도).
+- [x] 5대 필수 산출물 + 검증가이드 = **6종 작성/정리**, `NN_제목.md` 네이밍 통일(01 요구사항 · 02 화면설계 · 03 LLM웹앱 · 04 시스템구성도 · 05 테스트보고서 · 06 검증가이드).
+- [x] 외부 제출용 톤 정리(초안/배점/정리대상/고아 등 **내부 코멘트 제거**). S3 **미도입 확정** — 프론트 static을 S3로 이전하는 것만 확장 포인트로 기재.
 
-**B. 코드 정리 (미사용·고아 제거) — [정리 대상](#정리-대상-미사용--고아--stale) 6건**
-- [ ] `langgraph_agents.py`·`prompts.py` 삭제 또는 미사용 명시.
-- [ ] `health.py` 상태 문자열을 실제 구현 기준으로 갱신.
-- [ ] `/report`·`/ask` 고아 엔드포인트: 배선 or 보류 결정.
+**B. 코드 정리 — [정리 대상](#정리-대상-미사용--고아--stale) 처리 완료**
+- [x] `langgraph_agents.py`·`prompts.py` 삭제, `health.py` 실제 상태(`operational`/`no_api_key`·`embed_backend`) 반영.
+- [x] `/ask`(내 노트 질의) **완전 제거** — 미니튜터로 대체. FastAPI(엔드포인트·`NoteAsk*` 스키마·`answer_from_notes`·`_ASK_SYSTEM`·lab 노드) + Django(프록시 url·view) 삭제, 요구사항·검증가이드 문서도 미니튜터로 대치.
+- [x] `/report`(2단계 RAG) **유지**(추후 구현 가치) — docstring에 미배선 백로그 명시.
+- [x] 구 `05_..._테스트계획및결과보고서`의 LangGraph 오기 정정.
 
-**C. 테스트 보강 (최소한) — 추가할 테스트 코드 명세**
+**C. 자동화 테스트 구현·실행 — 결과 확보**
+- [x] **Django `manage.py test` → 37/37 통과.** 신규 `accounts`(8: 가입·로그인·보호URL·관리자권한) + `mypage`(5: 재인증 게이트·아바타 해금·렌더), 기존 24. 실행 중 발견한 `ai_proxy` hint 테스트 결함(문제 픽스처 누락) 수정.
+- [x] **FastAPI `pytest tests/` → 8 통과·1 skip.** `test_health`·`test_security`(401/400/200)·`test_schemas`(pydantic 필수필드) 통과, `test_chroma_units`는 chromadb 미설치로 skip.
+- [x] 결과·개선 이력은 `산출물/05_테스트계획_및_결과보고서.md` 에 정리.
+- ⚠️ **실행 환경 주의**: 로컬 `django/.venv`·`fastapi_app/.venv`는 **Python 3.14**라 Django 5.0.6/pydantic-core 휠 비호환 → 테스트는 **miniconda Python 3.13 venv**(`.venv313`, git 무시)로 실행. 운영/CI는 지원 버전(3.11~3.13) 사용.
 
-> 원칙: **외부 의존(OpenAI 실호출·ChromaDB 서버·Worker 컨테이너)은 모킹/순수함수로 대체**해 CI에서 키·네트워크 없이 재현. 실제 OpenAI 통합 검증은 수동(문서 05) 유지. 인수기준(요구사항 §9-1 "전체 Django 자동 테스트 성공")과 연결.
+### 남은 작업 (백로그)
 
-*현황*: Django 6개 앱 `tests.py` 존재(ai_proxy·codingstate·gamification·problems·submissions·wrongnotes) / **FastAPI·worker·accounts·mypage·notices·adminpanel 0건.**
-
-**C-1. FastAPI (신규 `fastapi_app/tests/`, pytest + Starlette `TestClient`) — 0건 → 신규**
-- [ ] `test_health.py` — `GET /ai/health` 200, `llm_status`·`embed_backend`·`model` 키 존재, **인증 헤더 없이 통과**(health만 예외) 확인.
-- [ ] `test_security.py` — `verify_internal`: `X-Internal-API-Key` 불일치 시 **401**, `X-Request-ID` 누락 시 **400**(health 외 라우터 1개 대표, 예 `/ai/hint`).
-- [ ] `test_request_schema.py` — pydantic 검증: 필수 필드 누락 body → **422**(예 `/ai/hint`, `/ai/wrong-note/analyze`).
-- [ ] `test_chroma_units.py` — **순수 함수 단위**(OpenAI 불필요, 해시 폴백): `chunk_text`(≤160자 팩킹), `build_note_chunks`(회고+AI섹션+topic만·노이즈 제외), `aggregate_section_sims`(`0.5·mean+0.5·max`) 계산.
-- [ ] `test_rag_isolation.py` (선택) — `RAG_EMBED_BACKEND=hash`로 결정적 임베딩 → `search_notes`가 **다른 user_id 노트 미반환**(격리) 스모크.
-- [ ] LLM 생성 계층: OpenAI 클라이언트 **monkeypatch**로 JSON 응답 주입 → `generate_hint`/`analyze_wrong_note`가 계약 dict 반환. 키 없을 때 `no_api_key`/`LLMNotImplementedError` 경로만이라도 검증.
-
-**C-2. Django 신규 앱 (미커버 → 신규 `tests.py`)**
-- [ ] `accounts/tests.py` — 회원가입 폼 검증·유저 생성(FR-AUTH-001), 로그인/로그아웃(FR-AUTH-002), **비로그인 보호 URL → `LOGIN_URL` 리다이렉트**, 일반유저의 `/adminpanel/` **접근 거부**(FR-AUTH-003).
-- [ ] `mypage/tests.py` — 계정 민감화면 **재인증 게이트**(FR-ACC-001), 마이페이지 집계 표시(FR-MYPAGE-001), 아바타 **해금 포인트 조건**(FR-ACC-003).
-
-**C-3. Django 기존 앱 확장 (LLM/CRUD 예외 커버리지)**
-- [ ] `ai_proxy/tests.py` 확장 — **`call_fastapi` 모킹**으로: 성공 시 `{status,data}` 통과 / **타임아웃·HTTPError → 502 + status 매핑**(평가 "LLM API 연동 테스트: 호출 성공·실패·타임아웃" 대응) / 필수필드 누락 **400** / 비로그인 **302·403** / `require_POST`.
-- [ ] `submissions/tests.py` 확장 — run·submit → **Submission + ExecutionJob 생성**, 결과 폴링 상태 전이(pending→running→종결), 채점 `exact`/`line_trim`/`float`.
-- [ ] `wrongnotes/tests.py` 확장 — **소유자 격리**(FR-WN-006, 타 유저 노트 접근 차단), 복습 포인트 **멱등**(FR-WN-004 / FR-GAME-002).
-- [ ] `gamification/tests.py` 확장 — 포인트 멱등, 레벨/아바타 **해금 경계**(0·50·100·200·350·500·800P, FR-GAME-003).
-
-**실행**: Django `python manage.py test` · FastAPI `pytest`(신규 `fastapi_app/requirements-dev.txt`에 `pytest`·`httpx` 추가). (선택) worker 채점 비교 로직 단위 테스트.
+**테스트 확장** (선택): FastAPI LLM 생성부 monkeypatch, RAG 격리/`chunk_text` 통합(chromadb 설치 환경), `ai_proxy` 타임아웃/502 매핑, worker 채점 단위, `notices`·`adminpanel`.
 
 **D. 기능 완성도 (선택 고도화)**
 - [ ] `/analyze`에 `/search` RAG 근거 실제 주입(현재 `evidence=[]`).

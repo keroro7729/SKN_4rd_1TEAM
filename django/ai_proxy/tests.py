@@ -66,6 +66,16 @@ class AIProxyViewTests(TestCase):
             password="pass12345",
         )
         self.client.force_login(self.user)
+        # hint 뷰는 문제 지문으로 payload 를 enrich 하므로 실제 Problem 이 필요하다.
+        from problems.models import Problem, ProblemCategory
+
+        self.category = ProblemCategory.objects.create(name="알고리즘", slug="algo-ai-proxy")
+        self.problem = Problem.objects.create(
+            category=self.category,
+            title="두 수의 합",
+            description="두 수를 더해 출력하세요.",
+            difficulty="beginner",
+        )
 
     @patch("ai_proxy.views.call_fastapi")
     def test_hint_endpoint_returns_fixed_json_contract(self, mock_call):
@@ -78,7 +88,7 @@ class AIProxyViewTests(TestCase):
 
         response = self.client.post(
             reverse("ai_proxy:hint"),
-            data=json.dumps({"problem_id": 1, "hint_level": 1, "user_code": "print(1)"}),
+            data=json.dumps({"problem_id": self.problem.id, "hint_level": 1, "user_code": "print(1)"}),
             content_type="application/json",
         )
 

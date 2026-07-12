@@ -1,12 +1,10 @@
-# WOOK'S CODING — 개발된 LLM 연동 웹 애플리케이션 설명 (초안 v0.1)
+# WOOK'S CODING — 개발된 LLM 연동 웹 애플리케이션 설명
 
-> SKN 4차 프로젝트 평가 산출물 · **배점 20점** 대응
-> 실제 코드 실측 기준(`django/`, `fastapi_app/`, `compose/`, `nginx/`).
-> 상태: 초안(draft).
+> SKN 4차 프로젝트 산출물 · 실제 코드 기준(`django/`, `fastapi_app/`, `compose/`, `nginx/`).
 
 ---
 
-## 0. 평가요소 대응 요약
+## 0. 평가 기준 대응
 
 | 평가 요소 | 본 문서 반영 | 근거 위치 |
 |---|---|---|
@@ -149,7 +147,7 @@ form.addEventListener("submit", async (e) => {
 - **EC2**: 앱 서버 / 워커 서버 **2개 인스턴스 분리**(신뢰 불가 코드 실행 격리).
 - **RDS(PostgreSQL)**: 원천 데이터 공유(`settings.py` `ENGINE=postgresql`). 운영 확인 엔드포인트 `postgres.*.rds.amazonaws.com`(테스트보고서).
 - **배포 스크립트**(`deploy/deploy_main.sh`·`deploy_worker.sh`·`_lib.sh`): `git fetch` → `reset --hard origin/<branch>` → `.env` 점검 → `compose up --build -d` → **헬스 검증** → 마이그레이션 성공 확인. 실패 시 위치·명령·종료코드 출력.
-- ⚠️ **S3는 현재 미사용**(정직한 고지): 정적 파일은 `collectstatic` → **Docker `staticfiles` 볼륨** → **Nginx가 직접 서빙**. 사용자 업로드 미디어(아바타는 이모지 기반)라 S3 스토리지가 불필요한 구조. *평가 기준의 S3 항목 대응이 필요하면 media/정적 자원을 S3+CloudFront로 이전하는 것이 확장 포인트(§6).*
+- **정적 파일 서빙(S3 미사용)**: 정적 파일은 `collectstatic` → Docker `staticfiles` 볼륨 → **Nginx가 직접 서빙**한다. 사용자 업로드 미디어가 없어(아바타는 이모지 기반) 별도 오브젝트 스토리지가 필요하지 않다. 프론트 정적 자원을 S3+CloudFront로 이전하는 것은 확장 포인트로 둔다(§6).
 
 ### 5.4 로깅·운영
 - `volumes/logs/{django,fastapi,worker}/app.log`(bind mount, 컨테이너 삭제에도 보존) + `logs/ai/research.jsonl`(AI 연구용 JSONL).
@@ -157,10 +155,10 @@ form.addEventListener("submit", async (e) => {
 
 ---
 
-## 6. 확장·개선 포인트 (초안 → 정식)
+## 6. 확장 포인트
 
-- **S3 도입**: 정적/미디어를 `django-storages`+S3로 이전(평가 S3 항목 완전 충족 + CDN 확장).
-- 미사용/고아 정리: `langgraph_agents.py`·`prompts.py` 스텁, `/ai/wrong-note/report` 고아 엔드포인트(`CLAUDE.md` 정리 대상 참조).
-- 스트리밍 응답(현재 단일 호출) 및 FastAPI 자동화 테스트 추가.
+- **정적/미디어 S3 이전**: 프론트 정적 자원을 `django-storages`+S3+CloudFront로 이전(CDN 확장).
+- LLM 응답 스트리밍(현재 단일 호출).
+- CI 자동화 테스트 파이프라인 확대.
 
 *작성 근거: `ai_proxy/{views,client}.py`, `static/js/{chatbot,problem_solve}.js`, `*/views.py`·`models.py`, `compose/*.yml`, `nginx/nginx.conf`, `config/settings.py`.*
