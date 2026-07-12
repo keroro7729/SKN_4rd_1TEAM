@@ -1,8 +1,16 @@
-name: Deploy STEP04 Split Servers
+# ⚠️ [이력 보존 · 현재 미사용] 개발 서버 초기 CI/CD (GitHub Actions).
+#
+# 저장소 정리 후, 배포는 다음으로 일원화되었다:
+#   - 로컬 통합 실행 : docker-compose.yml
+#   - 운영 앱 서버   : compose/main.yml   (deploy/deploy_main.sh)
+#   - 운영 워커 서버 : compose/worker.yml (deploy/deploy_worker.sh)
+#
+# 이 워크플로는 초기 자동 배포 방식의 "이력"으로만 남긴다. 자동 트리거(push) 없이
+# 수동(workflow_dispatch)으로만 실행되며, 참조 값은 현재 구조(main · compose/main.yml ·
+# compose/worker.yml)에 맞춰 정리했다. 실제 운영 배포는 deploy/*.sh 스크립트를 사용한다.
+name: Deploy Split Servers (legacy · manual only)
 
 on:
-  push:
-    branches: ["feature/step04-rds-worker"]
   workflow_dispatch:
 
 jobs:
@@ -22,7 +30,7 @@ jobs:
           command_timeout: 10m
           script: |
             set -e
-            DEPLOY_BRANCH="feature/step04-rds-worker"
+            DEPLOY_BRANCH="main"
             cd /home/ubuntu/apps/wooks-coding
             git fetch origin "$DEPLOY_BRANCH"
             git reset --hard "origin/$DEPLOY_BRANCH"
@@ -31,26 +39,23 @@ jobs:
               echo "POSTGRES_HOST must point to the RDS endpoint in production."
               exit 1
             fi
-            if docker compose config --services | grep -Eq '^(postgres|worker)$'; then
+            if docker compose -f compose/main.yml --project-directory . config --services | grep -Eq '^(postgres|worker)$'; then
               echo "App server compose must not run postgres or worker."
-              docker compose config --services
+              docker compose -f compose/main.yml --project-directory . config --services
               exit 1
             fi
-            docker compose up --build -d --remove-orphans
+            docker compose -f compose/main.yml --project-directory . up --build -d --remove-orphans
             for i in $(seq 1 30); do
-              if docker compose exec -T django python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/', timeout=5).read()"; then
+              if docker compose -f compose/main.yml --project-directory . exec -T django python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/', timeout=5).read()"; then
                 break
               fi
               if [ "$i" -eq 30 ]; then
-                docker compose logs --tail=100 django
+                docker compose -f compose/main.yml --project-directory . logs --tail=100 django
                 exit 1
               fi
               sleep 2
             done
-            docker compose restart nginx
-            docker compose ps
-            docker compose exec -T django python manage.py check
-            docker compose exec -T django python manage.py bootstrap_postgres --skip-migrate --require-rds
+            docker compose -f compose/main.yml --project-directory . ps
             curl -fsSI http://localhost/health/ >/dev/null
 
   deploy-worker:
@@ -70,7 +75,7 @@ jobs:
           command_timeout: 10m
           script: |
             set -e
-            DEPLOY_BRANCH="feature/step04-rds-worker"
+            DEPLOY_BRANCH="main"
             cd /home/ubuntu/apps/wooks-coding
             git fetch origin "$DEPLOY_BRANCH"
             git reset --hard "origin/$DEPLOY_BRANCH"
@@ -79,11 +84,11 @@ jobs:
               echo "POSTGRES_HOST must point to the RDS endpoint in production."
               exit 1
             fi
-            if [ "$(docker compose -f docker-compose.worker.yml config --services)" != "worker" ]; then
+            if [ "$(docker compose -f compose/worker.yml --project-directory . config --services)" != "worker" ]; then
               echo "Worker server compose must run only worker."
-              docker compose -f docker-compose.worker.yml config --services
+              docker compose -f compose/worker.yml --project-directory . config --services
               exit 1
             fi
-            docker compose -f docker-compose.worker.yml up --build -d --remove-orphans
-            docker compose -f docker-compose.worker.yml ps
-            docker compose -f docker-compose.worker.yml logs --tail=80 worker
+            docker compose -f compose/worker.yml --project-directory . up --build -d --remove-orphans
+            docker compose -f compose/worker.yml --project-directory . ps
+            docker compose -f compose/worker.yml --project-directory . logs --tail=80 worker
