@@ -4,12 +4,11 @@ WOOK'S CODING — AI 기반 코딩 학습 웹앱 (SKN 4차 프로젝트). 문제
 
 ## ⚠️ 이 저장소에서 가장 먼저 알아야 할 것
 
-1. **STEP 단위 순차 빌드 — 전체를 한 번에 생성하지 말 것.**
-   코드생성 지시문 v0.7 규칙상 STEP-01~STEP-10을 순서대로 구현한다.
-   - STEP-01(골격) · STEP-02(데이터 모델 §7) · STEP-03(화면/URL/View/권한) · STEP-04(코드실행 Job/Worker + 채점) **완료**
-   - fastapi_app 은 **스캐폴딩(동작 스텁)만** 존재
-   - 다음: STEP-05(FastAPI 기본 구조) → STEP-06(AI/RAG) → STEP-07(Fetch 연동)
-   - 새 기능은 해당 STEP 범위 안에서만 구현하고, 앞선 STEP을 건너뛰지 않는다. (Fetch/AI 연결은 STEP-07/06, 포인트 지급은 STEP-08)
+1. **현재 상태: STEP-01~08 실질 완료 + EC2/RDS 배포 완료.** (STEP 순차 빌드 단계는 이미 끝났다 — 아래 [현재 구현 상태](#현재-구현-상태-실측-2026-07) 표가 SSOT)
+   - 초기 코드생성 지시문 v0.7은 STEP-01~10 순차 빌드 규칙이었으나, 이후 **문제 추천·coding_state 고도화·배포 스크립트 등 STEP 범위를 벗어난 작업**이 누적되며 실제 코드는 지시문 STEP 경계를 넘어섰다. **더는 STEP 번호로 진행을 추적하지 말 것** — 지시문 STEP은 히스토리로만 보고, 실제 상태는 코드/아래 표 기준.
+   - `fastapi_app`은 스텁이 아니라 **완전 구현**(9개 라우터·서비스 전 계층, OpenAI 실호출·RAG v1 운영 동작). 5개 AI 기능(힌트·오답분석+RAG·coding_state·미니튜터·테스트케이스 생성) 모두 배선됨.
+   - 단, **미사용 스텁·고아 엔드포인트가 남아 있다** → [정리 대상](#정리-대상-미사용--고아--stale) 참고. 신규 작업 전 이 목록부터 확인.
+   - ⚠️ **"LangGraph 에이전트"는 실제로 미사용** — 절차적 오케스트레이션 + 프롬프트/RAG 파이프라인이다(문서 11 §2). 코드/문서에서 LangGraph로 서술된 부분은 부정확.
 
 2. **로컬 Python은 3.13 (miniconda) → `psycopg2` 금지, `psycopg[binary]`(psycopg3) 사용.**
    psycopg2-binary는 3.13 휠이 없어 소스빌드 실패한다. 바이너리 휠은 psycopg 3.2.2+ 부터 존재.
@@ -30,7 +29,7 @@ WOOK'S CODING — AI 기반 코딩 학습 웹앱 (SKN 4차 프로젝트). 문제
 ├─ .env.example        # 템플릿 (git 포함, 값 비움)
 ├─ docker-compose.yml  # 전체 오케스트레이션 (postgres·chromadb·django·fastapi·worker·nginx)
 ├─ django/             # [웹] Django 5 + Gunicorn — UI·인증·권한·CRUD·PostgreSQL
-├─ fastapi_app/        # [AI/RAG] FastAPI + LangGraph — 힌트·오답분석·RAG (내부 전용)
+├─ fastapi_app/        # [AI/RAG] FastAPI (LangGraph 미사용, 절차적) — 힌트·오답분석·RAG·coding_state·튜터 (내부 전용)
 ├─ worker/             # [실행] 코드 격리 실행, jobs 테이블 polling (내부 전용)
 ├─ nginx/              # [프록시] reverse proxy (외부 노출은 여기 하나)
 └─ llm_wiki/           # 설계 문서 (.docx 3종 + 구조/환경관리 .md)
@@ -163,17 +162,95 @@ docker compose down                # (down -v : DB까지 삭제)
 - **`.env` 커밋 절대 금지**. 팀 공유는 `.env.example` 갱신으로.
 - 새 컴포넌트 추가 체크리스트: ① 폴더 ② `.venv`+`requirements.txt` ③ 루트 `.env` 로드 코드 ④ docker-compose 등록.
 
-## 설계 문서 (llm_wiki/)
+## 설계 문서 (llm_wiki/) — 특징·신뢰도·활용도
 
-- `0. ...구현방향_v0.3.docx` · `1. ...서비스기획서_v0.3.docx` · `2. ...코드생성_지시문_v0.7.docx` (기준 문서)
-- `3. ...프로젝트_구조_및_환경관리_v0.1.md` — 구조/venv/.env 규칙 상세 (텍스트, 바로 읽기 가능)
-- `4. ...데이터_소유권_및_의존구조_v0.1.md` — 볼륨/영속성·RDB/VDB 접근·의존 방향 규칙
-- `5. ...로깅_시스템_v0.1.md` — logs/ 레이아웃·AI 연구용 JSONL·환경변수
-- `6. ...데이터모델_문제_제출_Job_오답노트_v0.1.md` — STEP-02 모델 설계(§7 정합). **제출이력=Submission ≠ ExecutionJob 분리** 근거, `job_type=code_run`(worker의 `code_execution`은 STEP-04에서 정합)
-- `7. ...STEP05-07_AI_RAG_FE_연계_가이드_v0.1.md` — FastAPI/RAG/프론트 연계
-- `8. ...테스트케이스_생성_에이전트_v0.1.md` — 정답코드/제너레이터 기반 TC 생성 에이전트(worker code_eval 위임, dry-run)
-- `9. ...오답노트_AI리포트_useflow_및_RAG설계_v0.1.md` — 오답노트 작성/AI리포트 분리, **2단계 RAG 에이전트**, WrongNoteReport 모델·RAG 문서구조 초안
-- `10. ...오답노트_RAG_리트리빙_고도화_v0_vs_v1_성능평가.md` — 리트리빙 v1(섹션 멀티청킹+mean/max 집계, 노이즈 제외, OpenAI 임베딩) 구현·**성능평가**. RAG 임베딩은 `text-embedding-3-small`(해시 폴백), 컬렉션은 임베더별 버저닝(`wrong_note_embeddings-<sig>`). 평가: `python -m services.rag_eval`
-- `11. ...AI_Agent_구조_및_핵심기술_v0.1.md` — 5개 Agent(테스트케이스·coding_state·힌트·오답노트+RAG·미니튜터) 실측 구조·협업. **LangGraph 미사용**(직접 OpenAI+절차적 오케스트레이션), coding_state 상세는 §4.2.
-- 지시문 v0.7 §5는 Django 앱을 레포 루트에 두는 구조였으나, **venv 분리 위해 `django/` 하위로 승격**함.
-  app 이름·endpoint path 등 내부 규칙은 지시문을 그대로 따른다.
+> ⚠️ **문서 신뢰도에 편차가 있다.** `0~9`번 다수는 **구현 이전에 쓴 설계/예고 문서**라 실제 코드와 어긋나는 곳이 있다("미구현" 예고가 실제론 구현됨 등). **`10`·`11`·`12`는 코드 실측 후 작성 → 최신·최고 신뢰.** 상태 파악은 반드시 **문서 11 → 코드 → CLAUDE.md** 순으로 교차검증.
+
+**기준 문서 (원천 규칙, `.docx` — 바로 못 읽음, 필요 시 변환)**
+- `0. ...구현방향_v0.3.docx` · `1. ...서비스기획서_v0.3.docx` · `2. ...코드생성_지시문_v0.7.docx` — 프로젝트 최초 규칙. **STEP 순차 빌드·app 이름·endpoint 규칙의 근거**. 단 진행 상태 기준으로는 이미 초과 달성됨(위 참고).
+
+**상시 참조 규약 문서 (`.md` — 신뢰 높음, 아키텍처 규칙의 SSOT)**
+- `3. ...프로젝트_구조_및_환경관리_v0.1.md` — 구조/venv/.env 규칙 상세. **활용도 높음**.
+- `4. ...데이터_소유권_및_의존구조_v0.1.md` — 볼륨/영속성·RDB/VDB 접근·의존 방향(SSOT). **활용도 높음**.
+- `5. ...로깅_시스템_v0.1.md` — logs/ 레이아웃·AI 연구용 JSONL·환경변수.
+- `6. ...데이터모델_문제_제출_Job_오답노트_v0.1.md` — 모델 설계. **제출이력=Submission ≠ ExecutionJob 분리** 근거.
+
+**설계/예고 문서 (구현 前 작성 → 실제와 diff 있음, 참고용)**
+- `7. ...STEP05-07_AI_RAG_FE_연계_가이드_v0.1.md` — FastAPI/RAG/프론트 연계 가이드. ⚠️ "LLM 생성층 의도적 미구현"·"LangGraph 예고" 등 **일부 예고가 실제 구현과 불일치**(문서 11이 정정).
+- `8. ...테스트케이스_생성_에이전트_v0.1.md` — 정답코드/제너레이터 기반 TC 생성 설계. 실제 구현은 `problems/services/testcase_agent.py` + `/ai/authoring/*`.
+- `9. ...오답노트_AI리포트_useflow_및_RAG설계_v0.1.md` — 오답노트/AI리포트 분리, **2단계 RAG** 설계 초안. ⚠️ `WrongNoteReport`·`/report` 배선은 **여전히 고아**(설계만 존재).
+
+**실측 기반 문서 (코드 대조 후 작성 → 최신·최고 신뢰, 발표/평가 근거)**
+- `10. ...오답노트_RAG_리트리빙_고도화_v0_vs_v1_성능평가.md` — 리트리빙 v1(섹션 멀티청킹+mean/max, OpenAI 임베딩) **정량 성능평가**(Precision@4 0.63→1.00). 임베딩 `text-embedding-3-small`(해시 폴백), 컬렉션 버저닝 `wrong_note_embeddings-<sig>`. 평가: `python -m services.rag_eval`. **★ RAG 근거 자료**.
+- `11. ...AI_Agent_구조_및_핵심기술_v0.1.md` — **★★ 코드 실측 종합 문서. 상태 파악의 1차 기준.** 5개 Agent 실측 구조·협업, LangGraph 미사용 규명(§2), coding_state §4.2, **미사용/고아 목록(§7·§9)** 포함.
+- `12. ...coding_state_사용자상태메모리_v0.1.md` — coding_state 단독 설명 + **발표 대본**.
+
+**검증/산출물 문서 (평가 대응)**
+- `STEP04_05_DB_VECTORDB_검증_가이드_v0.1.md` — DB/벡터DB 수동 검증 절차.
+- `05_WOOKS_CODING_테스트계획및결과보고서_수정.md` — **테스트 계획·결과 보고서(평가 20점 대응)**. 76 TC 전건 PASS(수동). ⚠️ "AI Server: FastAPI + LangGraph" 등 **오기 잔존**(문서 11과 맞춰 정정 필요), 자동화 테스트 아님.
+- `SKN 29기..._평가계획서.docx.pdf` — **채점 기준 원본**(화면설계서·LLM연동 웹앱·시스템 구성도 등 산출물 요구).
+- `screenshots/` — 시연 캡처(README 임베드용).
+
+> 지시문 v0.7 §5는 Django 앱을 레포 루트에 두는 구조였으나, **venv 분리 위해 `django/` 하위로 승격**함. app 이름·endpoint path 등 내부 규칙은 지시문을 그대로 따른다.
+
+---
+
+## 현재 구현 상태 (실측, 2026-07)
+
+> ⚠️ 이 표가 진행 상태의 **SSOT**. 지시문 STEP 번호가 아니라 이 표로 판단할 것.
+
+| 영역 | 상태 | 근거/위치 |
+|---|:--:|---|
+| 인증·권한·CRUD(문제/제출/오답노트/마이페이지) | ✅ | `django/{accounts,problems,submissions,wrongnotes,mypage}` |
+| 코드 실행(Worker 격리 샌드박스 + 채점) | ✅ | `worker/`, jobs 폴링 `FOR UPDATE SKIP LOCKED` |
+| FastAPI AI 서버(9 라우터·서비스 전 계층) | ✅ | `fastapi_app/{routers,services,schemas}` |
+| AI 힌트(레벨 1~3 소크라테스식) | ✅ | `/ai/hint` |
+| 오답노트 AI 분석(6섹션) + RAG v1 | ✅ | `/ai/wrong-note/{analyze,embed,search}` |
+| coding_state(사용자 상태 메모리, rolling) | ✅ | `codingstate` 앱 + `/ai/coding-state/summarize` |
+| 미니튜터(멀티턴·3중 개인화) | ✅ | `/ai/tutor/chat` |
+| 테스트케이스 자동 생성 에이전트 | ✅ | `problems/services/testcase_agent.py` + `/ai/authoring/*` |
+| 포인트·미션·게이미피케이션 | ✅ | `gamification` 앱(`PointLog`·`Mission`) |
+| 문제 추천 | ✅ | `problems/services/recommend.py` |
+| 프론트↔AI 연동(프록시) | ✅ | `ai_proxy` 앱(`/ai-proxy/*`) |
+| EC2(app/worker 분리)+RDS 배포 | ✅ | `compose/{main,worker}.yml`, `deploy/*.sh` |
+| 2단계 RAG 리포트(`/report`) | ⚠️ 고아 | 구현됐으나 Django 미배선 |
+| `/analyze` ← RAG 근거 주입 | ⚠️ 부분 | search/analyze 독립 호출, analyze 프롬프트엔 `evidence=[]` |
+| 자동화 테스트 | ⚠️ 부분 | django 6개 앱만 `tests.py`, FastAPI·worker·4개 앱 없음 |
+
+### 정리 대상 (미사용 · 고아 · stale)
+
+> 신규 작업이나 발표 前 정리 권장. 실측 확인됨.
+
+1. **`fastapi_app/agents/langgraph_agents.py`** — `NotImplementedError` 스텁, `main.py`에서 import조차 안 됨. **완전 사문(死文)** → 삭제 또는 "미사용" 주석 명시.
+2. **`fastapi_app/services/prompts.py`** — 어디서도 import 안 됨(실제 프롬프트는 `llm.py`·`authoring.py`·`coding_state.py`·`wrong_note_report.py`에 하드코딩). → 삭제 또는 실제 사용처로 통합.
+3. **`fastapi_app/routers/health.py`의 `llm_status:"not_implemented"`, `rag_status:"vector_index_only"`** — 옛 하드코딩 문자열. LLM/RAG 실제 동작 중 → 실제 상태로 갱신.
+4. **`/ai/wrong-note/report`(2단계 RAG 리포트)** — `main.py` 등록됐으나 **Django 호출자 없음(고아)**. 배선하거나 명시적 보류 표기.
+5. **`/ai/wrong-note/ask`** — 프론트 UI는 제거됐으나 `ai_proxy` 프록시 라우트(`wrong-note/ask/`)+FastAPI 엔드포인트 잔존 → 유지/삭제 결정.
+6. **`05_..._테스트계획및결과보고서`의 "FastAPI + LangGraph" 오기** — 문서 11과 맞춰 정정.
+
+---
+
+## 남은 작업 Plan (백로그)
+
+> 진행 시 각 항목이 어느 산출물/평가기준에 대응하는지 병기. 상세 착수는 별도 지시로.
+
+**A. 문서/산출물 정리 (평가 대응 — 진행 중)**
+- [x] **CLAUDE.md 현행화** — STEP 상태·llm_wiki 활용도·남은 작업 Plan (이 문서).
+- [ ] **평가계획서 대응 산출물 초안** — 화면설계서 / LLM 연동 웹앱 설명 / 시스템 구성도, 평가기준 매핑.
+- [ ] `05_테스트계획및결과보고서` 오기(LangGraph 등) 정정 + 자동화 테스트 결과 반영.
+
+**B. 코드 정리 (미사용·고아 제거) — [정리 대상](#정리-대상-미사용--고아--stale) 6건**
+- [ ] `langgraph_agents.py`·`prompts.py` 삭제 또는 미사용 명시.
+- [ ] `health.py` 상태 문자열을 실제 구현 기준으로 갱신.
+- [ ] `/report`·`/ask` 고아 엔드포인트: 배선 or 보류 결정.
+
+**C. 테스트 보강 (최소한)**
+- [ ] **FastAPI 스모크 테스트** — `/ai/health`, 주요 라우터 인증(`verify_internal`) 401, 스키마 검증(현재 fastapi_app 테스트 0).
+- [ ] Django 미커버 앱(`accounts`·`mypage`) 핵심 경로 최소 테스트.
+- [ ] (선택) worker 채점 로직 단위 테스트.
+
+**D. 기능 완성도 (선택 고도화)**
+- [ ] `/analyze`에 `/search` RAG 근거 실제 주입(현재 `evidence=[]`).
+- [ ] coding_state 갱신 트리거 확대(제출·정답 처리 시점) 검토.
+- [ ] coding-state·authoring Agent `research.jsonl` 계측 추가.
+- [ ] ⚠️ 운영 배포 시 host `5432`(PostgreSQL) 노출 차단.
